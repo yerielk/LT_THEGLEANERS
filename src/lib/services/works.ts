@@ -3,6 +3,7 @@ import { getDb } from "../db";
 import { LectaError } from "./errors";
 import { normalize, TAG_BY_KEY } from "../recommendation/tags";
 import type { Medium } from "../data/catalog";
+import { ARTWORK } from "../data/artwork";
 
 export interface WorkTagView {
   key: string;
@@ -20,6 +21,7 @@ export interface WorkView {
   releaseYear: number | null;
   synopsis: string | null;
   artworkUrl: string | null;
+  artwork: { url: string; width: number; height: number; credit: string; sourcePage: string | null } | null;
   coverTone: string | null;
   metadataStatus: "VERIFIED" | "CURATED" | "INCOMPLETE";
   source: { name: string; url: string | null; note: string };
@@ -33,7 +35,7 @@ function sourceOf(r: Row) {
   const status = r.metadata_status as string;
   return {
     name: (r.external_source as string) || "Lecta editorial",
-    url: (r.source_url as string) || null,
+    url: null as string | null,
     note:
       status === "VERIFIED"
         ? "Metadata verified against the external source."
@@ -51,6 +53,15 @@ function toView(r: Row, tags: WorkTagView[]): WorkView {
     releaseYear: (r.release_year as number) ?? null,
     synopsis: (r.synopsis as string) ?? null,
     artworkUrl: (r.artwork_url as string) ?? null,
+    artwork: r.artwork_url
+      ? {
+          url: r.artwork_url as string,
+          width: ARTWORK[r.id as string]?.width ?? 300,
+          height: ARTWORK[r.id as string]?.height ?? (r.medium === "ALBUM" ? 300 : 450),
+          credit: (r.artwork_source as string) ?? "external",
+          sourcePage: (r.source_url as string) ?? null,
+        }
+      : null,
     coverTone: (r.cover_tone as string) ?? null,
     metadataStatus: r.metadata_status as WorkView["metadataStatus"],
     source: sourceOf(r),

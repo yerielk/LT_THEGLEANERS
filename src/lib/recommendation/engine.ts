@@ -45,6 +45,7 @@ export interface Recommendation {
   medium: Medium;
   releaseYear: number | null;
   coverTone: string | null;
+  artwork: WorkView["artwork"];
   score: number;
   scoreBreakdown: { semantic: number; why: number | null; theme: number | null; diversity: number; discovery: number };
   matchedTags: string[];
@@ -228,6 +229,7 @@ export function recommend(input: RecommendationRequest, actor: Actor, db: Databa
       medium: c.w.medium,
       releaseYear: c.w.releaseYear,
       coverTone: c.w.coverTone,
+      artwork: c.w.artwork,
       score: round(score),
       scoreBreakdown: { semantic: round(c.S), why: c.W === null ? null : round(c.W), theme: c.C === null ? null : round(c.C), diversity: round(D), discovery: round(c.N) },
       matchedTags: shared.map((s) => s.key),

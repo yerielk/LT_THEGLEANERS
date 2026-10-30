@@ -2,6 +2,7 @@ import type { DatabaseSync } from "node:sqlite";
 import { tx, nowIso } from "../db";
 import { SEED_WORKS, SEED_EXHIBITIONS, EDITORIAL_USER, DEMO_USER } from "./catalog";
 import { TAG_BY_KEY } from "../recommendation/tags";
+import { ARTWORK } from "./artwork";
 
 /**
  * Idempotent seed: upserts catalog works + tags, the two system users and the editorial sample exhibitions.
@@ -16,16 +17,23 @@ export function seedDatabase(db: DatabaseSync) {
     upUser.run(EDITORIAL_USER.id, EDITORIAL_USER.handle, EDITORIAL_USER.displayName, 0, 1, now);
     upUser.run(DEMO_USER.id, DEMO_USER.handle, DEMO_USER.displayName, 1, 0, now);
 
-    const upWork = db.prepare(`INSERT INTO works (id, medium, title, original_title, creator, release_year, synopsis, external_source, metadata_status, cover_tone, created_at, updated_at)
-      VALUES (?,?,?,?,?,?,?, 'Lecta editorial', 'CURATED', ?, ?, ?)
+    const upWork = db.prepare(`INSERT INTO works (id, medium, title, original_title, creator, release_year, synopsis, artwork_url, artwork_source, artwork_license_note, source_url, external_source, metadata_status, cover_tone, created_at, updated_at)
+      VALUES (?,?,?,?,?,?,?,?,?,?,?, 'Lecta editorial', 'CURATED', ?, ?, ?)
       ON CONFLICT(id) DO UPDATE SET medium=excluded.medium, title=excluded.title, original_title=excluded.original_title, creator=excluded.creator,
-        release_year=excluded.release_year, synopsis=excluded.synopsis, cover_tone=excluded.cover_tone, updated_at=excluded.updated_at`);
+        release_year=excluded.release_year, synopsis=excluded.synopsis, artwork_url=excluded.artwork_url, artwork_source=excluded.artwork_source,
+        artwork_license_note=excluded.artwork_license_note, source_url=excluded.source_url, cover_tone=excluded.cover_tone, updated_at=excluded.updated_at`);
     const delTags = db.prepare("DELETE FROM work_tags WHERE work_id = ? AND provenance = 'HUMAN_CURATED'");
     const insTag = db.prepare(
       "INSERT INTO work_tags (id, work_id, tag_key, category, weight, provenance, evidence_text, reviewed) VALUES (?,?,?,?,?, 'HUMAN_CURATED', 'curated interpretation', 1)",
     );
     for (const w of SEED_WORKS) {
-      upWork.run(w.id, w.medium, w.title, w.originalTitle ?? null, w.creator, w.year, w.synopsis, w.tone, now, now);
+      const art = ARTWORK[w.id];
+      upWork.run(
+        w.id, w.medium, w.title, w.originalTitle ?? null, w.creator, w.year, w.synopsis,
+        art?.url ?? null, art ? "Wikipedia infobox (Wikimedia)" : null,
+        art ? "Official artwork © its rights holder, shown for identification; hot-linked from Wikimedia." : null,
+        art?.sourcePage ?? null, w.tone, now, now,
+      );
       delTags.run(w.id);
       for (const pair of w.tags.split(",")) {
         const [key, weight] = pair.split(":");

@@ -8,7 +8,7 @@ import type { Actor } from "../src/lib/services/actor";
 import { getDb, newId, nowIso } from "../src/lib/db";
 import { MEDIA } from "../src/lib/validators";
 
-export const TOOL_NAMES = ["search_works", "get_exhibition", "recommend_for_exhibition", "create_exhibition_draft"] as const;
+export const TOOL_NAMES = ["search_works", "find_related_works", "get_exhibition", "recommend_for_exhibition", "create_exhibition_draft"] as const;
 
 const appUrl = () => (process.env.LECTA_APP_URL || "http://localhost:3000").replace(/\/$/, "");
 
@@ -74,6 +74,53 @@ export function buildServer(actor: Actor): McpServer {
           source: w.source.name, metadataStatus: w.metadataStatus,
         }));
         return { data: { works, total: res.total, appliedFilters: { query: query ?? null, medium: medium ?? null, limit: limit ?? 10 } }, summary: { query, medium, returned: works.length } };
+      }),
+  );
+
+  server.registerTool(
+    "find_related_works",
+    {
+      title: "Find related works",
+      description:
+        "Recommend real catalog works related to a set of seed works and/or an exhibition (collection), optionally in another medium. " +
+        "Pass seed_work_ids from search_works, or collection_id from get_exhibition. Never invents works: every result is an existing Lecta work ID with grounded reasons. Same engine as the web app (coldstart-v1).",
+      inputSchema: z.object({
+        seed_work_ids: z.array(z.string().min(3).max(64)).max(16).optional().describe("Work IDs returned by search_works"),
+        collection_id: z.string().min(3).max(64).optional().describe("Exhibition ID (public, or your own draft with the bearer key)"),
+        target_media: z.enum(["film", "series", "book", "album", "FILM", "SERIES", "BOOK", "ALBUM"]).optional(),
+        limit: z.number().int().min(1).max(10).optional().describe("Default 3"),
+        liked_reasons: z.array(z.string().max(80)).max(10).optional().describe("Why the user loves the seeds, e.g. ['lingering emotion']"),
+      }),
+      outputSchema: loose({ algorithm_version: z.string(), results: z.array(loose({ work_id: z.string() })) }).or(loose({ error: loose({}) })),
+      annotations: { readOnlyHint: true, openWorldHint: false },
+    },
+    async ({ seed_work_ids, collection_id, target_media, limit, liked_reasons }) =>
+      run(actor, "find_related_works", () => {
+        if (!seed_work_ids?.length && !collection_id) {
+          throw new LectaError("VALIDATION_ERROR", "Provide seed_work_ids (from search_works) and/or collection_id (from get_exhibition).");
+        }
+        const r = recommend(
+          {
+            exhibitionId: collection_id,
+            seedWorkIds: seed_work_ids,
+            targetMedium: target_media ? (target_media.toUpperCase() as "FILM" | "SERIES" | "BOOK" | "ALBUM") : undefined,
+            limit: limit ?? 3,
+            likedReasons: liked_reasons,
+          },
+          actor,
+        );
+        const data = {
+          algorithm_version: r.algorithmVersion,
+          fallback_used: r.fallbackUsed,
+          seeds: r.seeds.map((s) => ({ work_id: s.workId, title: s.title, media_type: s.medium.toLowerCase() })),
+          excluded_work_ids: r.excludedSeedIds,
+          results: r.recommendations.map((x) => ({
+            work_id: x.workId, title: x.title, media_type: x.medium.toLowerCase(), creator: x.creator, year: x.releaseYear,
+            score: x.score, score_breakdown: x.scoreBreakdown, confidence: x.confidenceLabel, source: x.source,
+            reasons: x.reasons.map((rr) => ({ type: rr.type, tag: rr.tag ?? null, evidence_work_id: rr.evidenceWorkId ?? null, evidence_text: rr.evidenceText ?? null, text: rr.text })),
+          })),
+        };
+        return { data, target: collection_id ? ["exhibition", collection_id] : undefined, summary: { returned: data.results.length, ids: data.results.map((x) => x.work_id) } };
       }),
   );
 

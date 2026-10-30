@@ -9,7 +9,7 @@ loadEnv();
 const URL_ = process.env.LECTA_MCP_URL || "http://127.0.0.1:3333/mcp";
 const KEY = process.env.LECTA_MCP_WRITE_KEY;
 const SEED_EXHIBITION = "ex_on_things_left_unsaid";
-const REQUIRED = ["search_works", "get_exhibition", "recommend_for_exhibition", "create_exhibition_draft"];
+const REQUIRED = ["search_works", "find_related_works", "get_exhibition", "recommend_for_exhibition", "create_exhibition_draft"];
 
 let passed = 0;
 function check(cond: unknown, label: string, detail?: unknown) {
@@ -73,6 +73,16 @@ async function main() {
     const found = await call(anon, "search_works", { query: rec.data.recommendations.find((r: any) => r.workId === id).title, limit: 20 });
     check(found.data.works.some((w: any) => w.id === id), `recommended ${id} exists in the catalog`);
   }
+
+  console.log("4b) find_related_works (UAT-03: 2 seed ids, target_media=book, limit=3)");
+  const fr = await call(anon, "find_related_works", { seed_work_ids: seedIds.slice(0, 2), target_media: "book", limit: 3 });
+  check(!fr.isError && fr.data.results?.length === 3, "3 related works returned", fr.data);
+  check(fr.data.results.every((r: any) => r.media_type === "book" && !seedIds.slice(0, 2).includes(r.work_id)), "all are books and none is a seed");
+  check(fr.data.results.every((r: any) => r.work_id && r.title && r.reasons?.length >= 1), "each result has id, title and reasons");
+  const frEmpty = await call(anon, "find_related_works", {});
+  check(frEmpty.isError && frEmpty.data.error?.code === "VALIDATION_ERROR", "no seeds → VALIDATION_ERROR with guidance");
+  const frBad = await call(anon, "find_related_works", { seed_work_ids: ["w_not_real_123"] });
+  check(frBad.isError && frBad.data.error?.code === "WORK_NOT_FOUND", "unknown seed id → WORK_NOT_FOUND (no invented works)");
 
   console.log("5) create_exhibition_draft without a key → must fail");
   const draftArgs = {

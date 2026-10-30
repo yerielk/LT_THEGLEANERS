@@ -1,9 +1,10 @@
 "use client";
-import Link from "next/link";
+import { Link } from "next-view-transitions";
 import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import type { RecommendationResult, Recommendation } from "@/lib/recommendation/engine";
-import { WorkCover, MEDIUM_LABEL } from "./WorkCover";
+import { MEDIUM_LABEL } from "./WorkCover";
+import { WorkImage } from "./WorkImage";
 
 const REASONS = [
   { key: "lingering_emotion", ko: "오래 남는 여운" },
@@ -16,11 +17,13 @@ const REASONS = [
 const MEDIA = ["ANY", "FILM", "SERIES", "BOOK", "ALBUM"] as const;
 const PARTS: [keyof Recommendation["scoreBreakdown"], string][] = [["semantic", "맥락"], ["why", "이유"], ["theme", "주제"], ["diversity", "다양성"], ["discovery", "확장"]];
 
+type Rec = Recommendation & { artwork?: { url: string; width: number; height: number } | null };
+
 export function RecommendationPanel({ exhibitionId, canAdd }: { exhibitionId: string; canAdd: boolean }) {
   const router = useRouter();
   const [reasons, setReasons] = useState<string[]>([]);
   const [medium, setMedium] = useState<(typeof MEDIA)[number]>("ANY");
-  const [data, setData] = useState<RecommendationResult | null>(null);
+  const [data, setData] = useState<(RecommendationResult & { recommendations: Rec[] }) | null>(null);
   const [state, setState] = useState<"loading" | "ready" | "error">("loading");
   const [error, setError] = useState("");
   const [adding, setAdding] = useState<string | null>(null);
@@ -59,49 +62,45 @@ export function RecommendationPanel({ exhibitionId, canAdd }: { exhibitionId: st
 
   return (
     <section className="recs" aria-labelledby="recs-title">
-      <div className="section-head" style={{ marginBottom: 20 }}>
+      <div className="recs-head">
         <div>
-          <h2 id="recs-title" className="h2" style={{ margin: 0 }}>A piece that belongs here</h2>
-          <p className="muted" style={{ margin: "8px 0 0" }}>이 전시의 작품, 제목과 소개, 그리고 고른 이유를 읽고 카탈로그에서 다음 작품을 찾아요.</p>
+          <h2 id="recs-title" className="h2">A piece that belongs here</h2>
+          <p className="muted" style={{ margin: "10px 0 0", maxWidth: "36em" }}>이 방의 작품, 제목과 소개, 그리고 고른 이유를 읽고 컬렉션에서 다음 작품을 찾아요.</p>
         </div>
         <button className="btn" onClick={run} disabled={state === "loading"}>{state === "loading" ? "Finding…" : "Find another piece"}</button>
       </div>
-      <div style={{ display: "grid", gap: 10 }}>
-        <div className="filters" role="group" aria-label="What did you love about these works?">
-          <span className="caption" style={{ alignSelf: "center", marginRight: 6 }}>Why you love them</span>
+      <div className="recs-controls">
+        <div className="toggles" role="group" aria-label="What do you love about these works?">
+          <span className="label-k">Why you love them</span>
           {REASONS.map((r) => (
-            <button key={r.key} className="chip" aria-pressed={reasons.includes(r.key)} onClick={() => setReasons((cur) => cur.includes(r.key) ? cur.filter((x) => x !== r.key) : [...cur, r.key])}>{r.ko}</button>
+            <button key={r.key} className="toggle" aria-pressed={reasons.includes(r.key)} onClick={() => setReasons((cur) => cur.includes(r.key) ? cur.filter((x) => x !== r.key) : [...cur, r.key])}>{r.ko}</button>
           ))}
         </div>
-        <div className="filters" role="group" aria-label="Medium">
-          <span className="caption" style={{ alignSelf: "center", marginRight: 6 }}>Medium</span>
-          {MEDIA.map((m) => <button key={m} className="chip" aria-pressed={medium === m} onClick={() => setMedium(m)}>{m === "ANY" ? "Any" : MEDIUM_LABEL[m]}</button>)}
+        <div className="toggles" role="group" aria-label="Medium">
+          <span className="label-k">Medium</span>
+          {MEDIA.map((m) => <button key={m} className="toggle" aria-pressed={medium === m} onClick={() => setMedium(m)}>{m === "ANY" ? "Any" : MEDIUM_LABEL[m]}</button>)}
         </div>
       </div>
-      {added && <p className="notice" role="status" style={{ marginTop: 20 }}>「{added}」을(를) 전시에 추가했어요.</p>}
-      {state === "error" && <p className="notice error" role="alert" style={{ marginTop: 20 }}>{error} <button className="linkish" style={{ background: "none", border: 0 }} onClick={run}>Retry</button></p>}
-      {data && data.recommendations.length === 0 && state === "ready" && (
-        <p className="notice" style={{ marginTop: 20 }}>이 조건에 남은 작품이 없어요. 매체를 Any로 바꿔 보세요.</p>
-      )}
+      {added && <p className="notice" role="status" style={{ marginTop: 24 }}>「{added}」을(를) 이 방에 추가했어요.</p>}
+      {state === "error" && <p className="notice error" role="alert" style={{ marginTop: 24 }}>{error} <button className="text-btn" onClick={run}>Retry</button></p>}
+      {data && data.recommendations.length === 0 && state === "ready" && <p className="notice" style={{ marginTop: 24 }}>이 조건에 남은 작품이 없어요. 매체를 Any로 바꿔 보세요.</p>}
       {data && (
-        <div className="rec-grid" style={{ opacity: state === "loading" ? 0.5 : 1 }} aria-busy={state === "loading"}>
+        <div className="rec-grid" style={{ opacity: state === "loading" ? 0.5 : 1, transition: "opacity .25s" }} aria-busy={state === "loading"}>
           {data.recommendations.map((r) => (
             <article key={r.workId} className="rec-card">
-              <Link href={`/works/${r.workId}`} aria-label={`${r.title}, details`}><WorkCover work={r} showCreator={false} /></Link>
+              <Link href={`/works/${r.workId}`} aria-label={`${r.title}, details`}><WorkImage work={r} /></Link>
               <div>
-                <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
-                  <span className={`badge ${r.confidenceLabel === "editorially_matched" ? "badge-olive" : "badge-rust"}`}>{r.confidenceLabel === "editorially_matched" ? "Matched" : "Exploratory"}</span>
-                  <span className="caption">{MEDIUM_LABEL[r.medium]} / score {r.score.toFixed(2)}</span>
-                </div>
-                <Link href={`/works/${r.workId}`} className="serif" style={{ fontSize: 23, lineHeight: 1.15, display: "block", marginTop: 8 }}>{r.title}</Link>
+                <span className={`badge ${r.confidenceLabel === "editorially_matched" ? "on" : "off"}`}>{r.confidenceLabel === "editorially_matched" ? "Matched" : "Exploratory"}</span>
+                <span className="caption"> / {MEDIUM_LABEL[r.medium]} / score {r.score.toFixed(2)}</span>
+                <Link href={`/works/${r.workId}`} className="serif" style={{ fontSize: 26, lineHeight: 1.1, display: "block", marginTop: 6, fontStyle: "italic" }}>{r.title}</Link>
                 <div className="muted" style={{ fontSize: 13 }}>{r.creator}{r.releaseYear ? `, ${r.releaseYear}` : ""}</div>
                 <ul className="reasons">{r.reasons.map((x, i) => <li key={i}>{x.text}</li>)}</ul>
-                <div className="score-bar" title="score breakdown" aria-label={PARTS.map(([k, l]) => `${l} ${r.scoreBreakdown[k] ?? "n/a"}`).join(", ")}>
+                <div className="score-bar" aria-label={PARTS.map(([k, l]) => `${l} ${r.scoreBreakdown[k] ?? "n/a"}`).join(", ")}>
                   {PARTS.map(([k]) => <span key={k}><i style={{ width: `${Math.round((r.scoreBreakdown[k] ?? 0) * 100)}%`, opacity: r.scoreBreakdown[k] === null ? 0 : 1 }} /></span>)}
                 </div>
-                <div className="caption" style={{ display: "grid", gridTemplateColumns: "repeat(5,1fr)", gap: 3, fontSize: 10, letterSpacing: ".06em", marginTop: 4 }}>{PARTS.map(([k, l]) => <span key={k}>{l}</span>)}</div>
+                <div className="score-labels">{PARTS.map(([k, l]) => <span key={k}>{l}</span>)}</div>
                 {canAdd && (
-                  <button className="btn btn-sm btn-ghost" style={{ marginTop: 14 }} disabled={adding !== null} onClick={() => add(r)}>
+                  <button className="btn btn-sm" style={{ marginTop: 16 }} disabled={adding !== null} onClick={() => add(r)}>
                     {adding === r.workId ? "Adding…" : "Add to exhibition"}
                   </button>
                 )}
@@ -110,7 +109,7 @@ export function RecommendationPanel({ exhibitionId, canAdd }: { exhibitionId: st
           ))}
         </div>
       )}
-      {data && <p className="caption" style={{ marginTop: 24 }}>{data.algorithmVersion}{data.fallbackUsed ? " / fallback: no shared tags found" : ""}{data.appliedReasons.length ? ` / reasons: ${data.appliedReasons.map((a) => a.label).join(", ")}` : ""}</p>}
+      {data && <p className="caption" style={{ marginTop: 32 }}>{data.algorithmVersion}{data.fallbackUsed ? " / fallback: no shared tags found" : ""}{data.appliedReasons.length ? ` / reasons: ${data.appliedReasons.map((a) => a.label).join(", ")}` : ""}</p>}
     </section>
   );
 }

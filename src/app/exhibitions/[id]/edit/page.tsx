@@ -14,8 +14,8 @@ export default async function EditExhibitionPage({ params }: { params: Promise<{
   if (!ex.isOwner) redirect(`/exhibitions/${id}`);
   return (
     <ExhibitionEditor mode="edit" canWrite init={{
-      id: ex.id, version: ex.version, title: ex.title, description: ex.description ?? "",
-      items: ex.items.map((i) => ({ id: i.workId, title: i.work.title, originalTitle: i.work.originalTitle, creator: i.work.creator, medium: i.work.medium, releaseYear: i.work.releaseYear, coverTone: i.work.coverTone, note: i.curatorNote ?? "" })),
+      id: ex.id, number: ex.number, version: ex.version, title: ex.title, description: ex.description ?? "",
+      items: ex.items.map((i) => ({ id: i.workId, title: i.work.title, originalTitle: i.work.originalTitle, creator: i.work.creator, medium: i.work.medium, releaseYear: i.work.releaseYear, coverTone: i.work.coverTone, artwork: i.work.artwork, note: i.curatorNote ?? "" })),
     }} />
   );
 }

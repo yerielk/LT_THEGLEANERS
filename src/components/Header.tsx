@@ -1,5 +1,5 @@
 "use client";
-import Link from "next/link";
+import { Link } from "next-view-transitions";
 import { usePathname } from "next/navigation";
 
 const NAV = [
@@ -13,8 +13,8 @@ export function Header({ demo }: { demo: boolean }) {
   return (
     <header className="site-header">
       <div className="wrap bar">
-        <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
-          <Link href="/" className="wordmark" aria-label="Lecta home">Lecta.</Link>
+        <div style={{ display: "flex", alignItems: "center", gap: 18 }}>
+          <Link href="/" className="wordmark" aria-label="Lecta home">Lecta</Link>
           {demo && <span className="demo-flag" title="DEMO_MODE=true — saves go to the shared demo user">Demo workspace</span>}
         </div>
         <nav className="nav" aria-label="Main">

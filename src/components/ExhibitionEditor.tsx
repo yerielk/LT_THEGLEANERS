@@ -1,11 +1,12 @@
 "use client";
-import Link from "next/link";
+import { Link, useTransitionRouter } from "next-view-transitions";
+import type { CSSProperties } from "react";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { useRouter } from "next/navigation";
 import { ArrowUp, ArrowDown, X } from "lucide-react";
 import { useSelection, type SelectedWork } from "@/lib/selection";
-import { WorkCover } from "./WorkCover";
-import { ExhibitionSpread } from "./ExhibitionSpread";
+import { WorkImage } from "./WorkImage";
+import { MEDIUM_KO } from "./WorkCover";
+import { wallFor } from "@/lib/design";
 
 const DRAFT_KEY = "lecta.builder.v1";
 
@@ -17,10 +18,10 @@ function loadDraft(): Draft | null {
 function saveDraft(d: Draft) { try { sessionStorage.setItem(DRAFT_KEY, JSON.stringify(d)); } catch { /* ignore */ } }
 function clearDraft() { try { sessionStorage.removeItem(DRAFT_KEY); } catch { /* ignore */ } }
 
-type EditInit = { id: string; version: number; title: string; description: string; items: (SelectedWork & { note: string })[] };
+type EditInit = { id: string; number: number; version: number; title: string; description: string; items: (SelectedWork & { note: string })[] };
 
 export function ExhibitionEditor({ mode, init, canWrite }: { mode: "new" | "edit"; init?: EditInit; canWrite: boolean }) {
-  const router = useRouter();
+  const router = useTransitionRouter();
   const selection = useSelection();
   const [title, setTitle] = useState(init?.title ?? "");
   const [description, setDescription] = useState(init?.description ?? "");
@@ -66,6 +67,8 @@ export function ExhibitionEditor({ mode, init, canWrite }: { mode: "new" | "edit
     setOrder(items.map((i) => i.id).filter((x) => x !== id));
   };
 
+  const roomNo = mode === "edit" ? init!.number : 0;
+  const wall = wallFor(mode === "edit" ? init!.number : 5);
   const titleMissing = title.trim().length === 0;
   const tooFew = items.length < 2;
   const tooMany = mode === "new" && items.length > 8;
@@ -94,7 +97,6 @@ export function ExhibitionEditor({ mode, init, canWrite }: { mode: "new" | "edit
       const id = body.exhibition.id as string;
       if (mode === "new") { clearDraft(); selection.clear(); }
       router.push(`/exhibitions/${id}?saved=1`);
-      router.refresh();
     } catch (e) {
       setError((e as Error).message);
       setSaving(false);
@@ -134,10 +136,10 @@ export function ExhibitionEditor({ mode, init, canWrite }: { mode: "new" | "edit
           <ol style={{ listStyle: "none", padding: 0, margin: 0 }}>
             {items.map((w, i) => (
               <li key={w.id} className="item-row">
-                <WorkCover work={w} mini />
+                <span className="thumb"><WorkImage work={w} /></span>
                 <div>
-                  <div className="serif" style={{ fontSize: 19, lineHeight: 1.2 }}>{w.title}</div>
-                  <div className="muted" style={{ fontSize: 13 }}>{w.creator}</div>
+                  <div className="serif" style={{ fontSize: 22, lineHeight: 1.15, fontStyle: "italic" }}>{w.title}</div>
+                  <div className="muted" style={{ fontSize: 13 }}>{MEDIUM_KO[w.medium]} / {w.creator}</div>
                   <label className="field" style={{ marginTop: 8, gap: 4 }}>
                     <span className="sr-only">Why this work belongs (optional)</span>
                     <input className="input" style={{ padding: "8px 10px", fontSize: 14 }} maxLength={200} value={notes[w.id] ?? ""}
@@ -154,7 +156,7 @@ export function ExhibitionEditor({ mode, init, canWrite }: { mode: "new" | "edit
           </ol>
           {touched && tooFew && <p className="error-text">전시에는 작품이 2개 이상 필요해요.</p>}
           {tooMany && <p className="error-text">처음 만들 때는 8개까지 담을 수 있어요. 저장한 뒤 추천으로 더 추가할 수 있어요.</p>}
-          {mode === "new" && <p style={{ marginTop: 14 }}><Link className="linkish" href="/discover">Add more works</Link></p>}
+          {mode === "new" && <p style={{ marginTop: 14 }}><Link className="btn-ghost" href="/discover">Add more works</Link></p>}
         </div>
 
         <div>
@@ -168,12 +170,25 @@ export function ExhibitionEditor({ mode, init, canWrite }: { mode: "new" | "edit
         </div>
       </form>
 
-      <section className="preview-pane" aria-label="Live preview">
-        <p className="caption" style={{ marginTop: 0 }}>Live preview / editorial-01</p>
-        <h2 className="h2" style={{ margin: "8px 0 10px", overflowWrap: "anywhere" }}>{title || <span className="muted">Untitled exhibition</span>}</h2>
-        {description && <p className="muted" style={{ marginTop: 0 }}>{description}</p>}
-        <hr className="rule" style={{ margin: "20px 0 28px" }} />
-        <ExhibitionSpread compact linkWorks={false} items={items.map((w) => ({ workId: w.id, work: w, curatorNote: notes[w.id]?.trim() || null }))} />
+      <section className="preview-pane" aria-label="Live preview" style={{ "--room": wall.hex, "--room-ink": wall.ink } as CSSProperties}>
+        <p className="caption" style={{ margin: 0 }}>Live preview — your room, wall colour {wall.name}</p>
+        <div className="preview-wall">
+          <div className="p-panel">
+            <span style={{ fontSize: 11 }}>Room {String(roomNo).padStart(2, "0")}</span>
+            <span className="t">{title || "Untitled"}</span>
+            <span style={{ fontSize: 11, opacity: .85 }}>{items.length} works</span>
+          </div>
+          {items.map((w, i) => (
+            <figure key={w.id} className="hung" data-medium={w.medium} style={{ margin: 0, "--ar": w.artwork ? w.artwork.width / w.artwork.height : 0.66 } as CSSProperties}>
+              <WorkImage work={w} />
+              <figcaption className="label" style={{ minHeight: 0, maxWidth: 180 }}>
+                <span className="l-title" style={{ fontSize: 16 }}>{String(i + 1).padStart(2, "0")} {w.title}</span>
+                {notes[w.id]?.trim() && <span className="l-line" style={{ color: "var(--ink)", fontFamily: "var(--kserif)" }}>“{notes[w.id].trim()}”</span>}
+              </figcaption>
+            </figure>
+          ))}
+        </div>
+        {description && <p className="muted" style={{ fontSize: 14, maxWidth: "36em" }}>{description}</p>}
       </section>
     </div>
   );

@@ -13,7 +13,7 @@ This branch (`feat/uat-editorial-mcp`) is the first-UAT MVP (2026-10-31).
 | Web | Magazine home, Discover (search, medium filter, selection shelf), work detail, exhibition builder with live preview, exhibition page with recommendations you can add, My exhibitions, Agent lab |
 | Data | 46 real works (12 films, 10 series, 12 books, 12 albums) and 4 editorial sample exhibitions in SQLite |
 | Recommendation | `coldstart-v1`: deterministic, explainable cross-medium recommendations that need no user history and no API key |
-| MCP | Standalone Streamable HTTP server at `127.0.0.1:3333/mcp` with 4 tools; writes need a bearer key **and** human approval |
+| MCP | Standalone Streamable HTTP server at `127.0.0.1:3333/mcp` with 5 tools; writes need a bearer key **and** human approval |
 | Agent | `agent:demo` runs a real LLM tool-calling loop over MCP when `OPENAI_API_KEY` is set (not verified in this environment, see Limitations) |
 
 ## Quick start
@@ -68,20 +68,19 @@ tests/                    vitest
 
 The brief suggested Prisma + SQLite. Prisma needs to download its engine binaries at install time. That download was blocked in the build environment, so Prisma could not be verified there. To keep every step verifiable, the data layer uses Node's built-in `node:sqlite` with a plain SQL schema (`db/schema.sql`), which has no native dependencies. The schema avoids SQLite-only features (TEXT ids, ISO timestamps, CHECK constraints), so moving to Postgres or Supabase later is a dialect change, not a redesign. Node prints an `ExperimentalWarning` for `node:sqlite`; this is expected.
 
-## Design
+## Design — a white gallery
 
-Reference weighting set by the team: **MUBI Notebook 40%, Apartamento 30%, A24 20%, Are.na 10%**. These are cues for mood and structure only; no layouts or assets were copied.
+The design direction is a white-walled exhibition space. Each exhibition is a **room**: it has a painted entrance wall, and its works hang on a single eye line with museum-style wall labels. The UI uses no boxed cards or bordered cells; controls are filled pills, underlined text, or plain words marked with a dot.
 
-| Reference | Where it shows up |
+| Element | Choice |
 | --- | --- |
-| MUBI Notebook | The home page opens like an issue cover (a dark full-bleed hero with oversized serif type) followed by a contents list. Each exhibition page reads like a feature article: a full-bleed opener in the first work's colour, a standfirst and byline, works laid out as alternating plates, and the strongest curator note pulled out as a quote. |
-| Apartamento | Paper grain on the page and on covers, generous white space, curator notes set as slightly tilted italic margin notes, and a handwritten-style aside in the hero. |
-| A24 | Discover works as a cover-first catalog: works sit on a shared baseline like a shelf, information is kept minimal, media are interleaved, and a row of moods at the top filters the list. |
-| Are.na | The selection shelf and the builder: collect works across media, reorder them, add context, and see a live preview. |
+| Room wall colours | From Sanzo Wada, *A Dictionary of Color Combinations* (1933), via the open dataset [mattdesl/dictionary-of-colour-combinations](https://github.com/mattdesl/dictionary-of-colour-combinations): Deep Lyons Blue `#1c4286`, Etruscan Red `#c55347`, Yellow Ocher `#e2b540`, Green Blue `#099197`, Old Rose `#d46d7a`, Oil Green `#819238`. They were chosen to be vivid but calm (saturation 0.45–1.0, lightness 0.3–0.6). See `src/lib/design.ts`. |
+| Type | All fonts are SIL OFL: **Instrument Serif** for display and wall text, **Instrument Sans** for labels and UI, **Pretendard** for Korean text, and **Gowun Batang** for Korean quotes. |
+| Artwork | Official posters, covers and album art, hot-linked from the Wikipedia infobox image of each work (`src/lib/data/artwork.ts`, 40 of 46 works). Each image belongs to its rights holder and is shown for identification, with a source link on the work page. Works without an image, or whose image fails to load, show Lecta's typographic cover. Wikipedia hosts non-free images at about 220–380px, so works are hung at modest sizes. |
+| Transitions | The View Transitions API via `next-view-transitions`. A room's painted wall morphs from the home page into the room, an artwork glides from Discover or a room into its detail page, and Discover re-hangs the grid with motion when filters change. `prefers-reduced-motion` turns all of this off. |
+| Room page | The wall scrolls horizontally on desktop: the mouse wheel walks along it and arrow keys work, with a progress line underneath. On mobile it becomes a vertical walk. |
 
-**Cover plates.** Lecta does not use official posters or sleeves. Each work gets a typographic plate composed for its medium: a film one-sheet with a credit block, a paperback with a spine and centred italic title, a record sleeve with a giant cropped initial, and a framed wide card for series.
-
-Design tokens follow the UAT brief (`--paper`, `--ink`, `--olive`, `--rust`, …). Type is Cormorant Garamond for display and Noto Sans KR for body text, with `word-break: keep-all` so Korean wraps naturally.
+Layout references: MUBI Notebook (oversized type and editorial rhythm), Apartamento (space and personal notes), A24 (a catalog led by the artwork), and Are.na (collecting and arranging). These informed mood only; no layouts or assets were copied.
 
 ## Data model
 
@@ -123,6 +122,7 @@ score = 0.35·S + 0.25·W + 0.20·C + 0.10·D + 0.10·N   (weights renormalised 
 | Tool | Kind | Notes |
 | --- | --- | --- |
 | `search_works` | read | `{query?, medium?, limit?}` → real IDs, tags and source |
+| `find_related_works` | read | `{seed_work_ids?, collection_id?, target_media?, limit?, liked_reasons?}` → related real works with reasons (the UAT-03 tool; same engine) |
 | `get_exhibition` | read | Public exhibitions for everyone; private drafts only for the owner (otherwise `UNAUTHORIZED` or `FORBIDDEN`) |
 | `recommend_for_exhibition` | read | `{exhibitionId, targetMedium?, limit?, likedReasons?}` → the same engine as the web app |
 | `create_exhibition_draft` | **write** | Needs the bearer key **and** `approvedByHuman: true`. Takes 2–8 existing works with no duplicates. `requestId` makes it idempotent. Always creates a private `DRAFT`. |

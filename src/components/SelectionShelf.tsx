@@ -1,38 +1,37 @@
 "use client";
-import Link from "next/link";
+import { Link } from "next-view-transitions";
 import { useSelection } from "@/lib/selection";
-import { WorkCover } from "./WorkCover";
+import { WorkImage } from "./WorkImage";
 
-export function SelectionShelf() {
-  const { items, remove, clear } = useSelection();
+/** Floating selection tray — the works you are carrying to your new room. */
+export function SelectionShelf({ alwaysVisible = false }: { alwaysVisible?: boolean }) {
+  const { items, remove, clear, ready } = useSelection();
+  if (!ready) return null;
   const n = items.length;
+  if (n === 0 && !alwaysVisible) return null;
   return (
-    <aside className="shelf" aria-label="Selection shelf" aria-live="polite">
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
-        <p className="h3" style={{ margin: 0 }}>Selection</p>
-        <span className="caption">{n} {n === 1 ? "work" : "works"}</span>
-      </div>
+    <aside className="tray" aria-label="Selection" aria-live="polite">
       {n === 0 ? (
-        <p className="muted" style={{ fontSize: 14, margin: "12px 0 0" }}>작품의 <b>Select</b>를 눌러 담아 보세요. 2개부터 전시를 시작할 수 있어요.</p>
+        <span className="hint">작품의 + 를 눌러 담아 보세요. 2개부터 전시를 만들 수 있어요.</span>
       ) : (
-        <ol>
-          {items.map((w) => (
-            <li key={w.id}>
-              <div className="mini"><WorkCover work={w} mini /></div>
-              <span><span className="serif" style={{ fontSize: 17 }}>{w.title}</span><br /><span className="muted" style={{ fontSize: 12.5 }}>{w.creator}</span></span>
-              <button className="remove" onClick={() => remove(w.id)} aria-label={`Remove ${w.title} from the shelf`}>Remove</button>
-            </li>
-          ))}
-        </ol>
+        <>
+          <span className="thumbs">
+            {items.map((w) => (
+              <span key={w.id} className="thumb">
+                <WorkImage work={w} mini />
+                <button onClick={() => remove(w.id)} aria-label={`Remove ${w.title} from the shelf`}>×</button>
+              </span>
+            ))}
+          </span>
+          <span className="count">{n} {n === 1 ? "work" : "works"}</span>
+          <button className="clear" onClick={clear}>Clear</button>
+        </>
       )}
-      <div style={{ display: "flex", gap: 10, flexWrap: "wrap", alignItems: "center", marginTop: n ? 0 : 16 }}>
-        {n >= 2 ? (
-          <Link className="btn" href="/exhibitions/new">Begin exhibition with {n} works</Link>
-        ) : (
-          <span className="btn" aria-disabled="true">Begin exhibition{n === 1 ? " — add 1 more" : ""}</span>
-        )}
-        {n > 0 && <button className="remove" onClick={clear}>Clear</button>}
-      </div>
+      {n >= 2 ? (
+        <Link className="btn" href="/exhibitions/new">Begin exhibition with {n} works</Link>
+      ) : (
+        <span className="btn" aria-disabled="true">Begin exhibition</span>
+      )}
     </aside>
   );
 }

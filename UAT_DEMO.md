@@ -11,7 +11,7 @@ npm run mcp:dev
 npm run mcp:smoke               # must print PASS before you start
 ```
 
-Open `http://localhost:3000`. The header should show **Demo workspace**.
+Open `http://localhost:3000`. The venue needs internet access, because artwork and fonts load from Wikimedia, Google Fonts and jsDelivr. Without it, the typographic covers and system fonts take over. The header should show **Demo workspace**.
 
 ## UAT-01 · Discover → select
 
@@ -35,9 +35,10 @@ Expected result: **Begin exhibition with 3 works** opens the builder with the sa
 
 1. On the saved exhibition, look at **A piece that belongs here**. There are 3 recommendations, each with its reasons and a score breakdown. Toggle a reason such as `오래 남는 여운` or a medium and click **Find another piece**.
 2. Click **Add to exhibition** on one recommendation. The work joins the spread and is still there after a reload.
-3. Open **Agent lab**. The server shows *online* with 4 tools. Click **Run protocol test** to see the real `tools/list → search_works → get_exhibition → recommend_for_exhibition` trace with timings and IDs.
-4. In a terminal, run `npm run mcp:smoke`. It checks that an anonymous write is refused (`UNAUTHORIZED`), that a write without approval is refused (`FORBIDDEN`), and that an approved write creates a draft which is then read back.
-5. With `OPENAI_API_KEY` set, you can instead run `npm run agent:demo`. The model chooses the tools itself and the runner asks `(y/N)` before writing. Without a key, it prints "model credentials missing", and you should call step 4 a *protocol test*, not an agent run.
+3. In MCP Inspector (or `npm run mcp:smoke`), call `find_related_works` with `{"seed_work_ids":["w_film_mood_for_love","w_book_remains_of_day"],"target_media":"book","limit":3}`. You get 3 real book IDs with titles, media and reasons. The UAT sheet's Test ID 3 uses exactly this input.
+4. Open **Agent lab**. The server shows *online* with 4 tools. Click **Run protocol test** to see the real `tools/list → search_works → get_exhibition → recommend_for_exhibition` trace with timings and IDs.
+5. In a terminal, run `npm run mcp:smoke`. It checks that an anonymous write is refused (`UNAUTHORIZED`), that a write without approval is refused (`FORBIDDEN`), and that an approved write creates a draft which is then read back.
+6. With `OPENAI_API_KEY` set, you can instead run `npm run agent:demo`. The model chooses the tools itself and the runner asks `(y/N)` before writing. Without a key, it prints "model credentials missing", and you should call step 4 a *protocol test*, not an agent run.
 
 ## Test IDs
 
@@ -54,7 +55,7 @@ These were run on 2026-10-31 in the build environment, not at the UAT venue.
 | Check | Command | Result |
 | --- | --- | --- |
 | Unit tests | `npm test` | 15 / 15 passed |
-| MCP protocol | `npm run mcp:smoke` | 23 / 23 checks passed |
+| MCP protocol, including `find_related_works` | `npm run mcp:smoke` | 29 / 29 checks passed |
 | Browser UAT-01/02 + add recommendation, 1440px and 390px | `npm run test:e2e` | 24 / 24 checks passed |
 | Production build | `npm run build` | Passed |
 | LLM agent run | `npm run agent:demo` | **Not run**: no model key in the build environment |

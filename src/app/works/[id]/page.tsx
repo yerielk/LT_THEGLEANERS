@@ -1,9 +1,11 @@
-import Link from "next/link";
+import { Link } from "next-view-transitions";
 import { notFound } from "next/navigation";
 import { getWork } from "@/lib/services/works";
 import { LectaError } from "@/lib/services/errors";
-import { WorkCover, MEDIUM_KO } from "@/components/WorkCover";
+import { MEDIUM_KO, MEDIUM_LABEL } from "@/components/WorkCover";
+import { WorkImage } from "@/components/WorkImage";
 import { SelectButton } from "@/components/SelectButton";
+import { SelectionShelf } from "@/components/SelectionShelf";
 import { tagLabel } from "@/lib/recommendation/tags";
 import { getDb } from "@/lib/db";
 
@@ -17,26 +19,29 @@ export default async function WorkPage({ params }: { params: Promise<{ id: strin
     .prepare("SELECT e.id, e.title FROM exhibition_items i JOIN exhibitions e ON e.id = i.exhibition_id WHERE i.work_id = ? AND e.visibility = 'PUBLIC' ORDER BY e.number")
     .all(id) as { id: string; title: string }[];
   return (
-    <div className="wrap grid12 work-detail">
-      <div className="wd-cover"><WorkCover work={w} /></div>
-      <div className="wd-body">
-        <p className="caption"><Link href={`/discover?medium=${w.medium}`} className="linkish">{MEDIUM_KO[w.medium]}</Link></p>
-        <h1 className="display" style={{ fontSize: "clamp(44px, 6vw, 88px)", margin: "8px 0 12px" }}>{w.title}</h1>
-        {w.originalTitle && <p className="serif" style={{ fontSize: 26, fontStyle: "italic", margin: "0 0 12px" }}>{w.originalTitle}</p>}
-        <p className="lede">{w.synopsis}</p>
-        <div style={{ display: "flex", gap: 12, flexWrap: "wrap", margin: "28px 0 40px" }}>
-          <SelectButton work={{ id: w.id, title: w.title, originalTitle: w.originalTitle, creator: w.creator, medium: w.medium, releaseYear: w.releaseYear, coverTone: w.coverTone }} className="btn" labels={["Add to selection", "In your selection"]} />
-          <Link className="btn btn-ghost" href="/exhibitions/new">Start an exhibition</Link>
+    <>
+      <div className="wrap work-detail">
+        <div className="wd-art" data-medium={w.medium} style={{ maxWidth: w.artwork ? Math.round(w.artwork.width * 1.5) : undefined, justifySelf: "center", width: "100%" }}><WorkImage work={w} vt={`work-${w.id}`} eager /></div>
+        <div className="wd-body">
+          <p className="caption"><Link href={`/discover?medium=${w.medium}`} className="linkish">{MEDIUM_LABEL[w.medium]}</Link></p>
+          <h1 className="display">{w.title}</h1>
+          {w.originalTitle && <p className="serif" style={{ fontSize: 26, fontStyle: "italic", margin: "0 0 8px", fontFamily: "var(--kserif)" }}>{w.originalTitle}</p>}
+          <p style={{ fontSize: 15, margin: "0 0 20px" }}>{w.creator}{w.releaseYear ? `, ${w.releaseYear}` : ""}</p>
+          <p className="lede">{w.synopsis}</p>
+          <div style={{ display: "flex", gap: 22, flexWrap: "wrap", alignItems: "center", margin: "28px 0 8px" }}>
+            <SelectButton work={{ id: w.id, title: w.title, originalTitle: w.originalTitle, creator: w.creator, medium: w.medium, releaseYear: w.releaseYear, coverTone: w.coverTone, artwork: w.artwork }} className="btn" labels={["Add to selection", "In your selection"]} />
+            <Link className="btn-ghost" href="/exhibitions/new">Start an exhibition</Link>
+          </div>
+          <dl className="wd-meta">
+            <dt>Medium</dt><dd>{MEDIUM_KO[w.medium]}</dd>
+            <dt>Taste</dt><dd>{w.tags.map((t) => tagLabel(t.key)).join(", ")}<br /><span className="muted" style={{ fontSize: 12.5 }}>Lecta 팀의 큐레이션 해석이에요. 작품에 대한 사실이 아닙니다.</span></dd>
+            <dt>Metadata</dt><dd>{w.source.name} ({w.metadataStatus})</dd>
+            {w.artwork && <><dt>Image</dt><dd>Official artwork, © its rights holder. {w.artwork.sourcePage && <a className="linkish" href={w.artwork.sourcePage} target="_blank" rel="noreferrer">Source</a>}</dd></>}
+            {appearsIn.length > 0 && <><dt>On view in</dt><dd>{appearsIn.map((e, i) => <span key={e.id}>{i ? ", " : ""}<Link className="linkish" href={`/exhibitions/${e.id}`}>{e.title}</Link></span>)}</dd></>}
+          </dl>
         </div>
-        <dl className="dl">
-          <dt>Creator</dt><dd>{w.creator}</dd>
-          <dt>Year</dt><dd>{w.releaseYear ?? "—"}</dd>
-          <dt>Taste tags</dt>
-          <dd>{w.tags.map((t) => tagLabel(t.key)).join(", ")}<br /><span className="muted" style={{ fontSize: 13 }}>Curated interpretation by the Lecta team, not a fact about the work.</span></dd>
-          <dt>Provenance</dt><dd>{w.source.name} ({w.metadataStatus})<br /><span className="muted" style={{ fontSize: 13 }}>{w.source.note}</span></dd>
-          {appearsIn.length > 0 && (<><dt>Exhibited in</dt><dd>{appearsIn.map((e, i) => <span key={e.id}>{i ? ", " : ""}<Link className="linkish" href={`/exhibitions/${e.id}`}>{e.title}</Link></span>)}</dd></>)}
-        </dl>
       </div>
-    </div>
+      <SelectionShelf />
+    </>
   );
 }

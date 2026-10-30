@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { ViewTransitions } from "next-view-transitions";
 import "./globals.css";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
@@ -11,22 +12,22 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="ko">
-      <head>
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
-        {/* Open-licensed (OFL) fonts. If they fail to load, Georgia / system sans take over without layout breakage. */}
-        <link
-          rel="stylesheet"
-          href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&family=Noto+Sans+KR:wght@400;500&display=swap"
-        />
-      </head>
-      <body>
-        <a href="#main" className="sr-only focus:not-sr-only">Skip to content</a>
-        <Header demo={demoModeEnabled()} />
-        <main id="main">{children}</main>
-        <Footer />
-      </body>
-    </html>
+    <ViewTransitions>
+      <html lang="ko">
+        <head>
+          <link rel="preconnect" href="https://fonts.googleapis.com" />
+          <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
+          {/* All fonts are SIL Open Font License: Instrument Serif, Instrument Sans, Gowun Batang (Google Fonts), Pretendard (jsDelivr). */}
+          <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Instrument+Sans:wght@400;500;600&family=Gowun+Batang&display=swap" />
+          <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css" />
+        </head>
+        <body>
+          <a href="#main" className="sr-only">Skip to content</a>
+          <Header demo={demoModeEnabled()} />
+          <main id="main">{children}</main>
+          <Footer />
+        </body>
+      </html>
+    </ViewTransitions>
   );
 }

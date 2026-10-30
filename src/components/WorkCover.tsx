@@ -7,6 +7,7 @@ export interface CoverWork {
   medium: "FILM" | "SERIES" | "BOOK" | "ALBUM";
   releaseYear?: number | null;
   coverTone?: string | null;
+  artwork?: { url: string; width: number; height: number } | null;
 }
 
 export const MEDIUM_LABEL: Record<CoverWork["medium"], string> = { FILM: "Film", SERIES: "Series", BOOK: "Book", ALBUM: "Album" };
