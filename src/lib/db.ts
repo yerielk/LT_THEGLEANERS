@@ -10,7 +10,7 @@ let instance: DatabaseSync | null = null;
 
 export function dbPath(): string {
   const p = process.env.LECTA_DB_PATH || "./data/lecta.db";
-  return p === ":memory:" ? p : path.resolve(process.cwd(), p);
+  return p === ":memory:" ? p : path.resolve(/*turbopackIgnore: true*/ process.cwd(), p);
 }
 
 export function openDb(file = dbPath()): DatabaseSync {
@@ -18,7 +18,7 @@ export function openDb(file = dbPath()): DatabaseSync {
   const db = new DatabaseSync(file);
   db.exec("PRAGMA busy_timeout = 5000;");
   if (file !== ":memory:") db.exec("PRAGMA journal_mode = WAL;");
-  const schema = fs.readFileSync(path.resolve(process.cwd(), "db/schema.sql"), "utf8");
+  const schema = fs.readFileSync(path.join(/*turbopackIgnore: true*/ process.cwd(), "db", "schema.sql"), "utf8");
   db.exec(schema);
   return db;
 }

@@ -11,7 +11,8 @@
     "mcp:smoke": "tsx scripts/mcp-smoke.ts",
     "agent:demo": "tsx scripts/agent-demo.ts",
     "test": "vitest run",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "test:e2e": "node scripts/e2e-uat.mjs"
   },
   "dependencies": {
     "@modelcontextprotocol/client": "^2.4.0",
