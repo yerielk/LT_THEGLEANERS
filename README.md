@@ -68,6 +68,21 @@ tests/                    vitest
 
 The brief suggested Prisma + SQLite. Prisma needs to download its engine binaries at install time. That download was blocked in the build environment, so Prisma could not be verified there. To keep every step verifiable, the data layer uses Node's built-in `node:sqlite` with a plain SQL schema (`db/schema.sql`), which has no native dependencies. The schema avoids SQLite-only features (TEXT ids, ISO timestamps, CHECK constraints), so moving to Postgres or Supabase later is a dialect change, not a redesign. Node prints an `ExperimentalWarning` for `node:sqlite`; this is expected.
 
+## Design
+
+Reference weighting set by the team: **MUBI Notebook 40%, Apartamento 30%, A24 20%, Are.na 10%**. These are cues for mood and structure only; no layouts or assets were copied.
+
+| Reference | Where it shows up |
+| --- | --- |
+| MUBI Notebook | The home page opens like an issue cover (a dark full-bleed hero with oversized serif type) followed by a contents list. Each exhibition page reads like a feature article: a full-bleed opener in the first work's colour, a standfirst and byline, works laid out as alternating plates, and the strongest curator note pulled out as a quote. |
+| Apartamento | Paper grain on the page and on covers, generous white space, curator notes set as slightly tilted italic margin notes, and a handwritten-style aside in the hero. |
+| A24 | Discover works as a cover-first catalog: works sit on a shared baseline like a shelf, information is kept minimal, media are interleaved, and a row of moods at the top filters the list. |
+| Are.na | The selection shelf and the builder: collect works across media, reorder them, add context, and see a live preview. |
+
+**Cover plates.** Lecta does not use official posters or sleeves. Each work gets a typographic plate composed for its medium: a film one-sheet with a credit block, a paperback with a spine and centred italic title, a record sleeve with a giant cropped initial, and a framed wide card for series.
+
+Design tokens follow the UAT brief (`--paper`, `--ink`, `--olive`, `--rust`, …). Type is Cormorant Garamond for display and Noto Sans KR for body text, with `word-break: keep-all` so Korean wraps naturally.
+
 ## Data model
 
 `users`, `works`, `work_tags`, `exhibitions`, `exhibition_items`, `taste_signals`, `recommendation_events` and `agent_activity` (see `db/schema.sql`).

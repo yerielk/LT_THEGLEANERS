@@ -3,7 +3,7 @@ import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { Search, X } from "lucide-react";
 import type { WorkView } from "@/lib/services/works";
-import { WorkCover, MEDIUM_PLURAL } from "@/components/WorkCover";
+import { WorkCover, MEDIUM_PLURAL, MEDIUM_KO } from "@/components/WorkCover";
 import { SelectButton } from "@/components/SelectButton";
 import { SelectionShelf } from "@/components/SelectionShelf";
 import { useSelection } from "@/lib/selection";
@@ -11,12 +11,13 @@ import { useSelection } from "@/lib/selection";
 const MEDIA = ["ALL", "FILM", "SERIES", "BOOK", "ALBUM"] as const;
 type M = (typeof MEDIA)[number];
 
-export function DiscoverClient({ initial, initialMedium, tagLabels }: { initial: WorkView[]; initialMedium: M; tagLabels: Record<string, string> }) {
-  const [q, setQ] = useState("");
+export function DiscoverClient({ initial, initialMedium, initialQ = "", moods, tagLabels }: { initial: WorkView[]; initialMedium: M; initialQ?: string; moods: string[]; tagLabels: Record<string, string> }) {
+  const [q, setQ] = useState(initialQ);
   const [medium, setMedium] = useState<M>(initialMedium);
   const [works, setWorks] = useState<WorkView[]>(initial);
   const [total, setTotal] = useState(initial.length);
   const [state, setState] = useState<"idle" | "loading" | "error">("idle");
+  const [retry, setRetry] = useState(0);
   const first = useRef(true);
   const { has } = useSelection();
 
@@ -35,17 +36,23 @@ export function DiscoverClient({ initial, initialMedium, tagLabels }: { initial:
         setWorks(body.works); setTotal(body.total); setState("idle");
         const url = new URL(window.location.href);
         medium === "ALL" ? url.searchParams.delete("medium") : url.searchParams.set("medium", medium);
+        q.trim() ? url.searchParams.set("q", q.trim()) : url.searchParams.delete("q");
         window.history.replaceState(null, "", url);
       } catch (e) {
         if ((e as Error).name !== "AbortError") setState("error");
       }
     }, 220);
     return () => { clearTimeout(t); ctl.abort(); };
-  }, [q, medium]);
+  }, [q, medium, retry]);
 
   return (
     <>
       <div className="wrap">
+        <p className="mood-strip" aria-label="Moods">
+          {moods.map((m) => (
+            <button key={m} type="button" aria-pressed={q === m} onClick={() => setQ(q === m ? "" : m)}>{m}</button>
+          ))}
+        </p>
         <div className="toolbar" role="search">
           <label className="search">
             <Search size={18} aria-hidden />
@@ -68,7 +75,7 @@ export function DiscoverClient({ initial, initialMedium, tagLabels }: { initial:
           {state === "error" ? (
             <div className="notice error" role="alert">
               검색 서버에 연결하지 못했어요. 잠시 후 다시 시도해 주세요.{" "}
-              <button className="linkish" style={{ background: "none", border: 0 }} onClick={() => setQ((v) => v + "")}>Retry</button>
+              <button className="linkish" style={{ background: "none", border: 0 }} onClick={() => setRetry((n) => n + 1)}>Retry</button>
             </div>
           ) : works.length === 0 ? (
             <div className="empty">
@@ -77,15 +84,17 @@ export function DiscoverClient({ initial, initialMedium, tagLabels }: { initial:
               <button className="btn btn-ghost" onClick={() => { setQ(""); setMedium("ALL"); }}>Reset search</button>
             </div>
           ) : (
-            <div className="works-grid" style={{ opacity: state === "loading" ? 0.55 : 1, transition: "opacity .2s" }}>
+            <div className="catalog" style={{ opacity: state === "loading" ? 0.55 : 1 }}>
               {works.map((w) => (
-                <article key={w.id} className="tile" data-selected={has(w.id)}>
-                  <Link href={`/works/${w.id}`} aria-label={`${w.title}, details`}><WorkCover work={w} /></Link>
+                <article key={w.id} className="tile" data-medium={w.medium} data-selected={has(w.id)}>
+                  <Link href={`/works/${w.id}`} className="tile-cover" aria-label={`${w.title}, details`}><WorkCover work={w} /></Link>
                   <div className="meta">
-                    <Link href={`/works/${w.id}`} className="t-title">{w.title}</Link>
+                    <div>
+                      <Link href={`/works/${w.id}`} className="t-title">{w.title}</Link>
+                      <div className="t-sub">{MEDIUM_KO[w.medium]} / {w.creator.replace(/\s*\(.*?\)/g, "")}, {w.releaseYear}</div>
+                    </div>
                     <SelectButton work={{ id: w.id, title: w.title, originalTitle: w.originalTitle, creator: w.creator, medium: w.medium, releaseYear: w.releaseYear, coverTone: w.coverTone }} />
                   </div>
-                  <div className="t-sub">{w.creator}, {w.releaseYear}</div>
                   <div className="tags">{w.tagKeys.slice(0, 3).map((k) => <span key={k}>{tagLabels[k] ?? k}</span>)}</div>
                 </article>
               ))}

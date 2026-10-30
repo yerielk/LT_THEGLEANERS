@@ -120,6 +120,14 @@ export function searchWorks(
       .sort((a, b) => b.s - a.s || a.w.id.localeCompare(b.w.id));
     works = scored.map((x) => x.w);
   }
+  if (!q && !params.medium) {
+    // catalog order: interleave media so the archive reads like a mixed shelf, not grouped by type
+    const order = ["FILM", "BOOK", "ALBUM", "SERIES"] as const;
+    const buckets = order.map((m) => works.filter((w) => w.medium === m));
+    const mixed: WorkView[] = [];
+    for (let i = 0; mixed.length < works.length; i++) for (const b of buckets) if (b[i]) mixed.push(b[i]);
+    works = mixed;
+  }
   const total = works.length;
   return { works: works.slice(0, params.limit ?? 48), total };
 }

@@ -8,10 +8,12 @@ export const metadata: Metadata = { title: "Discover" };
 
 const VALID = ["FILM", "SERIES", "BOOK", "ALBUM"] as const;
 
-export default async function DiscoverPage({ searchParams }: { searchParams: Promise<{ medium?: string }> }) {
+export default async function DiscoverPage({ searchParams }: { searchParams: Promise<{ medium?: string; q?: string }> }) {
   const sp = await searchParams;
   const medium = VALID.find((m) => m === sp.medium);
-  const { works } = searchWorks({ medium, limit: 60 });
+  const q = typeof sp.q === "string" ? sp.q.slice(0, 80) : "";
+  const { works } = searchWorks({ medium, q: q || undefined, limit: 60 });
+  const moods = TAGS.filter((t) => ["longing", "memory", "solitude", "lingering_emotion", "dreamy", "grief", "belonging", "growing_up"].includes(t.key)).map((t) => t.ko);
   const tagLabels = Object.fromEntries(TAGS.map((t) => [t.key, t.ko]));
   return (
     <>
@@ -21,7 +23,7 @@ export default async function DiscoverPage({ searchParams }: { searchParams: Pro
           영화·시리즈·책·앨범을 한 아카이브에서. 마음이 가는 작품을 골라 선반에 담으면, 그대로 전시가 됩니다.
         </p>
       </header>
-      <DiscoverClient initial={works} initialMedium={medium ?? "ALL"} tagLabels={tagLabels} />
+      <DiscoverClient initial={works} initialMedium={medium ?? "ALL"} initialQ={q} moods={moods} tagLabels={tagLabels} />
     </>
   );
 }
