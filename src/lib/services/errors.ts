@@ -7,6 +7,7 @@ export type ErrorCode =
   | "VALIDATION_ERROR"
   | "CONFLICT"
   | "RECOMMENDATION_EMPTY"
+  | "RATE_LIMITED"
   | "SERVICE_UNAVAILABLE";
 
 const STATUS: Record<ErrorCode, number> = {
@@ -18,6 +19,7 @@ const STATUS: Record<ErrorCode, number> = {
   VALIDATION_ERROR: 400,
   CONFLICT: 409,
   RECOMMENDATION_EMPTY: 404,
+  RATE_LIMITED: 429,
   SERVICE_UNAVAILABLE: 503,
 };
 
@@ -26,7 +28,7 @@ export class LectaError extends Error {
   constructor(
     readonly code: ErrorCode,
     message: string,
-    readonly retryable = code === "SERVICE_UNAVAILABLE",
+    readonly retryable = code === "SERVICE_UNAVAILABLE" || code === "RATE_LIMITED",
     readonly details?: unknown,
   ) {
     super(message);

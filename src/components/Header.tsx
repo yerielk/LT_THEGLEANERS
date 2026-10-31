@@ -9,7 +9,7 @@ const NAV = [
   { href: "/agent-lab", label: "Agent lab", small: true },
 ];
 
-export function Header({ demo, user }: { demo: boolean; user: { name: string } | null }) {
+export function Header({ demo, user, showLab }: { demo: boolean; user: { name: string } | null; showLab: boolean }) {
   const path = usePathname();
   return (
     <header className="site-header">
@@ -19,7 +19,7 @@ export function Header({ demo, user }: { demo: boolean; user: { name: string } |
           {demo && <span className="demo-flag" title="DEMO_MODE=true — while signed out, saves go to the shared demo user">Demo workspace</span>}
         </div>
         <nav className="nav" aria-label="Main">
-          {NAV.map((n) => (
+          {NAV.filter((n) => showLab || n.href !== "/agent-lab").map((n) => (
             <Link key={n.href} href={n.href} aria-current={path.startsWith(n.href) ? "page" : undefined} className={n.small ? "hide-sm" : undefined}>
               {n.label}
             </Link>

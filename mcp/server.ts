@@ -9,6 +9,7 @@ import { buildServer, TOOL_NAMES } from "./tools";
 import { agentActorFromAuthHeader } from "../src/lib/services/actor";
 import { closeDb, getDb } from "../src/lib/db";
 import { loadEnv } from "../scripts/env";
+import { clientIp, hit } from "../src/lib/rate-limit";
 
 loadEnv();
 const PORT = Number(process.env.MCP_PORT || 3333);
@@ -63,6 +64,15 @@ const server = http.createServer(async (req, res) => {
     return res.end(JSON.stringify({ status: dbOk ? "ok" : "degraded", db: dbOk, tools: TOOL_NAMES, writes: "personal MCP key + human approval", endpoint: "/mcp" }));
   }
   if (path !== "/mcp") { res.statusCode = 404; return res.end("Not found"); }
+
+  const xff = req.headers["x-forwarded-for"];
+  const limited = hit(`mcp:${clientIp(Array.isArray(xff) ? xff.join(",") : xff, req.socket.remoteAddress)}`, 120);
+  if (!limited.ok) {
+    res.statusCode = 429;
+    res.setHeader("retry-after", String(limited.retryAfterSeconds));
+    res.setHeader("content-type", "application/json");
+    return res.end(JSON.stringify({ error: { code: "RATE_LIMITED", message: "Too many requests. Try again shortly.", retryable: true } }));
+  }
 
   const chunks: Buffer[] = [];
   let size = 0;

@@ -2,7 +2,7 @@ import { Link } from "next-view-transitions";
 import type { CSSProperties } from "react";
 import { listFeatured } from "@/lib/services/exhibitions";
 import { searchWorks, allWorks } from "@/lib/services/works";
-import { webActor } from "@/lib/services/web-actor";
+import { canUseAgentLab, webActor } from "@/lib/services/web-actor";
 import { MEDIUM_PLURAL } from "@/components/WorkCover";
 import { WorkImage } from "@/components/WorkImage";
 import { TAGS } from "@/lib/recommendation/tags";
@@ -100,7 +100,7 @@ export default async function Home() {
             Lecta는 이 사이트 옆에서 MCP 서버를 함께 돌려요. AI 에이전트는 카탈로그를 검색하고, 전시를 읽고, 여기서 보는 것과 같은 추천 엔진에 묻고,
             당신이 승인할 때만 비공개 초안을 저장합니다.
           </p>
-          <Link className="btn-ghost" href="/agent-lab">Open the agent lab</Link>
+          {canUseAgentLab(actor) && <Link className="btn-ghost" href="/agent-lab">Open the agent lab</Link>}
         </div>
         <ol className="agent-steps">
           <li><span><code>search_works</code> 실제 작품을 찾아 ID를 돌려줘요.</span></li>

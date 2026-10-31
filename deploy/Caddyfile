@@ -1,0 +1,10 @@
+# HTTPS certificates are issued automatically for {$DOMAIN}.
+{$DOMAIN} {
+	encode zstd gzip
+	handle /mcp* {
+		reverse_proxy mcp:3333
+	}
+	handle {
+		reverse_proxy web:3000
+	}
+}

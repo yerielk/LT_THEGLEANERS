@@ -1,5 +1,6 @@
 import { DEMO_USER } from "../data/catalog";
 import { resolveApiKey } from "./api-keys";
+import { isLocalDeployment } from "../deployment";
 
 /** Who is acting: a signed-in user, the local demo user, an agent holding a personal MCP key, or nobody. */
 export interface Actor {
@@ -10,7 +11,8 @@ export interface Actor {
 
 export const ANONYMOUS: Actor = { userId: null, kind: "anonymous", label: "anonymous" };
 
-export const demoModeEnabled = () => process.env.DEMO_MODE === "true";
+// never on a deployment: it would let anyone write as the shared demo user
+export const demoModeEnabled = () => process.env.DEMO_MODE === "true" && isLocalDeployment();
 
 /** Local UAT fallback when nobody is signed in: writes go to the shared demo user. */
 export const DEMO_ACTOR: Actor = { userId: DEMO_USER.id, kind: "demo", label: DEMO_USER.displayName };

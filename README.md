@@ -45,8 +45,11 @@ npm run build         # production build
 | `KAKAO_REQUEST_EMAIL` | `true` only when the Kakao app may request `account_email` (business app) |
 | `DEMO_MODE` | `true` lets signed-out visitors save as the shared demo user (local UAT only) |
 | `LECTA_MCP_KEY` | Your personal MCP key from **My exhibitions**, used by `agent:demo` |
+| `LECTA_ADMIN_USER_IDS` | On a deployment, the user ids that may open `/agent-lab` (comma separated). Locally it is open to everyone |
 
 In Kakao Developers, enable Kakao Login, add the redirect URI `http://localhost:3000/api/auth/callback/kakao`, and turn on the consent items for nickname and profile image.
+
+To deploy on one server (Docker, Caddy HTTPS, PostgreSQL), see [docs/deploy.md](docs/deploy.md). When `BETTER_AUTH_URL` is not localhost, the web server refuses `DEMO_MODE=true`, the agent lab is limited to admins, and API and MCP requests are rate limited per IP.
 
 Optional:
 

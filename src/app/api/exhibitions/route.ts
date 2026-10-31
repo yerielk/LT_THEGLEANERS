@@ -1,4 +1,4 @@
-import { ok, fail, readJson } from "@/lib/http";
+import { ok, fail, readJson, rateLimit } from "@/lib/http";
 import { createExhibition, listFeatured, listMine } from "@/lib/services/exhibitions";
 import { webActor } from "@/lib/services/web-actor";
 
@@ -16,6 +16,7 @@ export async function GET(req: Request) {
 
 export async function POST(req: Request) {
   try {
+    rateLimit(req, "exhibitions:write", 20);
     const { exhibition, created } = await createExhibition(await readJson(req), await webActor());
     return ok({ exhibition, created }, created ? 201 : 200);
   } catch (e) {

@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
+import { notFound } from "next/navigation";
 import { mcpStatus } from "@/lib/mcp-inspect";
 import { listFeatured } from "@/lib/services/exhibitions";
-import { webActor } from "@/lib/services/web-actor";
+import { canUseAgentLab, webActor } from "@/lib/services/web-actor";
 import { desc } from "drizzle-orm";
 import { getDb } from "@/lib/db";
 import { agentActivity } from "@/lib/schema";
@@ -11,8 +12,9 @@ export const dynamic = "force-dynamic";
 export const metadata: Metadata = { title: "Agent lab" };
 
 export default async function AgentLab() {
-  const status = await mcpStatus();
   const actor = await webActor();
+  if (!canUseAgentLab(actor)) notFound();
+  const status = await mcpStatus();
   const exhibitions = (await listFeatured(actor)).map((e) => ({ id: e.id, title: e.title }));
   const activity = await getDb()
     .select({ tool_name: agentActivity.toolName, actor: agentActivity.actor, status: agentActivity.status, duration_ms: agentActivity.durationMs, target_id: agentActivity.targetId, created_at: agentActivity.createdAt })

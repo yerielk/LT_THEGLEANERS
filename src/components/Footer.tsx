@@ -1,6 +1,6 @@
 import { Link } from "next-view-transitions";
 
-export function Footer() {
+export function Footer({ showLab }: { showLab: boolean }) {
   return (
     <footer className="site-footer">
       <div className="wrap">
@@ -10,8 +10,8 @@ export function Footer() {
         </p>
         <p style={{ gridColumn: "7 / span 6", margin: 0 }}>
           Posters, covers and album art are shown for identification and belong to their rights holders; images are linked from Wikipedia/Wikimedia.
-          Room colours come from Sanzo Wada&apos;s <i>A Dictionary of Color Combinations</i>. Agents can use Lecta through MCP — see the{" "}
-          <Link className="linkish" href="/agent-lab">agent lab</Link>.
+          Room colours come from Sanzo Wada&apos;s <i>A Dictionary of Color Combinations</i>. Agents can use Lecta through MCP{showLab ? <> — see the{" "}
+          <Link className="linkish" href="/agent-lab">agent lab</Link></> : null}.
         </p>
       </div>
     </footer>

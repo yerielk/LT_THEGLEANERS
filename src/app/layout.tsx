@@ -3,7 +3,7 @@ import { ViewTransitions } from "next-view-transitions";
 import "./globals.css";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
-import { webActor } from "@/lib/services/web-actor";
+import { canUseAgentLab, webActor } from "@/lib/services/web-actor";
 
 export const metadata: Metadata = {
   title: { default: "Lecta — the things we keep", template: "%s / Lecta" },
@@ -24,9 +24,9 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         </head>
         <body>
           <a href="#main" className="sr-only">Skip to content</a>
-          <Header demo={actor.kind === "demo"} user={actor.kind === "user" ? { name: actor.label } : null} />
+          <Header demo={actor.kind === "demo"} user={actor.kind === "user" ? { name: actor.label } : null} showLab={canUseAgentLab(actor)} />
           <main id="main">{children}</main>
-          <Footer />
+          <Footer showLab={canUseAgentLab(actor)} />
         </body>
       </html>
     </ViewTransitions>
