@@ -37,7 +37,7 @@ async function main() {
     const h = await (await fetch(MCP_URL.replace(/\/mcp$/, "/health"))).json();
     if (!h.demoMode || !h.writeKeyConfigured) {
       console.log(`[agent:demo] warning: the running MCP server has demoMode=${h.demoMode}, writeKeyConfigured=${h.writeKeyConfigured}.`);
-      console.log("[agent:demo] Writes will be refused. Stop it (lsof -ti :3333 | xargs kill) and start it again with `npm run mcp:dev` from the project folder.");
+      console.log("[agent:demo] Writes will be refused. Stop it (kill $(lsof -ti tcp:3333 -sTCP:LISTEN)) and start it again with `npm run mcp:dev` from the project folder.");
     }
   } catch {
     console.log(`[agent:demo] warning: no MCP server answered at ${MCP_URL}. Start it with \`npm run mcp:dev\`.`);

@@ -128,5 +128,5 @@ UAT 세 항목은 시트 조건 그대로 미리 돌려 보았습니다. longing
 
 - **포스터가 안 뜰 때:** 인터넷 때문에 포스터 대신 Lecta의 글자 표지가 나오는데, 기능은 그대로입니다.
 - **MCP 서버가 Offline일 때:** 잠시 서버를 다시 켜겠습니다. *(두 번째 터미널에서 Ctrl+C 후 `npm run mcp:dev`)*
-- **쓰기에서 UNAUTHORIZED가 날 때:** 서버가 키를 읽기 전에 켜진 상태라 다시 켜겠습니다. *(`lsof -ti :3333 | xargs kill` 후 `npm run mcp:dev`)*
+- **쓰기에서 UNAUTHORIZED가 날 때:** 서버가 키를 읽기 전에 켜진 상태라 다시 켜겠습니다. *(`kill $(lsof -ti tcp:3333 -sTCP:LISTEN)` 후 `npm run mcp:dev`)*
 - **LLM 에이전트가 응답하지 않을 때:** 모델 쪽 연결 문제라 같은 호출을 MCP Inspector로 보여드리겠습니다. 도구와 결과는 완전히 같습니다.
