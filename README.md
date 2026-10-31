@@ -11,7 +11,7 @@ This branch (`feat/uat-editorial-mcp`) is the first-UAT MVP (2026-10-31).
 | Area | What you can do |
 | --- | --- |
 | Web | Magazine home, Discover (search, medium filter, selection shelf), work detail, exhibition builder with live preview, exhibition page with recommendations you can add, My exhibitions, Agent lab |
-| Data | 46 real works (12 films, 10 series, 12 books, 12 albums) and 4 editorial sample exhibitions in SQLite |
+| Data | 82 real works (21 films, 18 series, 21 books, 22 albums) and 4 editorial sample exhibitions in SQLite |
 | Recommendation | `coldstart-v1`: deterministic, explainable cross-medium recommendations that need no user history and no API key |
 | MCP | Standalone Streamable HTTP server at `127.0.0.1:3333/mcp` with 5 tools; writes need a bearer key **and** human approval |
 | Agent | `agent:demo` runs a real LLM tool-calling loop over MCP when `OPENAI_API_KEY` is set (not verified in this environment, see Limitations) |
@@ -76,7 +76,7 @@ The design direction is a white-walled exhibition space. Each exhibition is a **
 | --- | --- |
 | Room wall colours | From Sanzo Wada, *A Dictionary of Color Combinations* (1933), via the open dataset [mattdesl/dictionary-of-colour-combinations](https://github.com/mattdesl/dictionary-of-colour-combinations): Deep Lyons Blue `#1c4286`, Etruscan Red `#c55347`, Yellow Ocher `#e2b540`, Green Blue `#099197`, Old Rose `#d46d7a`, Oil Green `#819238`. They were chosen to be vivid but calm (saturation 0.45–1.0, lightness 0.3–0.6). See `src/lib/design.ts`. |
 | Type | All fonts are SIL OFL: **Instrument Serif** for display and wall text, **Instrument Sans** for labels and UI, **Pretendard** for Korean text, and **Gowun Batang** for Korean quotes. |
-| Artwork | Official posters, covers and album art, hot-linked from the Wikipedia infobox image of each work (`src/lib/data/artwork.ts`, 40 of 46 works). Each image belongs to its rights holder and is shown for identification, with a source link on the work page. Works without an image, or whose image fails to load, show Lecta's typographic cover. Wikipedia hosts non-free images at about 220–380px, so works are hung at modest sizes. |
+| Artwork | Official posters, covers and album art, hot-linked from the Wikipedia infobox image of each work (`src/lib/data/artwork.ts`, 62 of 82 works). Each image belongs to its rights holder and is shown for identification, with a source link on the work page. Works without an image, or whose image fails to load, show Lecta's typographic cover. Wikipedia hosts non-free images at about 220–380px, so works are hung at modest sizes. |
 | Transitions | The View Transitions API via `next-view-transitions`. A room's painted wall morphs from the home page into the room, an artwork glides from Discover or a room into its detail page, and Discover re-hangs the grid with motion when filters change. `prefers-reduced-motion` turns all of this off. |
 | Room page | The wall scrolls horizontally on desktop: the mouse wheel walks along it and arrow keys work, with a progress line underneath. On mobile it becomes a vertical walk. |
 

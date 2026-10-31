@@ -32,6 +32,17 @@ async function main() {
   }
   if (!process.env.LECTA_MCP_WRITE_KEY) console.log("[agent:demo] note: LECTA_MCP_WRITE_KEY missing — the write step will be refused by the server.");
 
+  // Preflight: the MCP server only reads .env when it starts, so a stale server is the usual cause of UNAUTHORIZED.
+  try {
+    const h = await (await fetch(MCP_URL.replace(/\/mcp$/, "/health"))).json();
+    if (!h.demoMode || !h.writeKeyConfigured) {
+      console.log(`[agent:demo] warning: the running MCP server has demoMode=${h.demoMode}, writeKeyConfigured=${h.writeKeyConfigured}.`);
+      console.log("[agent:demo] Writes will be refused. Stop it (lsof -ti :3333 | xargs kill) and start it again with `npm run mcp:dev` from the project folder.");
+    }
+  } catch {
+    console.log(`[agent:demo] warning: no MCP server answered at ${MCP_URL}. Start it with \`npm run mcp:dev\`.`);
+  }
+
   const client = new Client({ name: "lecta-agent-demo", version: "0.1.0" });
   await client.connect(
     new StreamableHTTPClientTransport(new URL(MCP_URL), {
@@ -102,6 +113,8 @@ async function main() {
       const data = out.structuredContent ?? out.content;
       console.log(`[tool] ${name} ${redact(input).slice(0, 200)} → ${out.isError ? "ERROR " + redact(data?.error) : "ok"} (${Date.now() - t0}ms)`);
       if (name === "create_exhibition_draft" && !out.isError) lastCreatedId = data.exhibitionId;
+      if (out.isError && data?.error?.code === "UNAUTHORIZED")
+        console.log("[agent:demo] UNAUTHORIZED means the server did not accept the key: check that .env LECTA_MCP_WRITE_KEY is the same one the running MCP server loaded (restart it after editing .env) and DEMO_MODE=true.");
       messages.push({ role: "tool", tool_call_id: tc.id, content: JSON.stringify(data).slice(0, 12000) });
     }
   }
