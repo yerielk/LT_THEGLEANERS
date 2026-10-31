@@ -48,7 +48,8 @@ async function main() {
       role: "system",
       content:
         "You are an agent using the Lecta MCP tools. Only use IDs returned by tools; never invent works. " +
-        "Before any write, the runtime asks the human for approval — call the write tool with approvedByHuman=true only as the runtime instructs; if it is refused, stop. " +
+        "Never ask the user for approval in plain text. When the user's request includes creating a draft, call the write tool directly once you have the IDs: " +
+        "the runtime pauses, shows the human exactly what will be written and asks y/N, then sets approvedByHuman itself. If the write is refused, stop and report that. " +
         "After creating a draft, call get_exhibition to verify it, then report the persisted title, items and draft id.",
     },
     { role: "user", content: prompt },
@@ -69,7 +70,12 @@ async function main() {
     messages.push(msg);
     if (!msg.tool_calls?.length) {
       console.log(`\n[agent] ${msg.content}`);
-      break;
+      if (lastCreatedId || autoApprove) break;
+      // The model answered in text (e.g. asked a question). Let the human reply; an empty line ends the run.
+      const reply = (await rl.question("\n[you] (빈 줄로 종료) ")).trim();
+      if (!reply) break;
+      messages.push({ role: "user", content: reply });
+      continue;
     }
     for (const tc of msg.tool_calls) {
       if (++calls > MAX_CALLS) {
@@ -102,7 +108,7 @@ async function main() {
 
   if (lastCreatedId) {
     const back = (await client.callTool({ name: "get_exhibition", arguments: { exhibitionId: lastCreatedId } })) as { structuredContent?: any; isError?: boolean };
-    console.log(`\n[verify] get_exhibition(${lastCreatedId}) → ${back.isError ? "ERROR" : `"${back.structuredContent.title}" · ${back.structuredContent.items.length} works · ${back.structuredContent.visibility}`}`);
+    console.log(`\n[verify] get_exhibition(${lastCreatedId}) → ${back.isError ? "ERROR" : `"${back.structuredContent.title}", ${back.structuredContent.items.length} works, ${back.structuredContent.visibility}`}`);
   } else {
     console.log("\n[verify] no draft was created in this run.");
   }
