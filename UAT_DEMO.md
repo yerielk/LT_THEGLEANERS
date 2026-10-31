@@ -39,7 +39,7 @@ Expected result: **Begin exhibition with 3 works** opens the builder with the sa
 3. Run `npm run mcp:inspect` once before the session so the Inspector is cached. In MCP Inspector (or `npm run mcp:smoke`), call `find_related_works` with `{"seed_work_ids":["w_film_mood_for_love","w_book_remains_of_day"],"target_media":"book","limit":3}`. You get 3 real book IDs with titles, media and reasons. The UAT sheet's Test ID 3 uses exactly this input.
 4. Open **Agent lab**. The server shows *online* with 5 tools. Click **Run protocol test** to see the real `tools/list → search_works → get_exhibition → find_related_works → recommend_for_exhibition` trace, where `find_related_works` uses the UAT-03 input (book, limit 3), with timings and IDs.
 5. In a terminal, run `npm run mcp:smoke`. It checks that an anonymous write is refused (`UNAUTHORIZED`), that a write without approval is refused (`FORBIDDEN`), and that an approved write creates a draft which is then read back.
-6. With `OPENAI_API_KEY` set, you can instead run `npm run agent:demo`. The model chooses the tools itself and the runner asks `(y/N)` before writing. Without a key, it prints "model credentials missing", and you should call step 5 a *protocol test*, not an agent run.
+6. With `ANTHROPIC_API_KEY` set, you can instead run `npm run agent:demo`. The model chooses the tools itself and the runner asks `(y/N)` before writing. Without a key, it prints "model credentials missing", and you should call step 5 a *protocol test*, not an agent run.
 
 ## Test IDs
 

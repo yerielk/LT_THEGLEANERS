@@ -9,7 +9,7 @@ import { LectaError } from "../src/lib/services/errors";
 let db: DatabaseSync;
 beforeEach(() => {
   db = freshDb();
-  delete process.env.OPENAI_API_KEY; // the required path must not depend on a model key
+  delete process.env.ANTHROPIC_API_KEY; // the required path must not depend on a model key
 });
 
 const EX = "ex_on_things_left_unsaid";

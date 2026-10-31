@@ -14,7 +14,7 @@ This branch (`feat/uat-editorial-mcp`) is the first-UAT MVP (2026-10-31).
 | Data | 46 real works (12 films, 10 series, 12 books, 12 albums) and 4 editorial sample exhibitions in SQLite |
 | Recommendation | `coldstart-v1`: deterministic, explainable cross-medium recommendations that need no user history and no API key |
 | MCP | Standalone Streamable HTTP server at `127.0.0.1:3333/mcp` with 5 tools; writes need a bearer key **and** human approval |
-| Agent | `agent:demo` runs a real LLM tool-calling loop over MCP when `OPENAI_API_KEY` is set (not verified in this environment, see Limitations) |
+| Agent | `agent:demo` runs a real Claude tool-calling loop over MCP when `ANTHROPIC_API_KEY` is set (not verified in this environment, see Limitations) |
 
 ## Quick start
 
@@ -39,7 +39,7 @@ Optional:
 ```bash
 npm i -D playwright && npx playwright install chromium
 npm run test:e2e      # browser walkthrough of UAT-01/02 at 1440px and 390px (needs npm run dev or start)
-npm run agent:demo    # real LLM agent over MCP — only with OPENAI_API_KEY in .env
+npm run agent:demo    # real Claude agent over MCP — only with ANTHROPIC_API_KEY in .env
 ```
 
 ## How it is built
@@ -161,5 +161,5 @@ Errors look like `{ "error": { "code", "message", "retryable" } }` with status 4
 
 - Only one demo user and no sign-in. "Public" sharing of user exhibitions is not built yet, so drafts stay private and "Copy link" says so.
 - Metadata has not been checked against TMDB, Google Books or MusicBrainz yet (`metadataStatus = CURATED`).
-- `agent:demo` was written against the OpenAI Chat Completions tools API but could not be run in the build environment (no key, no network to the model API). The MCP protocol path is verified by `mcp:smoke`.
+- `agent:demo` uses the Anthropic Messages API (`@anthropic-ai/sdk`, default model `claude-opus-5-5`, override with `ANTHROPIC_MODEL`) but has not been run against the live API yet. The MCP protocol path is verified by `mcp:smoke`.
 - Fonts load from Google Fonts. Offline, the layout falls back to Georgia and system sans.
