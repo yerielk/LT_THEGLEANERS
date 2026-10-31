@@ -7,17 +7,22 @@ import { WorkImage } from "@/components/WorkImage";
 import { SelectButton } from "@/components/SelectButton";
 import { SelectionShelf } from "@/components/SelectionShelf";
 import { tagLabel } from "@/lib/recommendation/tags";
+import { and, asc, eq } from "drizzle-orm";
 import { getDb } from "@/lib/db";
+import { exhibitionItems, exhibitions } from "@/lib/schema";
 
 export const dynamic = "force-dynamic";
 
 export default async function WorkPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   let w;
-  try { w = getWork(id); } catch (e) { if (e instanceof LectaError && e.code === "WORK_NOT_FOUND") notFound(); throw e; }
-  const appearsIn = getDb()
-    .prepare("SELECT e.id, e.title FROM exhibition_items i JOIN exhibitions e ON e.id = i.exhibition_id WHERE i.work_id = ? AND e.visibility = 'PUBLIC' ORDER BY e.number")
-    .all(id) as { id: string; title: string }[];
+  try { w = await getWork(id); } catch (e) { if (e instanceof LectaError && e.code === "WORK_NOT_FOUND") notFound(); throw e; }
+  const appearsIn = await getDb()
+    .select({ id: exhibitions.id, title: exhibitions.title })
+    .from(exhibitionItems)
+    .innerJoin(exhibitions, eq(exhibitions.id, exhibitionItems.exhibitionId))
+    .where(and(eq(exhibitionItems.workId, id), eq(exhibitions.visibility, "PUBLIC")))
+    .orderBy(asc(exhibitions.number));
   return (
     <>
       <div className="wrap work-detail">

@@ -3,14 +3,15 @@ import { ViewTransitions } from "next-view-transitions";
 import "./globals.css";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
-import { demoModeEnabled } from "@/lib/services/actor";
+import { webActor } from "@/lib/services/web-actor";
 
 export const metadata: Metadata = {
   title: { default: "Lecta — the things we keep", template: "%s / Lecta" },
   description: "Lecta is a living exhibition of the things you love, and why.",
 };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  const actor = await webActor();
   return (
     <ViewTransitions>
       <html lang="ko">
@@ -23,7 +24,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         </head>
         <body>
           <a href="#main" className="sr-only">Skip to content</a>
-          <Header demo={demoModeEnabled()} />
+          <Header demo={actor.kind === "demo"} user={actor.kind === "user" ? { name: actor.label } : null} />
           <main id="main">{children}</main>
           <Footer />
         </body>

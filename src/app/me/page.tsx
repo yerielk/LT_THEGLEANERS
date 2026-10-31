@@ -2,22 +2,27 @@ import type { Metadata } from "next";
 import type { CSSProperties } from "react";
 import { Link } from "next-view-transitions";
 import { listMine } from "@/lib/services/exhibitions";
-import { webActor } from "@/lib/services/actor";
+import { webActor } from "@/lib/services/web-actor";
 import { WorkImage } from "@/components/WorkImage";
 import { EmptyState } from "@/components/States";
+import { AuthButton } from "@/components/AuthButton";
+import { ApiKeys } from "@/components/ApiKeys";
 import { wallFor } from "@/lib/design";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = { title: "My exhibitions" };
 
-export default function MePage() {
-  const actor = webActor();
-  const mine = listMine(actor);
+export default async function MePage() {
+  const actor = await webActor();
+  const mine = await listMine(actor);
   return (
     <div className="wrap" style={{ paddingBottom: 120 }}>
       <header className="page-head">
         <h1 className="display">My rooms.</h1>
-        <p className="muted">{actor.userId ? `${actor.label} — 이 데모 환경의 모든 저장은 하나의 데모 사용자에게 기록돼요.` : "읽기 전용 환경이에요 (DEMO_MODE가 꺼져 있음)."}</p>
+        <p className="muted">
+          {actor.kind === "user" ? `${actor.label}님의 전시예요.` : actor.kind === "demo" ? `${actor.label} — 로그인하지 않으면 모든 저장이 하나의 데모 사용자에게 기록돼요.` : "로그인하면 내 전시와 MCP 키를 관리할 수 있어요."}
+        </p>
+        {actor.kind !== "user" && <AuthButton user={null} />}
       </header>
       {mine.length === 0 ? (
         <EmptyState title="아직 만든 전시가 없어요." body="Discover에서 작품을 골라 첫 전시를 만들어 보세요. 에이전트가 MCP로 만든 초안도 여기에 나타나요." action={{ href: "/discover", label: "Choose works" }} />
@@ -46,6 +51,7 @@ export default function MePage() {
           })}
         </div>
       )}
+      {actor.userId && <ApiKeys />}
     </div>
   );
 }

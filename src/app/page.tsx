@@ -2,7 +2,7 @@ import { Link } from "next-view-transitions";
 import type { CSSProperties } from "react";
 import { listFeatured } from "@/lib/services/exhibitions";
 import { searchWorks, allWorks } from "@/lib/services/works";
-import { webActor } from "@/lib/services/actor";
+import { webActor } from "@/lib/services/web-actor";
 import { MEDIUM_PLURAL } from "@/components/WorkCover";
 import { WorkImage } from "@/components/WorkImage";
 import { TAGS } from "@/lib/recommendation/tags";
@@ -14,12 +14,11 @@ const MOODS = ["longing", "memory", "solitude", "lingering_emotion", "restrained
 const HANG = ["w_film_mood_for_love", "w_album_blue", "w_book_never_let_me_go", "w_film_past_lives", "w_album_pink_moon", "w_book_human_acts", "w_film_aftersun", "w_album_carrie_lowell", "w_book_kitchen", "w_film_perfect_days"];
 const HANG_H: Record<string, number> = { FILM: 340, BOOK: 290, ALBUM: 220, SERIES: 180 };
 
-export default function Home() {
-  const actor = webActor();
-  const featured = listFeatured(actor);
-  const works = allWorks();
+export default async function Home() {
+  const actor = await webActor();
+  const [featured, works] = await Promise.all([listFeatured(actor), allWorks()]);
   const byId = new Map(works.map((w) => [w.id, w]));
-  const counts = (["FILM", "SERIES", "BOOK", "ALBUM"] as const).map((m) => ({ m, n: searchWorks({ medium: m, limit: 60 }).total }));
+  const counts = await Promise.all((["FILM", "SERIES", "BOOK", "ALBUM"] as const).map(async (m) => ({ m, n: (await searchWorks({ medium: m, limit: 60 })).total })));
   const moodCount = (k: string) => works.filter((w) => w.tagKeys.includes(k)).length;
 
   return (

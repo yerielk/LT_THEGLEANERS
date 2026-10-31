@@ -1,13 +1,18 @@
 /**
  * Protocol smoke test against the running MCP server (npm run mcp:dev), using the official MCP client.
  * Exits non-zero on the first failed check. Secrets are never printed.
+ * Uses LECTA_MCP_KEY if set; otherwise issues a temporary key for the demo user and revokes it at the end.
  */
 import { Client, StreamableHTTPClientTransport } from "@modelcontextprotocol/client";
 import { loadEnv } from "./env";
+import { closeDb } from "../src/lib/db";
+import { DEMO_ACTOR } from "../src/lib/services/actor";
+import { createApiKey, revokeApiKey } from "../src/lib/services/api-keys";
 
 loadEnv();
 const URL_ = process.env.LECTA_MCP_URL || "http://127.0.0.1:3333/mcp";
-const KEY = process.env.LECTA_MCP_WRITE_KEY;
+let KEY = process.env.LECTA_MCP_KEY;
+let issuedKeyId: string | null = null;
 const SEED_EXHIBITION = "ex_on_things_left_unsaid";
 const REQUIRED = ["search_works", "find_related_works", "get_exhibition", "recommend_for_exhibition", "create_exhibition_draft"];
 
@@ -97,8 +102,10 @@ async function main() {
   check(denied.isError && denied.data.error?.code === "UNAUTHORIZED", "anonymous write → UNAUTHORIZED", denied.data);
 
   if (!KEY) {
-    console.error("  ✗ LECTA_MCP_WRITE_KEY is not set in this shell/.env, cannot run the authorised write check");
-    process.exit(1);
+    const issued = await createApiKey(DEMO_ACTOR, "mcp:smoke (temporary)");
+    KEY = issued.key;
+    issuedKeyId = issued.id;
+    console.log("  (issued a temporary MCP key for the demo user)");
   }
   const authed = await connect(true);
   console.log("6) authorised write without human approval → must fail");
@@ -119,6 +126,8 @@ async function main() {
 
   await anon.close();
   await authed.close();
+  if (issuedKeyId) await revokeApiKey(DEMO_ACTOR, issuedKeyId);
+  await closeDb();
   console.log(`\n[mcp:smoke] PASS — ${passed} checks`);
 }
 

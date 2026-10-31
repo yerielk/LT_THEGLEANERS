@@ -1,5 +1,6 @@
-import type { DatabaseSync } from "node:sqlite";
-import { getDb, newId, nowIso, tx } from "../db";
+import { and, asc, count, desc, eq, max, ne, sql } from "drizzle-orm";
+import { getDb, newId, type Db } from "../db";
+import { exhibitionItems, exhibitions, recommendationEvents, tasteSignals, user } from "../schema";
 import { LectaError } from "./errors";
 import type { Actor } from "./actor";
 import { getWorksByIds, type WorkView } from "./works";
@@ -32,51 +33,51 @@ export interface ExhibitionView {
   items: ExhibitionItemView[];
 }
 
-type Row = Record<string, unknown>;
+type Row = typeof exhibitions.$inferSelect;
 
 function canRead(row: Row, actor: Actor) {
-  return row.visibility === "PUBLIC" || (actor.userId !== null && row.owner_id === actor.userId);
+  return row.visibility === "PUBLIC" || (actor.userId !== null && row.ownerId === actor.userId);
 }
 
-function load(db: DatabaseSync, row: Row, actor: Actor): ExhibitionView {
-  const items = db
-    .prepare("SELECT * FROM exhibition_items WHERE exhibition_id = ? ORDER BY position, id")
-    .all(row.id as string) as Row[];
-  const works = new Map(getWorksByIds(items.map((i) => i.work_id as string), db).map((w) => [w.id, w]));
-  const owner = db.prepare("SELECT display_name FROM users WHERE id = ?").get(row.owner_id as string) as Row | undefined;
+async function load(db: Db, row: Row, actor: Actor): Promise<ExhibitionView> {
+  const items = await db
+    .select()
+    .from(exhibitionItems)
+    .where(eq(exhibitionItems.exhibitionId, row.id))
+    .orderBy(asc(exhibitionItems.position), asc(exhibitionItems.id));
+  const [workList, [owner]] = await Promise.all([
+    getWorksByIds(items.map((i) => i.workId), db),
+    db.select({ name: user.name }).from(user).where(eq(user.id, row.ownerId)),
+  ]);
+  const works = new Map(workList.map((w) => [w.id, w]));
   return {
-    id: row.id as string,
-    number: row.number as number,
-    title: row.title as string,
-    description: (row.description as string) ?? null,
-    visibility: row.visibility as Visibility,
-    layoutTemplate: row.layout_template as string,
-    isEditorial: row.is_editorial === 1,
-    ownerId: row.owner_id as string,
-    ownerName: (owner?.display_name as string) ?? "unknown",
-    isOwner: actor.userId !== null && actor.userId === row.owner_id,
-    version: row.version as number,
-    createdAt: row.created_at as string,
-    updatedAt: row.updated_at as string,
+    id: row.id,
+    number: row.number,
+    title: row.title,
+    description: row.description,
+    visibility: row.visibility,
+    layoutTemplate: row.layoutTemplate,
+    isEditorial: row.isEditorial,
+    ownerId: row.ownerId,
+    ownerName: owner?.name ?? "unknown",
+    isOwner: actor.userId !== null && actor.userId === row.ownerId,
+    version: row.version,
+    createdAt: row.createdAt.toISOString(),
+    updatedAt: row.updatedAt.toISOString(),
     items: items
-      .filter((i) => works.has(i.work_id as string))
-      .map((i) => ({
-        workId: i.work_id as string,
-        position: i.position as number,
-        curatorNote: (i.curator_note as string) ?? null,
-        work: works.get(i.work_id as string)!,
-      })),
+      .filter((i) => works.has(i.workId))
+      .map((i) => ({ workId: i.workId, position: i.position, curatorNote: i.curatorNote, work: works.get(i.workId)! })),
   };
 }
 
-function rowOrThrow(db: DatabaseSync, id: string): Row {
-  const row = db.prepare("SELECT * FROM exhibitions WHERE id = ?").get(id) as Row | undefined;
+async function rowOrThrow(db: Db, id: string): Promise<Row> {
+  const [row] = await db.select().from(exhibitions).where(eq(exhibitions.id, id));
   if (!row) throw new LectaError("EXHIBITION_NOT_FOUND", `No exhibition with id "${id}"`);
   return row;
 }
 
-export function getExhibition(id: string, actor: Actor, db: DatabaseSync = getDb()): ExhibitionView {
-  const row = rowOrThrow(db, id);
+export async function getExhibition(id: string, actor: Actor, db: Db = getDb()): Promise<ExhibitionView> {
+  const row = await rowOrThrow(db, id);
   // A private draft is reported as "not found" to non-owners would leak less, but the spec asks for an
   // explicit permission failure so agents can tell the two apart.
   if (!canRead(row, actor)) {
@@ -85,36 +86,36 @@ export function getExhibition(id: string, actor: Actor, db: DatabaseSync = getDb
   return load(db, row, actor);
 }
 
-export function listFeatured(actor: Actor, db: DatabaseSync = getDb()): ExhibitionView[] {
-  const rows = db.prepare("SELECT * FROM exhibitions WHERE visibility = 'PUBLIC' ORDER BY number").all() as Row[];
-  return rows.map((r) => load(db, r, actor));
+export async function listFeatured(actor: Actor, db: Db = getDb()): Promise<ExhibitionView[]> {
+  const rows = await db.select().from(exhibitions).where(eq(exhibitions.visibility, "PUBLIC")).orderBy(asc(exhibitions.number));
+  return Promise.all(rows.map((r) => load(db, r, actor)));
 }
 
-export function listMine(actor: Actor, db: DatabaseSync = getDb()): ExhibitionView[] {
+export async function listMine(actor: Actor, db: Db = getDb()): Promise<ExhibitionView[]> {
   if (!actor.userId) return [];
-  const rows = db.prepare("SELECT * FROM exhibitions WHERE owner_id = ? ORDER BY created_at DESC, id").all(actor.userId) as Row[];
-  return rows.map((r) => load(db, r, actor));
+  const rows = await db.select().from(exhibitions).where(eq(exhibitions.ownerId, actor.userId)).orderBy(desc(exhibitions.createdAt), asc(exhibitions.id));
+  return Promise.all(rows.map((r) => load(db, r, actor)));
 }
 
 function requireWriter(actor: Actor): string {
-  if (!actor.userId) throw new LectaError("UNAUTHORIZED", "Writing requires the demo workspace (DEMO_MODE=true) or a valid agent key.");
+  if (!actor.userId) throw new LectaError("UNAUTHORIZED", "Writing requires signing in (or DEMO_MODE=true locally), or a personal MCP key.");
   return actor.userId;
 }
 
-function assertWorksExist(db: DatabaseSync, ids: string[]) {
-  const found = new Set(getWorksByIds(ids, db).map((w) => w.id));
+async function assertWorksExist(db: Db, ids: string[]) {
+  const found = new Set((await getWorksByIds(ids, db)).map((w) => w.id));
   const missing = ids.filter((id) => !found.has(id));
   if (missing.length) throw new LectaError("WORK_NOT_FOUND", `Unknown work id(s): ${missing.join(", ")}`, false, { missing });
 }
 
-function recordCurationSignals(db: DatabaseSync, userId: string, exhibitionId: string, notes: { workId: string; note: string | null }[], origin: string) {
-  const ins = db.prepare(
-    "INSERT INTO taste_signals (id, user_id, work_id, exhibition_id, signal_type, why_text, structured_tags_json, origin, created_at) VALUES (?,?,?,?,?,?,?,?,?)",
+async function recordCurationSignals(db: Db, userId: string, exhibitionId: string, notes: { workId: string; note: string | null }[], origin: "USER_EXPLICIT" | "MODEL_SUGGESTED") {
+  if (!notes.length) return;
+  await db.insert(tasteSignals).values(
+    notes.map((n) => {
+      const tags = n.note ? extractTagsFromText(n.note).map((m) => m.key) : [];
+      return { id: newId("sig"), userId, workId: n.workId, exhibitionId, signalType: "CURATED" as const, whyText: n.note, structuredTags: tags.length ? tags : null, origin };
+    }),
   );
-  for (const n of notes) {
-    const tags = n.note ? extractTagsFromText(n.note).map((m) => m.key) : [];
-    ins.run(newId("sig"), userId, n.workId, exhibitionId, "CURATED", n.note, tags.length ? JSON.stringify(tags) : null, origin, nowIso());
-  }
 }
 
 export interface CreateResult {
@@ -122,12 +123,12 @@ export interface CreateResult {
   created: boolean; // false when an identical requestId was replayed
 }
 
-export function createExhibition(
+export async function createExhibition(
   input: unknown,
   actor: Actor,
   opts: { origin?: "USER_EXPLICIT" | "MODEL_SUGGESTED" } = {},
-  db: DatabaseSync = getDb(),
-): CreateResult {
+  db: Db = getDb(),
+): Promise<CreateResult> {
   const parsed = createExhibitionSchema.safeParse(input);
   if (!parsed.success) throw new LectaError("VALIDATION_ERROR", zodMessage(parsed.error));
   const data: CreateExhibitionInput = parsed.data;
@@ -138,32 +139,31 @@ export function createExhibition(
   if (noteWork) throw new LectaError("VALIDATION_ERROR", `curatorNotes refers to ${noteWork.workId}, which is not in workIds`);
 
   if (data.requestId) {
-    const prior = db.prepare("SELECT * FROM exhibitions WHERE owner_id = ? AND request_key = ?").get(userId, data.requestId) as Row | undefined;
-    if (prior) return { exhibition: load(db, prior, actor), created: false };
+    const [prior] = await db.select().from(exhibitions).where(and(eq(exhibitions.ownerId, userId), eq(exhibitions.requestKey, data.requestId)));
+    if (prior) return { exhibition: await load(db, prior, actor), created: false };
   }
-  assertWorksExist(db, data.workIds);
+  await assertWorksExist(db, data.workIds);
 
   const id = newId("ex");
   const notes = new Map((data.curatorNotes ?? []).map((n) => [n.workId, n.note || null]));
-  tx(db, () => {
-    const max = db.prepare("SELECT COALESCE(MAX(number), 0) AS n FROM exhibitions").get() as Row;
-    const now = nowIso();
-    db.prepare(
-      "INSERT INTO exhibitions (id, owner_id, title, description, visibility, layout_template, is_editorial, number, request_key, version, created_at, updated_at) VALUES (?,?,?,?, 'DRAFT', 'EDITORIAL_01', 0, ?, ?, 1, ?, ?)",
-    ).run(id, userId, data.title, data.description || null, (max.n as number) + 1, data.requestId ?? null, now, now);
-    const ins = db.prepare("INSERT INTO exhibition_items (id, exhibition_id, work_id, position, curator_note) VALUES (?,?,?,?,?)");
-    data.workIds.forEach((w, i) => ins.run(newId("exi"), id, w, i, notes.get(w) ?? null));
-    recordCurationSignals(db, userId, id, data.workIds.map((w) => ({ workId: w, note: notes.get(w) ?? null })), opts.origin ?? "USER_EXPLICIT");
+  await db.transaction(async (tx) => {
+    const [{ n }] = await tx.select({ n: max(exhibitions.number) }).from(exhibitions);
+    await tx.insert(exhibitions).values({
+      id, ownerId: userId, title: data.title, description: data.description || null, visibility: "DRAFT",
+      number: (n ?? 0) + 1, requestKey: data.requestId ?? null, version: 1,
+    });
+    await tx.insert(exhibitionItems).values(data.workIds.map((w, i) => ({ id: newId("exi"), exhibitionId: id, workId: w, position: i, curatorNote: notes.get(w) ?? null })));
+    await recordCurationSignals(tx, userId, id, data.workIds.map((w) => ({ workId: w, note: notes.get(w) ?? null })), opts.origin ?? "USER_EXPLICIT");
   });
-  return { exhibition: getExhibition(id, actor, db), created: true };
+  return { exhibition: await getExhibition(id, actor, db), created: true };
 }
 
-export function updateExhibition(id: string, input: unknown, actor: Actor, db: DatabaseSync = getDb()): ExhibitionView {
+export async function updateExhibition(id: string, input: unknown, actor: Actor, db: Db = getDb()): Promise<ExhibitionView> {
   const parsed = patchExhibitionSchema.safeParse(input);
   if (!parsed.success) throw new LectaError("VALIDATION_ERROR", zodMessage(parsed.error));
   const userId = requireWriter(actor);
-  const row = rowOrThrow(db, id);
-  if (row.owner_id !== userId) throw new LectaError("FORBIDDEN", "Only the owner can edit this exhibition.");
+  const row = await rowOrThrow(db, id);
+  if (row.ownerId !== userId) throw new LectaError("FORBIDDEN", "Only the owner can edit this exhibition.");
   const p = parsed.data;
   if (p.expectedVersion && p.expectedVersion !== row.version) {
     throw new LectaError("CONFLICT", "This exhibition changed since you opened it. Reload and try again.", false, { currentVersion: row.version });
@@ -171,50 +171,47 @@ export function updateExhibition(id: string, input: unknown, actor: Actor, db: D
   if (p.items) {
     const ids = p.items.map((i) => i.workId);
     if (new Set(ids).size !== ids.length) throw new LectaError("VALIDATION_ERROR", "items contains duplicate works");
-    assertWorksExist(db, ids);
+    await assertWorksExist(db, ids);
   }
-  tx(db, () => {
-    db.prepare("UPDATE exhibitions SET title = ?, description = ?, version = version + 1, updated_at = ? WHERE id = ?").run(
-      p.title ?? (row.title as string),
-      p.description !== undefined ? p.description || null : ((row.description as string) ?? null),
-      nowIso(),
-      id,
-    );
+  await db.transaction(async (tx) => {
+    await tx.update(exhibitions).set({
+      title: p.title ?? row.title,
+      description: p.description !== undefined ? p.description || null : row.description,
+      version: sql`${exhibitions.version} + 1`,
+      updatedAt: new Date(),
+    }).where(eq(exhibitions.id, id));
     if (p.items) {
-      db.prepare("DELETE FROM exhibition_items WHERE exhibition_id = ?").run(id);
-      const ins = db.prepare("INSERT INTO exhibition_items (id, exhibition_id, work_id, position, curator_note) VALUES (?,?,?,?,?)");
-      p.items.forEach((it, i) => ins.run(newId("exi"), id, it.workId, i, it.curatorNote || null));
+      await tx.delete(exhibitionItems).where(eq(exhibitionItems.exhibitionId, id));
+      await tx.insert(exhibitionItems).values(p.items.map((it, i) => ({ id: newId("exi"), exhibitionId: id, workId: it.workId, position: i, curatorNote: it.curatorNote || null })));
     }
   });
   return getExhibition(id, actor, db);
 }
 
-export function addItem(id: string, input: unknown, actor: Actor, db: DatabaseSync = getDb()): ExhibitionView {
+export async function addItem(id: string, input: unknown, actor: Actor, db: Db = getDb()): Promise<ExhibitionView> {
   const parsed = addItemSchema.safeParse(input);
   if (!parsed.success) throw new LectaError("VALIDATION_ERROR", zodMessage(parsed.error));
   const userId = requireWriter(actor);
-  const row = rowOrThrow(db, id);
-  if (row.owner_id !== userId) throw new LectaError("FORBIDDEN", "Only the owner can add works to this exhibition.");
+  const row = await rowOrThrow(db, id);
+  if (row.ownerId !== userId) throw new LectaError("FORBIDDEN", "Only the owner can add works to this exhibition.");
   const { workId, curatorNote, fromRecommendation, score } = parsed.data;
-  assertWorksExist(db, [workId]);
-  const dup = db.prepare("SELECT 1 FROM exhibition_items WHERE exhibition_id = ? AND work_id = ?").get(id, workId);
+  await assertWorksExist(db, [workId]);
+  const [dup] = await db.select({ id: exhibitionItems.id }).from(exhibitionItems).where(and(eq(exhibitionItems.exhibitionId, id), eq(exhibitionItems.workId, workId)));
   if (dup) throw new LectaError("CONFLICT", "This work is already in the exhibition.");
-  const count = (db.prepare("SELECT COUNT(*) AS n FROM exhibition_items WHERE exhibition_id = ?").get(id) as Row).n as number;
-  if (count >= 16) throw new LectaError("VALIDATION_ERROR", "An exhibition can hold at most 16 works.");
-  tx(db, () => {
-    const max = db.prepare("SELECT COALESCE(MAX(position), -1) AS p FROM exhibition_items WHERE exhibition_id = ?").get(id) as Row;
-    db.prepare("INSERT INTO exhibition_items (id, exhibition_id, work_id, position, curator_note) VALUES (?,?,?,?,?)").run(
-      newId("exi"), id, workId, (max.p as number) + 1, curatorNote || null,
-    );
-    db.prepare("UPDATE exhibitions SET version = version + 1, updated_at = ? WHERE id = ?").run(nowIso(), id);
+  const [{ n }] = await db.select({ n: count() }).from(exhibitionItems).where(eq(exhibitionItems.exhibitionId, id));
+  if (n >= 16) throw new LectaError("VALIDATION_ERROR", "An exhibition can hold at most 16 works.");
+  await db.transaction(async (tx) => {
+    const [{ p }] = await tx.select({ p: max(exhibitionItems.position) }).from(exhibitionItems).where(eq(exhibitionItems.exhibitionId, id));
+    await tx.insert(exhibitionItems).values({ id: newId("exi"), exhibitionId: id, workId, position: (p ?? -1) + 1, curatorNote: curatorNote || null });
+    await tx.update(exhibitions).set({ version: sql`${exhibitions.version} + 1`, updatedAt: new Date() }).where(eq(exhibitions.id, id));
     if (fromRecommendation) {
-      const seeds = db.prepare("SELECT work_id FROM exhibition_items WHERE exhibition_id = ? AND work_id != ? ORDER BY position").all(id, workId) as Row[];
-      db.prepare(
-        "INSERT INTO recommendation_events (id, user_id, exhibition_id, seed_work_ids_json, candidate_work_id, score, score_breakdown_json, model_version, action, created_at) VALUES (?,?,?,?,?,?,?,?, 'ADDED', ?)",
-      ).run(newId("rev"), userId, id, JSON.stringify(seeds.map((s) => s.work_id)), workId, score ?? 0, "{}", "coldstart-v1", nowIso());
-      db.prepare(
-        "INSERT INTO taste_signals (id, user_id, work_id, exhibition_id, signal_type, why_text, structured_tags_json, origin, created_at) VALUES (?,?,?,?, 'RECOMMENDATION_ADDED', NULL, NULL, 'USER_EXPLICIT', ?)",
-      ).run(newId("sig"), userId, workId, id, nowIso());
+      const seeds = await tx.select({ workId: exhibitionItems.workId }).from(exhibitionItems)
+        .where(and(eq(exhibitionItems.exhibitionId, id), ne(exhibitionItems.workId, workId))).orderBy(asc(exhibitionItems.position));
+      await tx.insert(recommendationEvents).values({
+        id: newId("rev"), userId, exhibitionId: id, seedWorkIds: seeds.map((s) => s.workId), candidateWorkId: workId,
+        score: score ?? 0, scoreBreakdown: {}, modelVersion: "coldstart-v1", action: "ADDED",
+      });
+      await tx.insert(tasteSignals).values({ id: newId("sig"), userId, workId, exhibitionId: id, signalType: "RECOMMENDATION_ADDED", origin: "USER_EXPLICIT" });
     }
   });
   return getExhibition(id, actor, db);

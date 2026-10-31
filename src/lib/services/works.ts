@@ -1,5 +1,6 @@
-import type { DatabaseSync } from "node:sqlite";
-import { getDb } from "../db";
+import { asc, desc, inArray } from "drizzle-orm";
+import { getDb, type Db } from "../db";
+import { works, workTags } from "../schema";
 import { LectaError } from "./errors";
 import { normalize, TAG_BY_KEY } from "../recommendation/tags";
 import type { Medium } from "../data/catalog";
@@ -29,15 +30,14 @@ export interface WorkView {
   tagKeys: string[];
 }
 
-type Row = Record<string, unknown>;
+type Row = typeof works.$inferSelect;
 
 function sourceOf(r: Row) {
-  const status = r.metadata_status as string;
   return {
-    name: (r.external_source as string) || "Lecta editorial",
+    name: r.externalSource || "Lecta editorial",
     url: null as string | null,
     note:
-      status === "VERIFIED"
+      r.metadataStatus === "VERIFIED"
         ? "Metadata verified against the external source."
         : "Title, creator and year entered by the team (CURATED). Tags are the team's curated interpretation.",
   };
@@ -45,75 +45,71 @@ function sourceOf(r: Row) {
 
 function toView(r: Row, tags: WorkTagView[]): WorkView {
   return {
-    id: r.id as string,
-    medium: r.medium as Medium,
-    title: r.title as string,
-    originalTitle: (r.original_title as string) ?? null,
-    creator: r.creator as string,
-    releaseYear: (r.release_year as number) ?? null,
-    synopsis: (r.synopsis as string) ?? null,
-    artworkUrl: (r.artwork_url as string) ?? null,
-    artwork: r.artwork_url
+    id: r.id,
+    medium: r.medium,
+    title: r.title,
+    originalTitle: r.originalTitle,
+    creator: r.creator,
+    releaseYear: r.releaseYear,
+    synopsis: r.synopsis,
+    artworkUrl: r.artworkUrl,
+    artwork: r.artworkUrl
       ? {
-          url: r.artwork_url as string,
-          width: ARTWORK[r.id as string]?.width ?? 300,
-          height: ARTWORK[r.id as string]?.height ?? (r.medium === "ALBUM" ? 300 : 450),
-          credit: (r.artwork_source as string) ?? "external",
-          sourcePage: (r.source_url as string) ?? null,
+          url: r.artworkUrl,
+          width: ARTWORK[r.id]?.width ?? 300,
+          height: ARTWORK[r.id]?.height ?? (r.medium === "ALBUM" ? 300 : 450),
+          credit: r.artworkSource ?? "external",
+          sourcePage: r.sourceUrl,
         }
       : null,
-    coverTone: (r.cover_tone as string) ?? null,
-    metadataStatus: r.metadata_status as WorkView["metadataStatus"],
+    coverTone: r.coverTone,
+    metadataStatus: r.metadataStatus,
     source: sourceOf(r),
     tags,
     tagKeys: tags.map((t) => t.key),
   };
 }
 
-function tagsByWork(db: DatabaseSync, ids?: string[]): Map<string, WorkTagView[]> {
-  const rows = (
-    ids?.length
-      ? db
-          .prepare(`SELECT * FROM work_tags WHERE work_id IN (${ids.map(() => "?").join(",")}) ORDER BY weight DESC, tag_key`)
-          .all(...ids)
-      : db.prepare("SELECT * FROM work_tags ORDER BY weight DESC, tag_key").all()
-  ) as Row[];
+async function tagsByWork(db: Db, ids?: string[]): Promise<Map<string, WorkTagView[]>> {
+  const rows = await db
+    .select()
+    .from(workTags)
+    .where(ids?.length ? inArray(workTags.workId, ids) : undefined)
+    .orderBy(desc(workTags.weight), asc(workTags.tagKey));
   const map = new Map<string, WorkTagView[]>();
   for (const t of rows) {
-    const list = map.get(t.work_id as string) ?? [];
-    list.push({ key: t.tag_key as string, category: t.category as string, weight: t.weight as number, provenance: t.provenance as string });
-    map.set(t.work_id as string, list);
+    const list = map.get(t.workId) ?? [];
+    list.push({ key: t.tagKey, category: t.category, weight: t.weight, provenance: t.provenance });
+    map.set(t.workId, list);
   }
   return map;
 }
 
-export function allWorks(db: DatabaseSync = getDb()): WorkView[] {
-  const rows = db.prepare("SELECT * FROM works ORDER BY id").all() as Row[];
-  const tags = tagsByWork(db);
-  return rows.map((r) => toView(r, tags.get(r.id as string) ?? []));
+export async function allWorks(db: Db = getDb()): Promise<WorkView[]> {
+  const [rows, tags] = await Promise.all([db.select().from(works).orderBy(asc(works.id)), tagsByWork(db)]);
+  return rows.map((r) => toView(r, tags.get(r.id) ?? []));
 }
 
-export function getWorksByIds(ids: string[], db: DatabaseSync = getDb()): WorkView[] {
+export async function getWorksByIds(ids: string[], db: Db = getDb()): Promise<WorkView[]> {
   if (!ids.length) return [];
-  const rows = db.prepare(`SELECT * FROM works WHERE id IN (${ids.map(() => "?").join(",")})`).all(...ids) as Row[];
-  const tags = tagsByWork(db, ids);
-  const byId = new Map(rows.map((r) => [r.id as string, toView(r, tags.get(r.id as string) ?? [])]));
+  const [rows, tags] = await Promise.all([db.select().from(works).where(inArray(works.id, ids)), tagsByWork(db, ids)]);
+  const byId = new Map(rows.map((r) => [r.id, toView(r, tags.get(r.id) ?? [])]));
   return ids.map((id) => byId.get(id)).filter((w): w is WorkView => !!w);
 }
 
-export function getWork(id: string, db: DatabaseSync = getDb()): WorkView {
-  const [w] = getWorksByIds([id], db);
+export async function getWork(id: string, db: Db = getDb()): Promise<WorkView> {
+  const [w] = await getWorksByIds([id], db);
   if (!w) throw new LectaError("WORK_NOT_FOUND", `No work with id "${id}"`);
   return w;
 }
 
 /** Search across title, original title, creator, synopsis and tags (English key or Korean label). */
-export function searchWorks(
+export async function searchWorks(
   params: { q?: string; medium?: Medium; limit?: number },
-  db: DatabaseSync = getDb(),
-): { works: WorkView[]; total: number } {
+  db: Db = getDb(),
+): Promise<{ works: WorkView[]; total: number }> {
   const q = params.q ? normalize(params.q) : "";
-  let works = allWorks(db);
+  let works = await allWorks(db);
   if (params.medium) works = works.filter((w) => w.medium === params.medium);
   if (q) {
     const scored = works

@@ -161,7 +161,7 @@ export function ExhibitionEditor({ mode, init, canWrite }: { mode: "new" | "edit
 
         <div>
           <div className="step-label"><span className="n">3</span><span className="caption">Save</span></div>
-          {!canWrite && <p className="notice error">이 환경은 읽기 전용이에요. 로컬 UAT에서는 <code>DEMO_MODE=true</code>로 실행해야 저장할 수 있어요.</p>}
+          {!canWrite && <p className="notice error">카카오로 로그인하면 전시를 저장할 수 있어요. 로컬 UAT에서는 <code>DEMO_MODE=true</code>로도 저장할 수 있어요.</p>}
           {error && <p className="notice error" role="alert">{error}</p>}
           <div className="save-bar">
             <button type="submit" className="btn" disabled={saving || !canWrite}>{saving ? "Saving…" : mode === "new" ? "Save draft" : "Save changes"}</button>

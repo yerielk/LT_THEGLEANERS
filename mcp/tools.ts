@@ -5,18 +5,20 @@ import { createExhibition, getExhibition } from "../src/lib/services/exhibitions
 import { recommend } from "../src/lib/recommendation/engine";
 import { LectaError, asLectaError } from "../src/lib/services/errors";
 import type { Actor } from "../src/lib/services/actor";
-import { getDb, newId, nowIso } from "../src/lib/db";
+import { getDb, newId } from "../src/lib/db";
+import { agentActivity } from "../src/lib/schema";
 import { MEDIA } from "../src/lib/validators";
 
 export const TOOL_NAMES = ["search_works", "find_related_works", "get_exhibition", "recommend_for_exhibition", "create_exhibition_draft"] as const;
 
 const appUrl = () => (process.env.LECTA_APP_URL || "http://localhost:3000").replace(/\/$/, "");
 
-function logActivity(actor: Actor, tool: string, status: string, ms: number, extra: { requestId?: string; targetType?: string; targetId?: string; summary?: unknown } = {}) {
+async function logActivity(actor: Actor, tool: string, status: string, ms: number, extra: { requestId?: string; targetType?: string; targetId?: string; summary?: unknown } = {}) {
   try {
-    getDb()
-      .prepare("INSERT INTO agent_activity (id, actor, tool_name, request_id, target_type, target_id, status, duration_ms, safe_summary_json, created_at) VALUES (?,?,?,?,?,?,?,?,?,?)")
-      .run(newId("act"), actor.label, tool, extra.requestId ?? null, extra.targetType ?? null, extra.targetId ?? null, status, ms, extra.summary ? JSON.stringify(extra.summary) : null, nowIso());
+    await getDb().insert(agentActivity).values({
+      id: newId("act"), actor: actor.label, toolName: tool, requestId: extra.requestId ?? null, targetType: extra.targetType ?? null,
+      targetId: extra.targetId ?? null, status, durationMs: ms, safeSummary: extra.summary ?? null,
+    });
   } catch {
     /* activity logging must never break a tool call */
   }
@@ -24,15 +26,15 @@ function logActivity(actor: Actor, tool: string, status: string, ms: number, ext
 
 type ToolResult = { content: { type: "text"; text: string }[]; structuredContent?: Record<string, unknown>; isError?: boolean };
 
-async function run(actor: Actor, tool: string, fn: () => { data: Record<string, unknown>; summary?: unknown; target?: [string, string]; requestId?: string }): Promise<ToolResult> {
+async function run(actor: Actor, tool: string, fn: () => Promise<{ data: Record<string, unknown>; summary?: unknown; target?: [string, string]; requestId?: string }>): Promise<ToolResult> {
   const t0 = Date.now();
   try {
-    const out = fn();
-    logActivity(actor, tool, "ok", Date.now() - t0, { summary: out.summary, targetType: out.target?.[0], targetId: out.target?.[1], requestId: out.requestId });
+    const out = await fn();
+    await logActivity(actor, tool, "ok", Date.now() - t0, { summary: out.summary, targetType: out.target?.[0], targetId: out.target?.[1], requestId: out.requestId });
     return { content: [{ type: "text", text: JSON.stringify(out.data) }], structuredContent: out.data };
   } catch (e) {
     const err = asLectaError(e);
-    logActivity(actor, tool, `error:${err.code}`, Date.now() - t0);
+    await logActivity(actor, tool, `error:${err.code}`, Date.now() - t0);
     const body = err.toJSON();
     return { content: [{ type: "text", text: JSON.stringify(body) }], structuredContent: body, isError: true };
   }
@@ -67,8 +69,8 @@ export function buildServer(actor: Actor): McpServer {
       annotations: { readOnlyHint: true, openWorldHint: false },
     },
     async ({ query, medium, limit }) =>
-      run(actor, "search_works", () => {
-        const res = searchWorks({ q: query, medium, limit: limit ?? 10 });
+      run(actor, "search_works", async () => {
+        const res = await searchWorks({ q: query, medium, limit: limit ?? 10 });
         const works = res.works.map((w) => ({
           id: w.id, title: w.title, creator: w.creator, medium: w.medium, releaseYear: w.releaseYear, tagKeys: w.tagKeys,
           source: w.source.name, metadataStatus: w.metadataStatus,
@@ -95,11 +97,11 @@ export function buildServer(actor: Actor): McpServer {
       annotations: { readOnlyHint: true, openWorldHint: false },
     },
     async ({ seed_work_ids, collection_id, target_media, limit, liked_reasons }) =>
-      run(actor, "find_related_works", () => {
+      run(actor, "find_related_works", async () => {
         if (!seed_work_ids?.length && !collection_id) {
           throw new LectaError("VALIDATION_ERROR", "Provide seed_work_ids (from search_works) and/or collection_id (from get_exhibition).");
         }
-        const r = recommend(
+        const r = await recommend(
           {
             exhibitionId: collection_id,
             seedWorkIds: seed_work_ids,
@@ -135,8 +137,8 @@ export function buildServer(actor: Actor): McpServer {
       annotations: { readOnlyHint: true, openWorldHint: false },
     },
     async ({ exhibitionId }) =>
-      run(actor, "get_exhibition", () => {
-        const ex = getExhibition(exhibitionId, actor);
+      run(actor, "get_exhibition", async () => {
+        const ex = await getExhibition(exhibitionId, actor);
         const data = {
           id: ex.id, number: ex.number, title: ex.title, description: ex.description, visibility: ex.visibility, isEditorialSample: ex.isEditorial,
           version: ex.version, updatedAt: ex.updatedAt, exhibitionUrl: `${appUrl()}/exhibitions/${ex.id}`,
@@ -162,8 +164,8 @@ export function buildServer(actor: Actor): McpServer {
       annotations: { readOnlyHint: true, openWorldHint: false },
     },
     async ({ exhibitionId, targetMedium, limit, likedReasons }) =>
-      run(actor, "recommend_for_exhibition", () => {
-        const r = recommend({ exhibitionId, targetMedium, limit: limit ?? 3, likedReasons }, actor);
+      run(actor, "recommend_for_exhibition", async () => {
+        const r = await recommend({ exhibitionId, targetMedium, limit: limit ?? 3, likedReasons }, actor);
         const data = {
           algorithmVersion: r.algorithmVersion,
           fallbackUsed: r.fallbackUsed,
@@ -184,7 +186,7 @@ export function buildServer(actor: Actor): McpServer {
     {
       title: "Create exhibition draft (WRITE — needs human approval)",
       description:
-        "WRITE. Creates a PRIVATE draft exhibition for the authenticated demo user from 2–8 existing work IDs. Requires `Authorization: Bearer <LECTA_MCP_WRITE_KEY>` on the connection AND approvedByHuman=true, which an agent may only set after the human explicitly confirmed this exact draft. Pass a requestId so retries do not create duplicates. Verify afterwards with get_exhibition.",
+        "WRITE. Creates a PRIVATE draft exhibition owned by the key holder from 2–8 existing work IDs. Requires `Authorization: Bearer <personal MCP key>` on the connection AND approvedByHuman=true, which an agent may only set after the human explicitly confirmed this exact draft. Pass a requestId so retries do not create duplicates. Verify afterwards with get_exhibition.",
       inputSchema: z.object({
         title: z.string().min(1).max(80),
         description: z.string().max(400).optional(),
@@ -197,10 +199,10 @@ export function buildServer(actor: Actor): McpServer {
       annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: true, openWorldHint: false },
     },
     async ({ approvedByHuman, ...input }) =>
-      run(actor, "create_exhibition_draft", () => {
-        if (actor.kind !== "agent") throw new LectaError("UNAUTHORIZED", "create_exhibition_draft requires a valid bearer key (LECTA_MCP_WRITE_KEY) with DEMO_MODE=true.");
+      run(actor, "create_exhibition_draft", async () => {
+        if (actor.kind !== "agent") throw new LectaError("UNAUTHORIZED", "create_exhibition_draft requires a personal MCP key (Authorization: Bearer <key>), issued in Lecta under My exhibitions.");
         if (approvedByHuman !== true) throw new LectaError("FORBIDDEN", "Human approval is required before writing. Ask the user to confirm, then call again with approvedByHuman=true.");
-        const { exhibition, created } = createExhibition(input, actor, { origin: "MODEL_SUGGESTED" });
+        const { exhibition, created } = await createExhibition(input, actor, { origin: "MODEL_SUGGESTED" });
         const data = {
           exhibitionId: exhibition.id, status: exhibition.visibility, itemCount: exhibition.items.length, created,
           exhibitionUrl: `${appUrl()}/exhibitions/${exhibition.id}`,

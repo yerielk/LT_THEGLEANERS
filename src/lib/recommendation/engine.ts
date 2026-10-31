@@ -1,5 +1,5 @@
-import type { DatabaseSync } from "node:sqlite";
-import { getDb, newId, nowIso } from "../db";
+import { getDb, newId, type Db } from "../db";
+import { recommendationEvents } from "../schema";
 import { allWorks, type WorkView } from "../services/works";
 import { getExhibition } from "../services/exhibitions";
 import type { Actor } from "../services/actor";
@@ -103,12 +103,12 @@ function tfidf(docTokens: string[], idf: Map<string, number>): Vec {
   return v;
 }
 
-export function recommend(input: RecommendationRequest, actor: Actor, db: DatabaseSync = getDb(), opts: { log?: boolean } = {}): RecommendationResult {
+export async function recommend(input: RecommendationRequest, actor: Actor, db: Db = getDb(), opts: { log?: boolean } = {}): Promise<RecommendationResult> {
   const parsed = recommendationRequestSchema.safeParse(input);
   if (!parsed.success) throw new LectaError("VALIDATION_ERROR", zodMessage(parsed.error));
   const req = parsed.data;
 
-  const catalog = allWorks(db);
+  const catalog = await allWorks(db);
   const byId = new Map(catalog.map((w) => [w.id, w]));
 
   // ── 1. seeds and collection context ──────────────────────────────────────
@@ -117,7 +117,7 @@ export function recommend(input: RecommendationRequest, actor: Actor, db: Databa
   let description = req.description ?? "";
   const notes: { workId: string; note: string }[] = [];
   if (req.exhibitionId) {
-    const ex = getExhibition(req.exhibitionId, actor, db); // enforces read permission
+    const ex = await getExhibition(req.exhibitionId, actor, db); // enforces read permission
     seedIds = [...new Set([...ex.items.map((i) => i.workId), ...seedIds])];
     title = title || ex.title;
     description = description || ex.description || "";
@@ -242,11 +242,11 @@ export function recommend(input: RecommendationRequest, actor: Actor, db: Databa
 
   const fallbackUsed = recs.length > 0 && recs.every((r) => r.matchedTags.length === 0);
 
-  if (opts.log !== false) {
-    const ins = db.prepare(
-      "INSERT INTO recommendation_events (id, user_id, exhibition_id, seed_work_ids_json, candidate_work_id, score, score_breakdown_json, model_version, action, created_at) VALUES (?,?,?,?,?,?,?,?, 'EXPOSED', ?)",
-    );
-    for (const r of recs) ins.run(newId("rev"), actor.userId, req.exhibitionId ?? null, JSON.stringify(seedIds), r.workId, r.score, JSON.stringify(r.scoreBreakdown), ALGORITHM_VERSION, nowIso());
+  if (opts.log !== false && recs.length) {
+    await db.insert(recommendationEvents).values(recs.map((r) => ({
+      id: newId("rev"), userId: actor.userId, exhibitionId: req.exhibitionId ?? null, seedWorkIds: seedIds, candidateWorkId: r.workId,
+      score: r.score, scoreBreakdown: r.scoreBreakdown, modelVersion: ALGORITHM_VERSION, action: "EXPOSED" as const,
+    })));
   }
 
   return {

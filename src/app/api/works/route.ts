@@ -5,12 +5,12 @@ import { LectaError } from "@/lib/services/errors";
 
 export const dynamic = "force-dynamic";
 
-export function GET(req: Request) {
+export async function GET(req: Request) {
   try {
     const sp = new URL(req.url).searchParams;
     const parsed = worksQuerySchema.safeParse({ q: sp.get("q") || undefined, medium: sp.get("medium") || undefined, limit: sp.get("limit") || undefined });
     if (!parsed.success) throw new LectaError("VALIDATION_ERROR", zodMessage(parsed.error));
-    const { works, total } = searchWorks(parsed.data);
+    const { works, total } = await searchWorks(parsed.data);
     return ok({ works, total, appliedFilters: parsed.data });
   } catch (e) {
     return fail(e);

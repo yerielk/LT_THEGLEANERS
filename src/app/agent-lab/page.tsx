@@ -1,8 +1,10 @@
 import type { Metadata } from "next";
 import { mcpStatus } from "@/lib/mcp-inspect";
 import { listFeatured } from "@/lib/services/exhibitions";
-import { webActor } from "@/lib/services/actor";
+import { webActor } from "@/lib/services/web-actor";
+import { desc } from "drizzle-orm";
 import { getDb } from "@/lib/db";
+import { agentActivity } from "@/lib/schema";
 import { ProtocolTest } from "./ProtocolTest";
 
 export const dynamic = "force-dynamic";
@@ -10,11 +12,13 @@ export const metadata: Metadata = { title: "Agent lab" };
 
 export default async function AgentLab() {
   const status = await mcpStatus();
-  const actor = webActor();
-  const exhibitions = listFeatured(actor).map((e) => ({ id: e.id, title: e.title }));
-  const activity = getDb()
-    .prepare("SELECT tool_name, actor, status, duration_ms, target_id, created_at FROM agent_activity ORDER BY created_at DESC LIMIT 12")
-    .all() as { tool_name: string; actor: string; status: string; duration_ms: number; target_id: string | null; created_at: string }[];
+  const actor = await webActor();
+  const exhibitions = (await listFeatured(actor)).map((e) => ({ id: e.id, title: e.title }));
+  const activity = await getDb()
+    .select({ tool_name: agentActivity.toolName, actor: agentActivity.actor, status: agentActivity.status, duration_ms: agentActivity.durationMs, target_id: agentActivity.targetId, created_at: agentActivity.createdAt })
+    .from(agentActivity)
+    .orderBy(desc(agentActivity.createdAt))
+    .limit(12);
   return (
     <div className="wrap">
       <header className="page-head">
@@ -30,7 +34,7 @@ export default async function AgentLab() {
           {status.online ? (
             <>
               <p className="muted" style={{ fontSize: 14 }}>
-                DB {status.health.db ? "ok" : "unavailable"} / writes {status.health.demoMode && status.health.writeKeyConfigured ? "enabled with bearer key + human approval" : "disabled"}
+                DB {status.health.db ? "ok" : "unavailable"} / writes need a personal MCP key + human approval
               </p>
               <ul className="tool-list">
                 {status.tools.map((t) => (

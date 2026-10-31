@@ -11,28 +11,42 @@ This branch (`feat/uat-editorial-mcp`) is the first-UAT MVP (2026-10-31).
 | Area | What you can do |
 | --- | --- |
 | Web | Magazine home, Discover (search, medium filter, selection shelf), work detail, exhibition builder with live preview, exhibition page with recommendations you can add, My exhibitions, Agent lab |
-| Data | 46 real works (12 films, 10 series, 12 books, 12 albums) and 4 editorial sample exhibitions in SQLite |
+| Data | 46 real works (12 films, 10 series, 12 books, 12 albums) and 4 editorial sample exhibitions in PostgreSQL (Drizzle ORM, versioned migrations) |
 | Recommendation | `coldstart-v1`: deterministic, explainable cross-medium recommendations that need no user history and no API key |
 | MCP | Standalone Streamable HTTP server at `127.0.0.1:3333/mcp` with 5 tools; writes need a bearer key **and** human approval |
 | Agent | `agent:demo` runs a real Claude tool-calling loop over MCP when `ANTHROPIC_API_KEY` is set (not verified in this environment, see Limitations) |
 
 ## Quick start
 
-Requires **Node.js 22.13+** (uses the built-in `node:sqlite`).
+Requires **Node.js 22.13+** and **Docker** (for the local PostgreSQL).
 
 ```bash
 npm install
-cp .env.example .env
-# put a random value in LECTA_MCP_WRITE_KEY:
-node -e "console.log(require('crypto').randomBytes(24).toString('hex'))"
+cp .env.example .env  # then set the variables below
 
-npm run db:setup      # create ./data/lecta.db and seed it (safe to re-run)
+npm run db:up         # start PostgreSQL 17 (docker compose)
+npm run db:setup      # apply migrations in ./drizzle and seed (safe to re-run)
 npm run dev           # web app → http://localhost:3000
 npm run mcp:dev       # MCP server → http://127.0.0.1:3333/mcp   (second terminal)
 npm run mcp:smoke     # protocol test: list/call tools, auth, write + read-back
-npm test              # unit tests (services + recommendation)
+npm test              # unit tests on in-memory PostgreSQL (PGlite), no Docker needed
 npm run build         # production build
 ```
+
+`.env` variables:
+
+| Variable | |
+| --- | --- |
+| `DATABASE_URL` | Defaults to the docker compose database, `postgres://lecta:lecta@127.0.0.1:5432/lecta` |
+| `BETTER_AUTH_SECRET` | Random string, at least 32 characters (`openssl rand -hex 32`) |
+| `BETTER_AUTH_URL` | `http://localhost:3000` locally |
+| `KAKAO_CLIENT_ID` | Kakao Developers → your app → REST API key |
+| `KAKAO_CLIENT_SECRET` | Only if Client Secret is enabled in the Kakao app |
+| `KAKAO_REQUEST_EMAIL` | `true` only when the Kakao app may request `account_email` (business app) |
+| `DEMO_MODE` | `true` lets signed-out visitors save as the shared demo user (local UAT only) |
+| `LECTA_MCP_KEY` | Your personal MCP key from **My exhibitions**, used by `agent:demo` |
+
+In Kakao Developers, enable Kakao Login, add the redirect URI `http://localhost:3000/api/auth/callback/kakao`, and turn on the consent items for nickname and profile image.
 
 Optional:
 
@@ -49,7 +63,9 @@ src/
   app/                    Next.js App Router pages + REST API (/api/*)
   components/             WorkCover (typographic cover plates), ExhibitionEditor, ExhibitionSpread, RecommendationPanel, …
   lib/
-    db.ts                 node:sqlite connection (WAL) shared by web + MCP
+    db.ts                 PostgreSQL connection (Drizzle + pg) shared by web + MCP
+    schema.ts             Drizzle schema; migrations are generated into ./drizzle
+    auth.ts               Better Auth with Kakao login
     data/catalog.ts       seed works, tags, editorial exhibitions
     services/             works, exhibitions, actor (access), errors
     recommendation/       tags.ts (vocabulary + synonym matching), engine.ts (coldstart-v1)
@@ -58,15 +74,17 @@ mcp/
   server.ts               standalone Streamable HTTP server (MCP TypeScript SDK v2)
   tools.ts                the 4 tools, calling the same services as the web app
 scripts/                  db-setup, mcp-smoke, agent-demo, e2e-uat
-db/schema.sql             portable SQL schema
+drizzle/                  SQL migrations (npm run db:generate after changing schema.ts)
 tests/                    vitest
 ```
 
 **One engine, two surfaces.** `/api/recommendations` and the MCP tool `recommend_for_exhibition` both call `recommend()` in `src/lib/recommendation/engine.ts`, so the agent and the UI always get the same answer.
 
-### Stack decision: `node:sqlite` instead of Prisma
+### Stack decision: PostgreSQL + Drizzle + Better Auth
 
-The brief suggested Prisma + SQLite. Prisma needs to download its engine binaries at install time. That download was blocked in the build environment, so Prisma could not be verified there. To keep every step verifiable, the data layer uses Node's built-in `node:sqlite` with a plain SQL schema (`db/schema.sql`), which has no native dependencies. The schema avoids SQLite-only features (TEXT ids, ISO timestamps, CHECK constraints), so moving to Postgres or Supabase later is a dialect change, not a redesign. Node prints an `ExperimentalWarning` for `node:sqlite`; this is expected.
+The first UAT build used Node's built-in `node:sqlite`. The data layer now runs on PostgreSQL through Drizzle ORM: the schema lives in `src/lib/schema.ts`, and `drizzle-kit` generates versioned SQL migrations into `./drizzle`, which `npm run db:setup` applies. Tests run the same migrations on PGlite, an in-memory PostgreSQL, so `npm test` needs no Docker.
+
+Sign-in uses Better Auth with Kakao. A Kakao app only gets the user's email once it is business-verified, and requesting the `account_email` scope without that permission fails the login (KOE205). Lecta therefore asks for nickname and profile image only, and stores a non-deliverable placeholder email (`kakao_<id>@users.lecta.invalid`) because Better Auth requires one.
 
 ## Design — a white gallery
 
@@ -84,7 +102,7 @@ Layout references: MUBI Notebook (oversized type and editorial rhythm), Apartame
 
 ## Data model
 
-`users`, `works`, `work_tags`, `exhibitions`, `exhibition_items`, `taste_signals`, `recommendation_events` and `agent_activity` (see `db/schema.sql`).
+`users`, `sessions`, `accounts` and `verifications` (Better Auth), `api_keys`, `works`, `work_tags`, `exhibitions`, `exhibition_items`, `taste_signals`, `recommendation_events` and `agent_activity` (see `src/lib/schema.ts`).
 
 - Every `Work` is one row, whatever its medium. Exhibitions, recommendations and agents all reference that row.
 - `work_tags.provenance` separates `HUMAN_CURATED` tags (the team's interpretation) from future `EXTERNAL` and `LLM_SUGGESTED` ones.
@@ -117,7 +135,7 @@ score = 0.35*S + 0.25*W + 0.20*C + 0.10*D + 0.10*N   (weights renormalised when 
 
 - Endpoint: `POST http://127.0.0.1:3333/mcp` (Streamable HTTP, `@modelcontextprotocol/server` v2).
 - Health: `GET /health`.
-- Each request gets a fresh `McpServer` bound to the caller. A valid `Authorization: Bearer <LECTA_MCP_WRITE_KEY>` header (with `DEMO_MODE=true`) maps the caller to the demo user. Without it, the caller is anonymous.
+- Each request gets a fresh `McpServer` bound to the caller. `Authorization: Bearer <personal MCP key>` maps the caller to the key's owner. Signed-in users issue and revoke keys under **My exhibitions**; only a SHA-256 hash is stored. Without a valid key, the caller is anonymous.
 
 | Tool | Kind | Notes |
 | --- | --- | --- |
@@ -125,7 +143,7 @@ score = 0.35*S + 0.25*W + 0.20*C + 0.10*D + 0.10*N   (weights renormalised when 
 | `find_related_works` | read | `{seed_work_ids?, collection_id?, target_media?, limit?, liked_reasons?}` → related real works with reasons (the UAT-03 tool; same engine) |
 | `get_exhibition` | read | Public exhibitions for everyone; private drafts only for the owner (otherwise `UNAUTHORIZED` or `FORBIDDEN`) |
 | `recommend_for_exhibition` | read | `{exhibitionId, targetMedium?, limit?, likedReasons?}` → the same engine as the web app |
-| `create_exhibition_draft` | **write** | Needs the bearer key **and** `approvedByHuman: true`. Takes 2–8 existing works with no duplicates. `requestId` makes it idempotent. Always creates a private `DRAFT`. |
+| `create_exhibition_draft` | **write** | Needs a personal MCP key **and** `approvedByHuman: true`. The draft belongs to the key's owner. Takes 2–8 existing works with no duplicates. `requestId` makes it idempotent. Always creates a private `DRAFT`. |
 
 Errors come back as `isError: true` with `{error: {code, message, retryable}}`. The codes are `WORK_NOT_FOUND`, `EXHIBITION_NOT_FOUND`, `UNAUTHORIZED`, `FORBIDDEN`, `VALIDATION_ERROR`, `CONFLICT`, `RECOMMENDATION_EMPTY` and `SERVICE_UNAVAILABLE`. Every call is logged to `agent_activity`, without secrets, and shown in `/agent-lab`.
 
@@ -144,7 +162,10 @@ Errors come back as `isError: true` with `{error: {code, message, retryable}}`. 
 | GET | `/api/works?q=&medium=&limit=` | Search |
 | GET | `/api/works/:id` | |
 | GET | `/api/exhibitions`, `?mine=1` | Public exhibitions, or your own |
-| POST | `/api/exhibitions` | Create a draft (`DEMO_MODE=true` only) |
+| POST | `/api/exhibitions` | Create a draft (signed in, or `DEMO_MODE=true`) |
+| GET / POST | `/api/me/api-keys` | List or issue personal MCP keys (signed in) |
+| DELETE | `/api/me/api-keys/:id` | Revoke a key |
+| * | `/api/auth/*` | Better Auth (Kakao sign-in, callback, sign-out) |
 | GET / PATCH | `/api/exhibitions/:id` | Owner-only edit, with `expectedVersion` conflict check |
 | POST | `/api/exhibitions/:id/items` | Add a work; returns 409 if it is already there |
 | POST | `/api/recommendations` | Same engine as MCP |
@@ -153,13 +174,13 @@ Errors look like `{ "error": { "code", "message", "retryable" } }` with status 4
 
 ## Security notes
 
-- `DEMO_MODE=true` is for local UAT only. Every web write goes to one shared demo user, and there are no real accounts yet. With it off, the site is read-only.
-- Secrets live only in `.env`, which is git-ignored. The MCP key is compared in constant time and never logged.
+- Writes need a Kakao sign-in. `DEMO_MODE=true` is for local UAT only: signed-out visitors then save as one shared demo user. With it off, signed-out visitors can only read.
+- Secrets live only in `.env`, which is git-ignored. MCP keys are stored as SHA-256 hashes, shown once when issued, and never logged. An agent cannot issue or revoke keys with the key it holds.
 - Inputs are validated with zod (length limits, no markup, ids restricted to `[A-Za-z0-9_-]`). Request bodies are capped at 32 KB for the API and 1 MB for MCP. No tool fetches arbitrary URLs.
 
 ## Limitations
 
-- Only one demo user and no sign-in. "Public" sharing of user exhibitions is not built yet, so drafts stay private and "Copy link" says so.
+- Kakao is the only sign-in method. "Public" sharing of user exhibitions is not built yet, so drafts stay private and "Copy link" says so.
 - Metadata has not been checked against TMDB, Google Books or MusicBrainz yet (`metadataStatus = CURATED`).
 - `agent:demo` uses the Anthropic Messages API (`@anthropic-ai/sdk`, default model `claude-opus-5-5`, override with `ANTHROPIC_MODEL`) but has not been run against the live API yet. The MCP protocol path is verified by `mcp:smoke`.
 - Fonts load from Google Fonts. Offline, the layout falls back to Georgia and system sans.

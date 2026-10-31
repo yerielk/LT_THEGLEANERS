@@ -1,51 +1,38 @@
-import { DatabaseSync } from "node:sqlite";
-import fs from "node:fs";
-import path from "node:path";
+import { drizzle } from "drizzle-orm/node-postgres";
+import type { PgDatabase } from "drizzle-orm/pg-core";
+import { Pool } from "pg";
+import * as schema from "./schema";
 
 /**
- * Single SQLite database shared by the Next.js app and the MCP server process.
- * WAL mode + busy timeout lets both processes read/write the same file safely.
+ * PostgreSQL (Drizzle) shared by the Next.js app and the MCP server process.
+ * Tests swap in an in-memory PGlite database with setDb().
  */
-let instance: DatabaseSync | null = null;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export type Db = PgDatabase<any, typeof schema>;
 
-export function dbPath(): string {
-  const p = process.env.LECTA_DB_PATH || "./data/lecta.db";
-  return p === ":memory:" ? p : path.resolve(/*turbopackIgnore: true*/ process.cwd(), p);
-}
+export const databaseUrl = () => process.env.DATABASE_URL || "postgres://lecta:lecta@127.0.0.1:5432/lecta";
 
-export function openDb(file = dbPath()): DatabaseSync {
-  if (file !== ":memory:") fs.mkdirSync(path.dirname(file), { recursive: true });
-  const db = new DatabaseSync(file);
-  db.exec("PRAGMA busy_timeout = 5000;");
-  if (file !== ":memory:") db.exec("PRAGMA journal_mode = WAL;");
-  const schema = fs.readFileSync(path.join(/*turbopackIgnore: true*/ process.cwd(), "db", "schema.sql"), "utf8");
-  db.exec(schema);
-  return db;
-}
+// survive Next.js dev hot reloads without opening a new pool each time
+const g = globalThis as { __lectaDb?: Db | null; __lectaPool?: Pool | null };
 
-export function getDb(): DatabaseSync {
-  if (!instance) instance = openDb();
-  return instance;
+export function getDb(): Db {
+  if (!g.__lectaDb) {
+    g.__lectaPool = new Pool({ connectionString: databaseUrl(), max: 10 });
+    g.__lectaDb = drizzle({ client: g.__lectaPool, schema });
+  }
+  return g.__lectaDb;
 }
 
 /** Tests inject an in-memory database. */
-export function setDb(db: DatabaseSync | null) {
-  instance = db;
+export function setDb(db: Db | null) {
+  g.__lectaDb = db;
 }
 
-export function tx<T>(db: DatabaseSync, fn: () => T): T {
-  db.exec("BEGIN IMMEDIATE");
-  try {
-    const out = fn();
-    db.exec("COMMIT");
-    return out;
-  } catch (e) {
-    db.exec("ROLLBACK");
-    throw e;
-  }
+export async function closeDb() {
+  await g.__lectaPool?.end();
+  g.__lectaPool = null;
+  g.__lectaDb = null;
 }
-
-export const nowIso = () => new Date().toISOString();
 
 export function newId(prefix: string): string {
   return `${prefix}_${crypto.randomUUID().replace(/-/g, "").slice(0, 16)}`;

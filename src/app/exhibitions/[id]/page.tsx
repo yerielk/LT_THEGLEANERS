@@ -1,7 +1,7 @@
 import { Link } from "next-view-transitions";
 import { notFound } from "next/navigation";
 import { getExhibition } from "@/lib/services/exhibitions";
-import { webActor } from "@/lib/services/actor";
+import { webActor } from "@/lib/services/web-actor";
 import { LectaError } from "@/lib/services/errors";
 import { ExhibitionRoom } from "@/components/ExhibitionRoom";
 import { wallFor } from "@/lib/design";
@@ -13,10 +13,10 @@ export const dynamic = "force-dynamic";
 export default async function ExhibitionPage({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<{ saved?: string }> }) {
   const { id } = await params;
   const { saved } = await searchParams;
-  const actor = webActor();
+  const actor = await webActor();
   let ex;
   try {
-    ex = getExhibition(id, actor);
+    ex = await getExhibition(id, actor);
   } catch (e) {
     if (e instanceof LectaError && e.code === "EXHIBITION_NOT_FOUND") notFound();
     if (e instanceof LectaError && (e.code === "UNAUTHORIZED" || e.code === "FORBIDDEN")) {

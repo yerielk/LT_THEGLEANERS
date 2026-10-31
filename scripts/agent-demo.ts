@@ -31,12 +31,12 @@ async function main() {
     console.log("[agent:demo] This is NOT an agent run. The MCP protocol itself is verified without a model by `npm run mcp:smoke`.");
     process.exit(2);
   }
-  if (!process.env.LECTA_MCP_WRITE_KEY) console.log("[agent:demo] note: LECTA_MCP_WRITE_KEY missing — the write step will be refused by the server.");
+  if (!process.env.LECTA_MCP_KEY) console.log("[agent:demo] note: LECTA_MCP_KEY missing — issue a personal key under My exhibitions; the write step will be refused without it.");
 
   const client = new Client({ name: "lecta-agent-demo", version: "0.1.0" });
   await client.connect(
     new StreamableHTTPClientTransport(new URL(MCP_URL), {
-      requestInit: process.env.LECTA_MCP_WRITE_KEY ? { headers: { Authorization: `Bearer ${process.env.LECTA_MCP_WRITE_KEY}` } } : undefined,
+      requestInit: process.env.LECTA_MCP_KEY ? { headers: { Authorization: `Bearer ${process.env.LECTA_MCP_KEY}` } } : undefined,
     }),
   );
   const { tools } = await client.listTools();

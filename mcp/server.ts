@@ -1,22 +1,24 @@
 /**
  * Lecta MCP server — standalone Node process, Streamable HTTP at http://127.0.0.1:3333/mcp.
- * Uses the same SQLite database and service layer as the Next.js app (src/lib/*).
+ * Uses the same PostgreSQL database and service layer as the Next.js app (src/lib/*).
  */
 import http from "node:http";
+import { sql } from "drizzle-orm";
 import { createMcpHandler } from "@modelcontextprotocol/server";
 import { buildServer, TOOL_NAMES } from "./tools";
-import { agentActorFromAuthHeader, demoModeEnabled } from "../src/lib/services/actor";
-import { getDb } from "../src/lib/db";
+import { agentActorFromAuthHeader } from "../src/lib/services/actor";
+import { closeDb, getDb } from "../src/lib/db";
 import { loadEnv } from "../scripts/env";
 
 loadEnv();
 const PORT = Number(process.env.MCP_PORT || 3333);
 const HOST = process.env.MCP_HOST || "127.0.0.1";
 
-const handler = createMcpHandler(
-  (ctx) => buildServer(agentActorFromAuthHeader(ctx.requestInfo?.headers.get("authorization"))),
-  { onerror: (e) => console.error("[mcp] error:", e.message) },
-);
+// The caller's key is looked up in the database (async), so each request gets its own stateless handler.
+async function handlerFor(authorization: string | undefined) {
+  const actor = await agentActorFromAuthHeader(authorization);
+  return createMcpHandler(() => buildServer(actor), { onerror: (e) => console.error("[mcp] error:", e.message) });
+}
 
 function toRequest(req: http.IncomingMessage, body: Buffer): Request {
   const headers = new Headers();
@@ -55,10 +57,10 @@ const server = http.createServer(async (req, res) => {
 
   if (path === "/health") {
     let dbOk = false;
-    try { getDb().prepare("SELECT 1").get(); dbOk = true; } catch { /* reported below */ }
+    try { await getDb().execute(sql`select 1`); dbOk = true; } catch { /* reported below */ }
     res.setHeader("content-type", "application/json");
     res.statusCode = dbOk ? 200 : 503;
-    return res.end(JSON.stringify({ status: dbOk ? "ok" : "degraded", db: dbOk, tools: TOOL_NAMES, demoMode: demoModeEnabled(), writeKeyConfigured: !!process.env.LECTA_MCP_WRITE_KEY, endpoint: "/mcp" }));
+    return res.end(JSON.stringify({ status: dbOk ? "ok" : "degraded", db: dbOk, tools: TOOL_NAMES, writes: "personal MCP key + human approval", endpoint: "/mcp" }));
   }
   if (path !== "/mcp") { res.statusCode = 404; return res.end("Not found"); }
 
@@ -70,7 +72,12 @@ const server = http.createServer(async (req, res) => {
     chunks.push(c as Buffer);
   }
   try {
-    await send(res, await handler.fetch(toRequest(req, Buffer.concat(chunks))));
+    const handler = await handlerFor(req.headers.authorization);
+    try {
+      await send(res, await handler.fetch(toRequest(req, Buffer.concat(chunks))));
+    } finally {
+      await handler.close();
+    }
   } catch (e) {
     console.error("[mcp] request failed:", (e as Error).message);
     if (!res.headersSent) { res.statusCode = 500; res.end("Internal error"); }
@@ -80,7 +87,7 @@ const server = http.createServer(async (req, res) => {
 server.listen(PORT, HOST, () => {
   console.log(`[mcp] Lecta MCP server on http://${HOST}:${PORT}/mcp  (health: /health)`);
   console.log(`[mcp] tools: ${TOOL_NAMES.join(", ")}`);
-  console.log(`[mcp] DEMO_MODE=${demoModeEnabled()}  write key ${process.env.LECTA_MCP_WRITE_KEY ? "configured" : "NOT configured (writes disabled)"}`);
+  console.log("[mcp] writes need a personal MCP key (issued under My exhibitions) and approvedByHuman=true");
 });
 
-for (const sig of ["SIGINT", "SIGTERM"] as const) process.on(sig, () => { server.close(); handler.close().finally(() => process.exit(0)); });
+for (const sig of ["SIGINT", "SIGTERM"] as const) process.on(sig, () => { server.close(); closeDb().finally(() => process.exit(0)); });

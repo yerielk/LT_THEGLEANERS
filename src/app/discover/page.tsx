@@ -13,7 +13,7 @@ export default async function DiscoverPage({ searchParams }: { searchParams: Pro
   const sp = await searchParams;
   const medium = VALID.find((m) => m === sp.medium);
   const q = typeof sp.q === "string" ? sp.q.slice(0, 80) : "";
-  const { works } = searchWorks({ medium, q: q || undefined, limit: 60 });
+  const { works } = await searchWorks({ medium, q: q || undefined, limit: 60 });
   const tagLabels = Object.fromEntries(TAGS.map((t) => [t.key, t.ko]));
   const moods = MOOD_KEYS.map((k) => TAGS.find((t) => t.key === k)!.ko);
   return (

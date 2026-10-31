@@ -1,6 +1,7 @@
 export type ErrorCode =
   | "WORK_NOT_FOUND"
   | "EXHIBITION_NOT_FOUND"
+  | "KEY_NOT_FOUND"
   | "UNAUTHORIZED"
   | "FORBIDDEN"
   | "VALIDATION_ERROR"
@@ -11,6 +12,7 @@ export type ErrorCode =
 const STATUS: Record<ErrorCode, number> = {
   WORK_NOT_FOUND: 404,
   EXHIBITION_NOT_FOUND: 404,
+  KEY_NOT_FOUND: 404,
   UNAUTHORIZED: 401,
   FORBIDDEN: 403,
   VALIDATION_ERROR: 400,

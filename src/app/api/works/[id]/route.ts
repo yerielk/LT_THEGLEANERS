@@ -5,7 +5,7 @@ export const dynamic = "force-dynamic";
 
 export async function GET(_req: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
-    return ok({ work: getWork((await params).id) });
+    return ok({ work: await getWork((await params).id) });
   } catch (e) {
     return fail(e);
   }
