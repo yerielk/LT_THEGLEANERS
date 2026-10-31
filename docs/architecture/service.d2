@@ -1,0 +1,146 @@
+# Lecta (THE GLEANERS) service map: screens and MCP tools → domain services → data,
+# including the steps inside the coldstart-v1 recommender. Drawn with D2 (https://d2lang.com).
+#
+# Render (brew install d2 librsvg):
+#   F=/System/Library/Fonts/Supplemental/AppleGothic.ttf
+#   d2 --font-regular=$F --font-bold=$F --pad=40 docs/architecture/service.d2 docs/architecture/lecta_service.svg
+#   rsvg-convert -z 1.5 docs/architecture/lecta_service.svg -o docs/architecture/lecta_service.png
+#
+# Edge colours: blue = curator journey, red = agent via MCP, grey = calls and data.
+# The root is a one-column grid of layers; each layer is a grid-rows: 1 container,
+# so nodes stay in one row in declaration order.
+
+grid-columns: 1
+grid-gap: 110
+
+title: "Lecta 서비스 구조도" {
+  near: top-center
+  shape: text
+  style: {font-size: 32; bold: true}
+}
+
+classes: {
+  layer: {style: {fill: "#f7f9fc"; stroke: "#c9d3e3"; border-radius: 12; font-size: 18}}
+  screen: {style: {fill: "#e8eefb"; stroke: "#1c4286"; border-radius: 10; font-size: 16}}
+  tool: {shape: parallelogram; style: {fill: "#fbeceb"; stroke: "#c55347"; font-size: 16}}
+  write: {shape: parallelogram; style: {fill: "#fbeceb"; stroke: "#c55347"; stroke-width: 3; font-size: 16}}
+  svc: {style: {fill: "#f1eefb"; stroke: "#6b5fb5"; border-radius: 10; font-size: 16}}
+  step: {style: {fill: "#e6f4f4"; stroke: "#099197"; border-radius: 10; font-size: 16}}
+  store: {shape: cylinder; style: {fill: "#f2f2f2"; stroke: "#6b6b6b"; font-size: 16}}
+  web: {style: {stroke: "#1c4286"; stroke-width: 3; font-size: 15}}
+  agentflow: {style: {stroke: "#c55347"; stroke-width: 2; font-size: 15}}
+  call: {style: {stroke: "#8a8a8a"; font-size: 15}}
+}
+
+users: "" {
+  style: {fill: transparent; stroke: transparent}
+  grid-rows: 1
+  horizontal-gap: 900
+  curator: "큐레이터\n(웹 사용자)" {shape: person; style.fill: "#e8eefb"; style.stroke: "#1c4286"}
+  agent: "AI 에이전트\nClaude · MCP Inspector" {shape: person; style.fill: "#fbeceb"; style.stroke: "#c55347"}
+}
+
+front: "" {
+  style: {fill: transparent; stroke: transparent}
+  grid-rows: 1
+  grid-gap: 60
+
+  web: "화면 · Next.js pages" {
+    class: layer
+    grid-rows: 1
+    horizontal-gap: 100
+    home: "홈  /\n에디토리얼 전시" {class: screen}
+    discover: "Discover  /discover\n검색 · 매체 필터" {class: screen}
+    builder: "전시 빌더\n/exhibitions/new · edit" {class: screen}
+    room: "전시실  /exhibitions/[id]\n+ 추천 패널" {class: screen}
+    mine: "내 전시  /me" {class: screen}
+    work: "작품 상세  /works/[id]" {class: screen}
+    shelf: "선택 선반\nsessionStorage" {class: screen; shape: stored_data}
+    lab: "Agent lab\n/agent-lab" {class: screen}
+  }
+
+  mcp: "MCP 도구 · :3333/mcp" {
+    class: layer
+    grid-rows: 1
+    grid-gap: 28
+    search: "search_works" {class: tool}
+    get: "get_exhibition" {class: tool}
+    draft: "create_exhibition_draft\nBearer 키 + 사람 승인" {class: write}
+    related: "find_related_works" {class: tool}
+    recommend: "recommend_for_exhibition" {class: tool}
+  }
+}
+
+core: "" {
+  style: {fill: transparent; stroke: transparent}
+  grid-rows: 1
+  grid-gap: 60
+
+  services: "도메인 서비스 · src/lib/services" {
+    class: layer
+    grid-rows: 1
+    grid-gap: 28
+    works: "작품 서비스\nsearchWorks · getWork" {class: svc}
+    exhibitions: "전시 서비스\n생성 · 수정 · 작품 추가\n소유자 권한 · 버전 충돌" {class: svc}
+    tags: "취향 태그 사전\n39개 · 한/영 동의어" {class: svc; shape: page}
+  }
+
+  engine: "추천 엔진 coldstart-v1 · score = 0.35S + 0.25W + 0.20C + 0.10D + 0.10N" {
+    class: layer
+    grid-rows: 1
+    grid-gap: 48
+    s1: "① 시드 · 맥락\n전시 작품 + 제목 · 소개 · 노트" {class: step}
+    s2: "② 후보 풀\n시드 · 제외 · 각색작 제거" {class: step}
+    s3: "③ 특징 점수\nS 태그 · TF-IDF   W 좋아한 이유\nC 전시 문구   N 새 매체" {class: step}
+    s4: "④ Greedy MMR\nD 다양성 · 가중치 재정규화" {class: step}
+    s5: "⑤ 근거 있는 이유\n공유 태그 · 이유 · 매체" {class: step}
+    s1 -> s2 -> s3 -> s4 -> s5: {class: call; style.stroke-width: 2}
+  }
+}
+
+db: "SQLite · data/lecta.db" {
+  class: layer
+  grid-rows: 1
+  grid-gap: 60
+  catalog: "카탈로그\nworks · work_tags\n46작품" {class: store}
+  curation: "큐레이션\nusers · exhibitions\nexhibition_items" {class: store}
+  signals: "신호 · 로그\ntaste_signals\nrecommendation_events\nagent_activity" {class: store}
+}
+
+# curator journey
+users.curator -> front.web.home: {class: web}
+front.web.home -> front.web.discover: "전시 시작" {class: web}
+front.web.discover -> front.web.builder: "2-8개 선택" {class: web}
+front.web.builder -> front.web.room: "초안 저장" {class: web}
+
+# screens → domain (labels are the REST routes the client components call)
+front.web.discover -> core.services.works: "GET /api/works" {class: call}
+front.web.work -> core.services.works: {class: call}
+front.web.home -> core.services.exhibitions: {class: call}
+front.web.mine -> core.services.exhibitions: {class: call}
+front.web.builder -> core.services.exhibitions: "저장 · 수정" {class: call}
+front.web.room -> core.services.exhibitions: "추천 작품 추가" {class: call}
+front.web.room -> core.engine.s1: "추천 요청  POST /api/recommendations" {class: call}
+front.web.lab -> front.mcp.search: "프로토콜 테스트 (읽기 전용)" {class: agentflow; style.stroke-dash: 4}
+
+# agent via MCP
+users.agent -> front.mcp.search: {class: agentflow}
+users.agent -> front.mcp.get: {class: agentflow}
+users.agent -> front.mcp.draft: {class: agentflow}
+users.agent -> front.mcp.related: {class: agentflow}
+users.agent -> front.mcp.recommend: {class: agentflow}
+front.mcp.search -> core.services.works: {class: agentflow}
+front.mcp.get -> core.services.exhibitions: {class: agentflow}
+front.mcp.draft -> core.services.exhibitions: {class: agentflow}
+front.mcp.related -> core.engine.s1: "웹과 같은 엔진" {class: agentflow}
+front.mcp.recommend -> core.engine.s1: {class: agentflow}
+
+# recommender inputs
+core.services.tags -> core.engine.s1: "이유 · 전시 문구 → 태그" {class: call; style.stroke-dash: 4}
+
+# data
+core.services.works -> db.catalog: {class: call}
+core.services.exhibitions -> db.curation: {class: call}
+core.services.exhibitions -> db.signals: "CURATED · ADDED" {class: call}
+core.engine.s2 -> db.catalog: "전체 카탈로그" {class: call}
+core.engine.s5 -> db.signals: "EXPOSED" {class: call}
