@@ -6,7 +6,7 @@ import { Footer } from "@/components/Footer";
 import { demoModeEnabled } from "@/lib/services/actor";
 
 export const metadata: Metadata = {
-  title: { default: "Lecta — the things we keep", template: "%s · Lecta" },
+  title: { default: "Lecta — the things we keep", template: "%s / Lecta" },
   description: "Lecta is a living exhibition of the things you love, and why.",
 };
 

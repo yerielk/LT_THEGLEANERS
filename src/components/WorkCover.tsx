@@ -25,7 +25,7 @@ function titleSize(t: string, medium: CoverWork["medium"]) {
   return `${s.toFixed(1)}cqw`;
 }
 
-const initial = (t: string) => Array.from(t.replace(/^(the|a|an)\s+/i, ""))[0] ?? "·";
+const initial = (t: string) => Array.from(t.replace(/^(the|a|an)\s+/i, ""))[0] ?? "L";
 
 /**
  * Typographic cover plate. Lecta never imitates real posters or sleeves: each work gets a cover set in type,

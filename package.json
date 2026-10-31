@@ -12,7 +12,8 @@
     "agent:demo": "tsx scripts/agent-demo.ts",
     "test": "vitest run",
     "typecheck": "tsc --noEmit",
-    "test:e2e": "node scripts/e2e-uat.mjs"
+    "test:e2e": "node scripts/e2e-uat.mjs",
+    "mcp:inspect": "npx -y @modelcontextprotocol/inspector"
   },
   "dependencies": {
     "@modelcontextprotocol/client": "^2.4.0",

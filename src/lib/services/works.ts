@@ -123,7 +123,9 @@ export function searchWorks(
         let s = 0;
         if (fields[0].includes(q) || fields[1].includes(q)) s += 3;
         if (fields[2].includes(q)) s += 2;
-        if (tagText.includes(q)) s += 1.5;
+        // tags match on word starts so "longing" does not hit "belonging"; Korean labels match as substrings
+        const isHangul = /[가-힣]/.test(q);
+        if (isHangul ? tagText.includes(q) : new RegExp(`(^|\\s)${q.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}`).test(tagText)) s += 1.5;
         if (normalize(w.synopsis ?? "").includes(q)) s += 1;
         return { w, s };
       })

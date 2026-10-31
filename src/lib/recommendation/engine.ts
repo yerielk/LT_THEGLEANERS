@@ -11,7 +11,7 @@ import type { Medium } from "../data/catalog";
 /**
  * coldstart-v1 — Collection → Work recommendation that works with zero behavioural data.
  *
- *   score = 0.35·S + 0.25·W + 0.20·C + 0.10·D + 0.10·N      (weights renormalised over available features)
+ *   score = 0.35*S + 0.25*W + 0.20*C + 0.10*D + 0.10*N      (weights renormalised over available features)
  *
  *   S  semantic/context similarity: mean of (a) cosine between candidate tag vector and the seed works'
  *      averaged tag vector and (b) TF-IDF cosine between candidate text and seed + exhibition text.

@@ -21,7 +21,7 @@ export function ProtocolTest({ online, exhibitions }: { online: boolean; exhibit
     <div>
       <h2 className="h3" style={{ marginTop: 0 }}>Protocol test</h2>
       <p className="muted" style={{ fontSize: 14 }}>
-        실제 MCP 클라이언트가 서버에 접속해 <code>tools/list → search_works → get_exhibition → recommend_for_exhibition</code>을 순서대로 호출해요.
+        실제 MCP 클라이언트가 서버에 접속해 <code>tools/list</code>, <code>search_works</code>, <code>get_exhibition</code>, <code>find_related_works</code>(UAT-03 입력 그대로), <code>recommend_for_exhibition</code>을 차례로 호출해요.
         읽기 전용이며, 언어 모델은 쓰지 않아요 (자연어 에이전트 실행은 <code>npm run agent:demo</code>).
       </p>
       <div style={{ display: "flex", gap: 10, flexWrap: "wrap", alignItems: "center", margin: "16px 0" }}>

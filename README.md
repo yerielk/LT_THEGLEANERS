@@ -97,7 +97,7 @@ Layout references: MUBI Notebook (oversized type and editorial rhythm), Apartame
 ## Recommendation: `coldstart-v1`
 
 ```
-score = 0.35·S + 0.25·W + 0.20·C + 0.10·D + 0.10·N   (weights renormalised when W or C is missing)
+score = 0.35*S + 0.25*W + 0.20*C + 0.10*D + 0.10*N   (weights renormalised when W or C is missing)
 ```
 
 | Signal | Meaning |
@@ -143,7 +143,7 @@ Errors come back as `isError: true` with `{error: {code, message, retryable}}`. 
 | GET | `/api/health` | |
 | GET | `/api/works?q=&medium=&limit=` | Search |
 | GET | `/api/works/:id` | |
-| GET | `/api/exhibitions` · `?mine=1` | Public exhibitions, or your own |
+| GET | `/api/exhibitions`, `?mine=1` | Public exhibitions, or your own |
 | POST | `/api/exhibitions` | Create a draft (`DEMO_MODE=true` only) |
 | GET / PATCH | `/api/exhibitions/:id` | Owner-only edit, with `expectedVersion` conflict check |
 | POST | `/api/exhibitions/:id/items` | Add a work; returns 409 if it is already there |

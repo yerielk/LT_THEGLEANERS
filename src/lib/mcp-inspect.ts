@@ -35,7 +35,7 @@ export async function mcpStatus() {
   }
 }
 
-/** Real read-only protocol run: tools/list → search_works → get_exhibition → recommend_for_exhibition. */
+/** Real read-only protocol run: tools/list → search_works → get_exhibition → find_related_works (UAT-03 input) → recommend_for_exhibition. */
 export async function protocolTest(exhibitionId: string): Promise<TraceStep[]> {
   const trace: TraceStep[] = [];
   await withClient(async (c) => {
@@ -53,8 +53,13 @@ export async function protocolTest(exhibitionId: string): Promise<TraceStep[]> {
     };
 
     await call("search_works", { query: "memory", limit: 5 }, (d) => ({ summary: `${d.total} matches, first ${d.works.length} returned`, ids: d.works.map((w: any) => w.id) }));
-    const ex = await call("get_exhibition", { exhibitionId }, (d) => ({ summary: `"${d.title}" · ${d.items.length} works · ${d.visibility}`, ids: d.items.map((i: any) => i.workId) }));
+    const ex = await call("get_exhibition", { exhibitionId }, (d) => ({ summary: `"${d.title}", ${d.items.length} works, ${d.visibility}`, ids: d.items.map((i: any) => i.workId) }));
     if (ex) {
+      // UAT-03 exactly as written in the UAT sheet: 2 seed ids from the exhibition, target_media=book, limit=3
+      await call("find_related_works", { seed_work_ids: ex.items.slice(0, 2).map((i: any) => i.workId), target_media: "book", limit: 3 }, (d) => ({
+        summary: d.results.map((r: any) => `${r.title} [${r.media_type}] (${r.score})`).join(", "),
+        ids: d.results.map((r: any) => r.work_id),
+      }));
       await call("recommend_for_exhibition", { exhibitionId, limit: 3 }, (d) => ({
         summary: d.recommendations.map((r: any) => `${r.title} (${r.score})`).join(", "),
         ids: d.recommendations.map((r: any) => r.workId),

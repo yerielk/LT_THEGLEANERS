@@ -20,7 +20,7 @@ export default async function DiscoverPage({ searchParams }: { searchParams: Pro
     <>
       <header className="wrap page-head discover-head">
         <h1 className="display">Discover<br />what stays.</h1>
-        <p className="lede" style={{ margin: 0 }}>영화·시리즈·책·앨범을 한 컬렉션에서. 마음이 가는 작품에 + 를 눌러 담으면, 그대로 나의 전시실이 됩니다.</p>
+        <p className="lede" style={{ margin: 0 }}>영화와 시리즈, 책과 앨범을 한 컬렉션에서 둘러보고 마음이 가는 작품에 + 를 눌러 담으면, 그대로 나의 전시실이 됩니다.</p>
       </header>
       <DiscoverClient initial={works} initialMedium={medium ?? "ALL"} initialQ={q} moods={moods} tagLabels={tagLabels} />
     </>
