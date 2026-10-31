@@ -361,7 +361,7 @@ ul.b li span { display: block; font-size: 23px; color: var(--grey); margin-top: 
 .wbar div { display: flex; flex-direction: column; justify-content: flex-end; padding: 16px; color: #fff; font-size: 20px; line-height: 1.25; }
 .wbar div b { font-family: var(--display); font-weight: 400; font-size: 46px; line-height: 1; }
 .cols3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 44px; margin-top: 90px; }
-.cols3 div { font-size: 26px; line-height: 1.55; color: #3d3a35; }
+.cols3 div { font-size: 23px; line-height: 1.55; color: #3d3a35; }
 .cols3 b { display: block; font-size: 26px; color: var(--ink); margin-bottom: 8px; }
 
 /* === 13 MCP === */
@@ -435,7 +435,7 @@ ul.b li span { display: block; font-size: 23px; color: var(--grey); margin-top: 
 .define { font-family: var(--kserif); font-size: 40px; line-height: 1.5; max-width: 1500px; padding: 30px 36px; background: var(--mist); box-shadow: inset 6px 0 0 var(--etruscan); }
 .define b { font-weight: 700; }
 .chain { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0; margin-top: 70px; }
-.chain > div { position: relative; padding: 30px 34px 30px 30px; background: var(--c); color: #fff; min-height: 400px; display: flex; flex-direction: column; gap: 12px; }
+.chain > div { position: relative; padding: 30px 34px 30px 30px; background: var(--c); color: #fff; min-height: var(--h, 400px); display: flex; flex-direction: column; gap: 12px; }
 .chain > div.light { color: var(--ink); }
 .chain > div:not(:last-child)::after { content: ""; position: absolute; right: -22px; top: 50%; width: 44px; height: 44px; background: var(--c); transform: translateY(-50%) rotate(45deg); z-index: 2; }
 .chain .k { font-family: var(--kserif); font-size: 48px; line-height: 1; }
@@ -493,6 +493,67 @@ ul.b li span { display: block; font-size: 23px; color: var(--grey); margin-top: 
 .result b { font-family: var(--kserif); font-weight: 400; font-size: 38px; white-space: nowrap; }
 .result span { font-size: 21px; line-height: 1.5; opacity: .85; }
 
+
+/* === AGENDA === */
+.agenda { position: absolute; left: var(--pad); right: var(--pad); top: 300px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 28px; }
+.agenda > div { border-top: 10px solid var(--c); padding-top: 26px; display: flex; flex-direction: column; gap: 16px; }
+.agenda .num { font-size: 120px; color: var(--c); }
+.agenda h3 { font-family: var(--kserif); font-weight: 400; font-size: 44px; line-height: 1.15; }
+.agenda p { font-size: 22px; line-height: 1.6; color: #3d3a35; }
+
+/* === ONE-LINER BANNER === */
+.oneliner { display: inline-block; font-size: 20px; font-weight: 600; letter-spacing: .04em; color: #fff; background: var(--c); padding: 6px 14px; }
+
+/* === VALUE CYCLE === */
+.cycle { position: absolute; left: var(--pad); top: 330px; width: 640px; height: 640px; }
+.cycle svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+.cycle .ctr { position: absolute; left: 50%; top: 50%; transform: translate(-50%,-50%); width: 230px; height: 230px; border-radius: 50%; background: var(--ink); color: #fff; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
+.cycle .ctr b { font-family: var(--kserif); font-weight: 400; font-size: 44px; }
+.cycle .ctr span { font-size: 17px; opacity: .8; margin-top: 6px; line-height: 1.4; }
+.cycle .st { position: absolute; transform: translate(-50%,-50%); width: 170px; height: 170px; border-radius: 50%; background: var(--c); color: #fff; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
+.cycle .st.light { color: var(--ink); }
+.cycle .st b { font-family: var(--kserif); font-weight: 400; font-size: 34px; }
+.cycle .st span { font-size: 16px; opacity: .9; margin-top: 4px; }
+.values { position: absolute; left: 860px; right: var(--pad); top: 320px; display: grid; gap: 30px; }
+.values > div { display: grid; grid-template-columns: 14px 1fr; gap: 0 22px; }
+.values i { background: var(--c); grid-row: span 2; }
+.values b { font-family: var(--kserif); font-weight: 400; font-size: 36px; }
+.values p { font-size: 22px; line-height: 1.55; color: #3d3a35; }
+.punch { position: absolute; left: 860px; right: var(--pad); bottom: 120px; font-family: var(--kserif); font-size: 30px; line-height: 1.45; }
+
+/* === VISION MAP (nested rooms) === */
+.nest { position: absolute; left: var(--pad); top: 250px; width: 1696px; height: 740px; }
+.ring { position: absolute; left: 0; bottom: 0; padding: 22px 28px; }
+.ring h4 { font-family: var(--kserif); font-weight: 400; font-size: 34px; line-height: 1.1; display: flex; align-items: baseline; gap: 16px; }
+.ring h4 small { font-family: var(--sans); font-size: 18px; font-weight: 600; letter-spacing: .03em; }
+.ring p { font-size: 21px; line-height: 1.5; margin-top: 8px; max-width: 1100px; }
+.ring.r4 { width: 1696px; height: 740px; background: rgba(28,66,134,.08); }
+.ring.r3 { width: 1330px; height: 560px; background: rgba(197,83,71,.10); }
+.ring.r2 { width: 960px; height: 380px; background: rgba(226,181,64,.22); }
+.ring.r1 { width: 600px; height: 200px; background: var(--oilgreen); color: #fff; }
+.ring.r4 h4 small { color: var(--lyons); } .ring.r3 h4 small { color: var(--etruscan); } .ring.r2 h4 small { color: #9a7417; }
+.here-tag { position: absolute; left: 640px; bottom: 150px; font-size: 20px; font-weight: 600; color: var(--oilgreen); display: flex; align-items: center; gap: 10px; }
+.here-tag::before { content: ""; width: 40px; height: 3px; background: var(--oilgreen); }
+
+/* === MILESTONE GANTT === */
+.gantt { position: absolute; left: var(--pad); right: var(--pad); top: 250px; display: grid; grid-template-columns: 210px repeat(4, 1fr); gap: 8px; }
+.gantt .hd { font-size: 20px; color: var(--grey); padding: 0 0 10px 4px; display: flex; flex-direction: column; }
+.gantt .hd b { font-family: var(--display); font-weight: 400; font-size: 46px; color: var(--ink); line-height: 1; }
+.gantt .hd.now b { color: var(--oilgreen); }
+.gantt .lane { font-family: var(--kserif); font-size: 28px; display: flex; align-items: center; padding-left: 4px; }
+.gantt .c { min-height: 96px; padding: 14px 16px; font-size: 19px; line-height: 1.4; background: var(--mist); display: flex; align-items: center; }
+.gantt .c.done { background: var(--oilgreen); color: #fff; font-weight: 500; }
+.gantt .c.m1 { background: rgba(226,181,64,.22); }
+.gantt .c.m2 { background: rgba(197,83,71,.12); }
+.gantt .c.m3 { background: rgba(28,66,134,.09); }
+.gantt .c.none { background: transparent; color: #b9b5ad; }
+
+/* === WEIGHT TUNING STRIP === */
+.tune { position: absolute; left: 540px; right: var(--pad); bottom: 120px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 0; }
+.tune > div { padding: 18px 22px; background: var(--c); color: #fff; font-size: 20px; line-height: 1.45; position: relative; }
+.tune > div.light { color: var(--ink); }
+.tune b { display: block; font-size: 22px; margin-bottom: 4px; }
+
 /* === PRESENTER UI (outside the stage) === */
 .deck-controls { display: flex; gap: 14px; align-items: center; font: 500 14px var(--sans); color: var(--grey); background: rgba(255,255,255,.85); backdrop-filter: blur(8px); padding: 8px 14px; border-radius: 999px; }
 .deck-controls button { background: none; border: 0; font: inherit; color: var(--ink); cursor: pointer; padding: 4px 8px; }
@@ -516,68 +577,91 @@ body.editing [data-edit] { outline: 2px dashed rgba(197,83,71,.5); outline-offse
   <div class="chrome"><span>THE GLEANERS</span><span>1차 스프린트 리뷰와 UAT</span></div>
   <h1 class="title reveal" data-edit>Lecta</h1>
   <p class="tag reveal" data-edit>A living exhibition of what you love, and why.</p>
-  <p class="sub reveal" data-edit>좋아하는 영화와 책과 앨범을 이유와 함께 하나의 전시로 엮으면, Lecta가 그 방을 읽고 다음 작품을 걸어 줍니다. 같은 기능을 AI 에이전트도 MCP로 씁니다.</p>
+  <p class="sub reveal" data-edit>좋아하는 영화와 책과 앨범을 이유와 함께 하나의 전시로 엮는 취향 큐레이션 서비스. Lecta가 그 방을 읽고 다음 작품을 걸어 주고, 같은 기능을 AI도 MCP로 씁니다.</p>
   <div class="rail wipe"></div>
   <div class="wall">
     <figure class="art poster" style="width:220px"><div class="frame"><img src="img/2abdf1fca3.webp" alt="Aftersun" loading="eager" referrerpolicy="no-referrer" onerror="this.parentNode.classList.add('fail')"><span class="fb">Aftersun</span></div><figcaption><b>Aftersun</b><span>영화</span></figcaption></figure>
     <figure class="art book" style="width:200px"><div class="frame"><img src="img/5e09a3bfd6.webp" alt="Stoner" loading="eager" referrerpolicy="no-referrer" onerror="this.parentNode.classList.add('fail')"><span class="fb">Stoner</span></div><figcaption><b>Stoner</b><span>책</span></figcaption></figure>
     <figure class="art square" style="width:260px"><div class="frame"><img src="img/59692ada9e.webp" alt="Pink Moon" loading="eager" referrerpolicy="no-referrer" onerror="this.parentNode.classList.add('fail')"><span class="fb">Pink Moon</span></div><figcaption><b>Pink Moon</b><span>앨범</span></figcaption></figure>
   </div>
-  <div class="meta">2026년 10월 31일<br>팀 THE GLEANERS (4명)</div>
+  <div class="meta">2026년 10월 31일<br>THE GLEANERS<br>김예은, 배한준, 서지안, 홍순형</div>
+</section>
+
+<!-- AGENDA -->
+<section class="slide" aria-label="순서">
+  <div class="chrome"><span class="mk">Lecta</span><span>순서</span></div>
+  <div style="position:absolute;left:var(--pad);top:160px"><h2 class="h reveal" style="font-size:62px">오늘 이야기할 <em>네 개의 방</em></h2></div>
+  <div class="agenda">
+    <div class="reveal" style="--c: var(--lyons)"><span class="num">01</span><h3>프로젝트 소개</h3><p>문제와 목표 한 줄, 취향 큐레이션의 정의와 가치, 기존 서비스와의 차이</p></div>
+    <div class="reveal" style="--c: var(--ocher)"><span class="num">02</span><h3>지금까지 구현한 것</h3><p>다섯 단계 흐름, 실제 화면과 추천 결과, UAT 현장 검증</p></div>
+    <div class="reveal" style="--c: var(--greenblue)"><span class="num">03</span><h3>기술적인 부분</h3><p>구조, 추천 알고리즘과 가중치 조정, MCP와 그 효용, 테스트</p></div>
+    <div class="reveal" style="--c: var(--etruscan)"><span class="num">04</span><h3>향후 계획</h3><p>비전과 현재 범위 한눈에, 마일스톤, 취향 SNS와 블로그, 수익</p></div>
+  </div>
+  <div class="folio"><span>THE GLEANERS 김예은, 배한준, 서지안, 홍순형</span><b>02</b></div>
 </section>
 
 <!-- 02 PROBLEM -->
 <section class="slide" style="--c: var(--lyons)" aria-label="문제">
-  <div class="chrome"><span class="mk">Lecta</span><span>01 문제</span></div>
+  <div class="chrome"><span class="mk">Lecta</span><span>01 프로젝트 소개, 문제</span></div>
   <div style="position:absolute;left:var(--pad);right:var(--pad);top:170px">
-    <p class="kicker reveal">우리가 풀려는 문제</p>
-    <h2 class="h reveal" data-edit style="margin-top:18px;max-width:1500px">취향은 하나로 이어져 있는데,<br>기록은 <em>흩어져</em> 있고 이유는 사라집니다.</h2>
+    <p class="reveal"><span class="oneliner">문제 한 줄 평</span></p>
+    <h2 class="h reveal" data-edit style="margin-top:22px;max-width:1600px;font-size:66px">취향은 하나로 이어져 있는데, 기록은 <em>흩어지고</em><br>이유는 사라지며, AI는 나를 모릅니다.</h2>
     <div class="trio">
       <div class="reveal"><span class="num">01</span><h3 data-edit>매체마다 앱이 다르다</h3><p data-edit>영화는 왓챠피디아, 책은 독서 앱, 음악은 스트리밍. 한 사람의 취향이 이어지는 모습을 어디서도 볼 수 없습니다.</p></div>
       <div class="reveal"><span class="num">02</span><h3 data-edit>왜 좋았는지가 남지 않는다</h3><p data-edit>남는 것은 별점과 시청 이력뿐이라, 무엇을 좋아했는지는 있어도 왜 좋아했는지는 금방 잊힙니다.</p></div>
       <div class="reveal"><span class="num">03</span><h3 data-edit>AI는 내 취향을 모른다</h3><p data-edit>에이전트는 내 기록을 볼 수 없어서, 추천을 부탁할 때마다 취향을 처음부터 다시 설명해야 합니다.</p></div>
     </div>
   </div>
-  <div class="folio"><span>THE GLEANERS 1차 스프린트 리뷰</span><b>02</b></div>
+  <div class="folio"><span>THE GLEANERS 1차 스프린트 리뷰</span><b>03</b></div>
 </section>
 
 <!-- CURATION CONCEPT -->
 <section class="slide" style="--c: var(--etruscan)" aria-label="취향 큐레이션">
-  <div class="chrome"><span class="mk">Lecta</span><span>02 기록이 아니라 큐레이션</span></div>
+  <div class="chrome"><span class="mk">Lecta</span><span>01 프로젝트 소개, 목표와 정의</span></div>
   <div style="position:absolute;left:var(--pad);right:var(--pad);top:150px">
-    <h2 class="h reveal" data-edit style="font-size:68px">기록이 아니라 <em>취향 큐레이션</em></h2>
-    <p class="define reveal" data-edit style="margin-top:30px">큐레이션이란 여러 정보를 <b>수집</b>하고 <b>선별</b>해, 여기에 <b>새로운 가치</b>를 부여하고 <b>전파</b>하는 일입니다.</p>
-    <div class="chain reveal">
+    <p class="reveal"><span class="oneliner">서비스 목표 한 줄 평</span></p>
+    <h2 class="h reveal" data-edit style="font-size:56px;margin-top:20px">좋아한 이유로 엮은 전시가, 사람과 AI 모두가 읽는 <em>나의 취향</em>이 되게 합니다</h2>
+    <p class="define reveal" data-edit style="margin-top:30px;font-size:32px"><b>기록이 아니라 취향 큐레이션.</b> 큐레이션이란 여러 정보를 <b>수집</b>하고 <b>선별</b>해, 여기에 <b>새로운 가치</b>를 부여하고 <b>전파</b>하는 일입니다.</p>
+    <div class="chain reveal" style="margin-top:44px;--h:300px">
       <div style="--c: var(--lyons)"><span class="e">Collect</span><span class="k">수집</span><p data-edit>영화, 시리즈, 책, 앨범을 한 곳에서 찾아 담기</p></div>
       <div style="--c: var(--greenblue)"><span class="e">Select</span><span class="k">선별</span><p data-edit>그중 한 방에 걸 작품을 고르고 순서를 정하기</p></div>
       <div class="light" style="--c: var(--ocher)"><span class="e">Give value</span><span class="k">가치 부여</span><p data-edit>작품마다 왜 좋았는지 한 줄, 전시 전체의 이야기, 근거가 붙는 추천</p></div>
       <div style="--c: var(--etruscan)"><span class="e">Spread</span><span class="k">전파</span><p data-edit>친구 피드와 공유 카드, 그리고 MCP로 내 AI에게까지</p></div>
     </div>
-    <p class="vs reveal"><span><b>기록</b>별점, 이력, 관리해야 할 목록</span><span><b>큐레이션</b>맥락, 이유, 보여주고 싶은 표현</span></p>
-  </div>
-  <div class="folio"><span>THE GLEANERS 1차 스프린트 리뷰</span><b>03</b></div>
-</section>
-
-<!-- 03 SOLUTION FLOW -->
-<section class="slide" aria-label="해결">
-  <div class="chrome"><span class="mk">Lecta</span><span>02 해결</span></div>
-  <div style="position:absolute;left:var(--pad);right:var(--pad);top:170px">
-    <p class="kicker reveal">Lecta가 하는 일</p>
-    <h2 class="h reveal" data-edit style="margin-top:18px">작품을 고르고, 이유와 함께 <em>전시</em>로 엮으면<br>사람도 에이전트도 그 방을 읽습니다.</h2>
-  </div>
-  <div class="flow">
-    <div class="st reveal" style="--c: var(--lyons)"><span class="num">01</span><h3>Explore</h3><span class="k">탐색</span><p data-edit>영화, 시리즈, 책, 앨범을 한 컬렉션에서 검색하고 분위기로 거르기</p></div>
-    <div class="st reveal" style="--c: var(--greenblue)"><span class="num">02</span><h3>Collect</h3><span class="k">담기</span><p data-edit>마음이 가는 작품을 + 로 트레이에 담기</p></div>
-    <div class="st reveal light" style="--c: var(--ocher)"><span class="num">03</span><h3>Curate</h3><span class="k">전시</span><p data-edit>제목과 소개, 순서, 작품마다 한 줄 이유를 남겨 방 하나 완성</p></div>
-    <div class="st reveal" style="--c: var(--etruscan)"><span class="num">04</span><h3>Recommend</h3><span class="k">추천</span><p data-edit>전시의 맥락과 이유로 다른 매체의 다음 작품을 근거와 함께 추천</p></div>
-    <div class="st reveal" style="--c: var(--oilgreen)"><span class="num">05</span><h3>Agent</h3><span class="k">MCP</span><p data-edit>같은 데이터와 추천을 MCP 도구로 AI에 열기, 쓰기는 승인 후에만</p></div>
+    <p class="vs reveal" style="margin-top:26px"><span><b>기록</b>별점, 이력, 관리해야 할 목록</span><span><b>큐레이션</b>맥락, 이유, 보여주고 싶은 표현</span></p>
   </div>
   <div class="folio"><span>THE GLEANERS 1차 스프린트 리뷰</span><b>04</b></div>
 </section>
 
+<!-- VALUE CYCLE -->
+<section class="slide" aria-label="가치">
+  <div class="chrome"><span class="mk">Lecta</span><span>01 프로젝트 소개, 우리가 만드는 가치</span></div>
+  <div style="position:absolute;left:var(--pad);right:var(--pad);top:150px">
+    <h2 class="h reveal" data-edit style="font-size:56px">큐레이션이 <em>콘텐츠와 취향의 가치</em>를 다시 만듭니다</h2>
+  </div>
+  <div class="cycle reveal" aria-hidden="true">
+    <svg viewBox="0 0 640 640"><defs><marker id="ca" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#1b1a17"/></marker></defs>
+      <g fill="none" stroke="#1b1a17" stroke-width="3" marker-end="url(#ca)">
+        <path d="M400 95 A 250 250 0 0 1 545 240"/><path d="M545 400 A 250 250 0 0 1 400 545"/><path d="M240 545 A 250 250 0 0 1 95 400"/><path d="M95 240 A 250 250 0 0 1 240 95"/>
+      </g></svg>
+    <div class="ctr"><b>이유</b><span>작품마다 남긴<br>한 줄</span></div>
+    <div class="st" style="left:50%;top:9%;--c: var(--lyons)"><b>수집</b><span>여러 매체에서</span></div>
+    <div class="st" style="left:91%;top:50%;--c: var(--greenblue)"><b>선별</b><span>한 방에 걸 작품</span></div>
+    <div class="st light" style="left:50%;top:91%;--c: var(--ocher)"><b>가치 부여</b><span>이유와 이야기</span></div>
+    <div class="st" style="left:9%;top:50%;--c: var(--etruscan)"><b>전파</b><span>친구와 AI에게</span></div>
+  </div>
+  <div class="values">
+    <div class="reveal" style="--c: var(--lyons)"><i></i><b>콘텐츠의 가치</b><p data-edit>지나간 작품도 새로운 전시의 맥락에 걸리며 다시 읽히고, 영화에서 책과 음악으로 매체 경계를 넘어 이어집니다. 신작만 소비되는 대신 오래된 작품이 다시 발견됩니다.</p></div>
+    <div class="reveal" style="--c: var(--ocher)"><i></i><b>개인 취향의 가치</b><p data-edit>흩어진 감상이 나를 설명하는 아카이브가 되고, 한 번 쌓은 취향은 내 AI가 어디서든 쓰는 개인 맥락이 됩니다. 취향이 소비 기록이 아니라 자산이 됩니다.</p></div>
+    <div class="reveal" style="--c: var(--etruscan)"><i></i><b>연결의 가치</b><p data-edit>내 이유가 다음 사람의 발견이 되고, 그 사람의 전시가 다시 나의 발견이 됩니다. 이유가 쌓일수록 추천과 취향 궁합도 정확해지는 선순환입니다.</p></div>
+  </div>
+  <p class="punch reveal" data-edit>한 사람의 이유가 붙을 때마다 작품은 다시 읽히고, 취향은 자산이 됩니다.</p>
+  <div class="folio"><span>THE GLEANERS 1차 스프린트 리뷰</span><b>05</b></div>
+</section>
+
 <!-- 04 POSITIONING MAP -->
 <section class="slide" style="--c: var(--etruscan)" aria-label="포지셔닝">
-  <div class="chrome"><span class="mk">Lecta</span><span>03 기존 서비스</span></div>
+  <div class="chrome"><span class="mk">Lecta</span><span>01 프로젝트 소개, 기존 서비스</span></div>
   <div class="label reveal"><span class="no">Map</span><h2>우리가 서는 자리</h2><span class="cn">팀의 해석, 2026년 10월 기준</span></div>
   <div style="position:absolute;left:var(--pad);top:500px;width:360px" class="reveal">
     <ul class="b" style="--c: var(--etruscan)">
@@ -603,12 +687,12 @@ body.editing [data-edit] { outline: 2px dashed rgba(197,83,71,.5); outline-offse
     <div class="pt me" style="left:82%;top:24%"><i></i><span>Lecta</span></div>
     <div class="pt" style="left:93%;top:-2%;align-items:flex-end"><span style="font-size:18px;color:var(--grey)">Qloo는 B2B 데이터 층이라 지도 밖</span></div>
   </div>
-  <div class="folio"><span>THE GLEANERS 1차 스프린트 리뷰</span><b>05</b></div>
+  <div class="folio"><span>THE GLEANERS 1차 스프린트 리뷰</span><b>06</b></div>
 </section>
 
 <!-- 05 SERVICES 1 -->
 <section class="slide" aria-label="비교 서비스 1">
-  <div class="chrome"><span class="mk">Lecta</span><span>03 기존 서비스, 기록 앱</span></div>
+  <div class="chrome"><span class="mk">Lecta</span><span>01 프로젝트 소개, 기존 서비스</span></div>
   <div class="svcs"><article class="svc reveal">
   <div class="phones"><div class="ph back"><img src="img/b347bb7eb8.webp" alt="Letterboxd 앱 화면" referrerpolicy="no-referrer" onerror="this.parentNode.classList.add('fail')"></div><div class="ph"><img src="img/5606779020.webp" alt="Letterboxd 앱 화면" referrerpolicy="no-referrer" onerror="this.parentNode.classList.add('fail')"><span class="fb">Letterboxd</span></div></div>
   <h3>Letterboxd</h3><p class="media">영화 중심</p>
@@ -630,12 +714,12 @@ body.editing [data-edit] { outline: 2px dashed rgba(197,83,71,.5); outline-offse
   <ul><li>나중에 볼 것을 정리하는 리스트</li><li>공유 리스트 기능 종료 공지</li></ul>
   <p class="diff"><span>Lecta와 다른 점</span>매체는 넓지만 표현보다 할 일 관리에 가까움</p>
 </article></div>
-  <div class="folio"><span>앱 화면은 각 서비스의 App Store 스크린샷</span><b>06</b></div>
+  <div class="folio"><span>앱 화면은 각 서비스의 App Store 스크린샷</span><b>07</b></div>
 </section>
 
 <!-- 06 SERVICES 2 -->
 <section class="slide" aria-label="비교 서비스 2">
-  <div class="chrome"><span class="mk">Lecta</span><span>03 기존 서비스, 추천과 큐레이션</span></div>
+  <div class="chrome"><span class="mk">Lecta</span><span>01 프로젝트 소개, 기존 서비스</span></div>
   <div class="svcs"><article class="svc reveal">
   <div class="phones"><div class="ph back"><img src="img/27793c3169.webp" alt="Likewise 앱 화면" referrerpolicy="no-referrer" onerror="this.parentNode.classList.add('fail')"></div><div class="ph"><img src="img/239f33f268.webp" alt="Likewise 앱 화면" referrerpolicy="no-referrer" onerror="this.parentNode.classList.add('fail')"><span class="fb">Likewise</span></div></div>
   <h3>Likewise</h3><p class="media">영화, TV, 책, 팟캐스트</p>
@@ -657,139 +741,40 @@ body.editing [data-edit] { outline: 2px dashed rgba(197,83,71,.5); outline-offse
   <ul><li>기업용 취향 인텔리전스 API</li><li>교차 도메인 추천, 에이전트 그라운딩</li></ul>
   <p class="diff"><span>Lecta와 다른 점</span>대규모 집계 데이터라 개인이 남긴 이유와 전시 맥락이 없음</p>
 </article></div>
-  <div class="folio"><span>앱 화면은 각 서비스의 App Store 스크린샷</span><b>07</b></div>
+  <div class="folio"><span>앱 화면은 각 서비스의 App Store 스크린샷</span><b>08</b></div>
 </section>
 
 <!-- 07 MATRIX -->
 <section class="slide" style="--c: var(--etruscan)" aria-label="비교 요약">
-  <div class="chrome"><span class="mk">Lecta</span><span>03 기존 서비스, 한눈에</span></div>
+  <div class="chrome"><span class="mk">Lecta</span><span>01 프로젝트 소개, 기존 서비스</span></div>
   <div style="position:absolute;left:var(--pad);right:var(--pad);top:150px">
     <h2 class="h reveal" data-edit style="font-size:60px;margin-bottom:34px">여섯 가지를 <em>한 곳에서</em> 모두 하는 서비스는 아직 없습니다</h2>
     <div class="reveal"><table class="mx"><thead><tr><th></th><th>여러 매체를 한곳에</th><th>작품 단위 데이터</th><th>좋아한 이유 기록</th><th>전시처럼 엮기</th><th>근거를 보여주는 추천</th><th>AI 에이전트 접근</th></tr></thead><tbody><tr class=""><th>Letterboxd</th><td><i class="d n" aria-label="없음"></i></td><td><i class="d f" aria-label="있음"></i></td><td><i class="d h" aria-label="일부"></i></td><td><i class="d h" aria-label="일부"></i></td><td><i class="d n" aria-label="없음"></i></td><td><i class="d n" aria-label="없음"></i></td></tr><tr class=""><th>왓챠피디아</th><td><i class="d f" aria-label="있음"></i></td><td><i class="d f" aria-label="있음"></i></td><td><i class="d h" aria-label="일부"></i></td><td><i class="d h" aria-label="일부"></i></td><td><i class="d h" aria-label="일부"></i></td><td><i class="d n" aria-label="없음"></i></td></tr><tr class=""><th>StoryGraph</th><td><i class="d n" aria-label="없음"></i></td><td><i class="d f" aria-label="있음"></i></td><td><i class="d h" aria-label="일부"></i></td><td><i class="d n" aria-label="없음"></i></td><td><i class="d h" aria-label="일부"></i></td><td><i class="d n" aria-label="없음"></i></td></tr><tr class=""><th>Sofa</th><td><i class="d f" aria-label="있음"></i></td><td><i class="d f" aria-label="있음"></i></td><td><i class="d n" aria-label="없음"></i></td><td><i class="d h" aria-label="일부"></i></td><td><i class="d n" aria-label="없음"></i></td><td><i class="d n" aria-label="없음"></i></td></tr><tr class=""><th>Likewise</th><td><i class="d f" aria-label="있음"></i></td><td><i class="d f" aria-label="있음"></i></td><td><i class="d n" aria-label="없음"></i></td><td><i class="d h" aria-label="일부"></i></td><td><i class="d h" aria-label="일부"></i></td><td><i class="d n" aria-label="없음"></i></td></tr><tr class=""><th>Are.na</th><td><i class="d f" aria-label="있음"></i></td><td><i class="d n" aria-label="없음"></i></td><td><i class="d h" aria-label="일부"></i></td><td><i class="d f" aria-label="있음"></i></td><td><i class="d n" aria-label="없음"></i></td><td><i class="d h" aria-label="일부"></i></td></tr><tr class=""><th>Cosmos</th><td><i class="d n" aria-label="없음"></i></td><td><i class="d n" aria-label="없음"></i></td><td><i class="d n" aria-label="없음"></i></td><td><i class="d f" aria-label="있음"></i></td><td><i class="d h" aria-label="일부"></i></td><td><i class="d n" aria-label="없음"></i></td></tr><tr class=""><th>Qloo</th><td><i class="d f" aria-label="있음"></i></td><td><i class="d f" aria-label="있음"></i></td><td><i class="d n" aria-label="없음"></i></td><td><i class="d n" aria-label="없음"></i></td><td><i class="d h" aria-label="일부"></i></td><td><i class="d f" aria-label="있음"></i></td></tr><tr class="me"><th>Lecta</th><td><i class="d f" aria-label="있음"></i></td><td><i class="d f" aria-label="있음"></i></td><td><i class="d f" aria-label="있음"></i></td><td><i class="d f" aria-label="있음"></i></td><td><i class="d f" aria-label="있음"></i></td><td><i class="d f" aria-label="있음"></i></td></tr></tbody></table></div>
     <div class="legend reveal"><span><i class="d f"></i>있음</span><span><i class="d h"></i>일부</span><span><i class="d n"></i>없음</span><span>각 서비스의 공개 소개와 앱 스토어 정보를 바탕으로 한 팀의 판단이며, 기능은 바뀔 수 있습니다</span></div>
   </div>
-  <div class="folio"><span>THE GLEANERS 1차 스프린트 리뷰</span><b>08</b></div>
-</section>
-
-<!-- 08 FLOOR PLAN -->
-<section class="slide" style="--c: var(--oilgreen)" aria-label="전체 범위">
-  <div class="chrome"><span class="mk">Lecta</span><span>04 전체 범위</span></div>
-  <div class="label reveal"><span class="no">Floor plan</span><h2>지은 방과<br>지을 방</h2><span class="cn">Oil Green</span></div>
-  <div style="position:absolute;left:var(--pad);top:500px;width:360px" class="reveal">
-    <ul class="b">
-      <li style="font-size:23px">아래층 다섯 방은 <b>이번 스프린트에 실제로 동작</b></li>
-      <li style="font-size:23px">위층은 친구와 연결되는 확장 공간으로, <b>혼자 쓰는 가치가 먼저</b>라 다음 스프린트로</li>
-    </ul>
-  </div>
-  <div class="plan">
-    <div class="lv reveal"><span>위층, 확장</span><span>11월 14일 중간발표와 12월 19일 최종 데모</span></div>
-    <div class="row next reveal">
-      <div class="room next" style="--c: var(--ocher)"><span class="when" style="color:#a9821c">11/14</span><h4>계정과 공개 링크</h4><p>로그인, 팔로우, 전시를 링크로 공유</p></div>
-      <div class="room next" style="--c: var(--etruscan)"><span class="when">12/19</span><h4>친구와 취향 비교</h4><p>공통 취향과 차이, 함께 볼 작품 추천</p></div>
-      <div class="room next" style="--c: var(--etruscan)"><span class="when">12/19</span><h4>공동 전시</h4><p>친구와 한 방을 함께 꾸미기</p></div>
-      <div class="room next" style="--c: var(--etruscan)"><span class="when">12/19</span><h4>Taste Profile</h4><p>쌓인 이유로 보는 내 취향의 구성</p></div>
-    </div>
-    <div class="lv reveal"><span>아래층, 핵심 경험</span><span>10월 31일 현재</span></div>
-    <div class="row built reveal">
-      <div class="room built" style="--c: var(--lyons)"><h4>Explore</h4><p>실존 작품 132개, 검색과 필터</p></div>
-      <div class="room built" style="--c: var(--greenblue)"><h4>Collect</h4><p>선택 트레이, 중복 방지</p></div>
-      <div class="room built light" style="--c: var(--ocher)"><h4>Curate</h4><p>저장, 편집, 순서, 한 줄 이유</p></div>
-      <div class="room built" style="--c: var(--etruscan)"><h4>Recommend</h4><p>교차 매체 추천과 근거</p></div>
-      <div class="room built" style="--c: var(--oilgreen)"><h4>Agent</h4><p>MCP 도구 5개, 승인 후 쓰기</p></div>
-    </div>
-  </div>
   <div class="folio"><span>THE GLEANERS 1차 스프린트 리뷰</span><b>09</b></div>
 </section>
 
-<!-- 09 SOCIAL VISION -->
-<section class="slide" style="--c: var(--etruscan)" aria-label="궁극적 그림">
-  <div class="chrome"><span class="mk">Lecta</span><span>04 궁극적 그림</span></div>
-  <div style="position:absolute;left:var(--pad);right:var(--pad);top:150px">
-    <p class="kicker reveal">우리가 결국 만들고 싶은 것</p>
-    <h2 class="h reveal" data-edit style="font-size:56px;margin-top:14px">전시는 보여주려고 만드는 것,<br>그래서 Lecta는 <em>취향으로 연결되는 SNS</em>가 됩니다</h2>
+<!-- 03 SOLUTION FLOW -->
+<section class="slide" aria-label="해결">
+  <div class="chrome"><span class="mk">Lecta</span><span>02 구현한 것, 흐름</span></div>
+  <div style="position:absolute;left:var(--pad);right:var(--pad);top:170px">
+    <p class="kicker reveal">다섯 단계 모두 실제로 동작합니다</p>
+    <h2 class="h reveal" data-edit style="margin-top:18px">작품을 고르고, 이유와 함께 <em>전시</em>로 엮으면<br>사람도 에이전트도 그 방을 읽습니다.</h2>
   </div>
-  <div class="graph reveal" aria-hidden="true">
-    <svg viewBox="0 0 900 640" preserveAspectRatio="none"><g stroke="#1b1a17" stroke-width="2.5" fill="none" stroke-dasharray="2 10" stroke-linecap="round">
-      <path d="M450 330 L150 140"/><path d="M450 330 L760 150"/><path d="M450 330 L170 540"/><path d="M450 330 L760 540"/><path d="M150 140 L760 150"/>
-    </g></svg>
-    <div class="node me" style="left:50%;top:51%;--c: var(--etruscan)"><span class="av">나</span><span class="mini"><i><img src="img/0e6f1a8d70.webp" alt=""></i><i><img src="img/0dc269431c.webp" alt=""></i><i><img src="img/b9e0671a8b.webp" alt=""></i></span></div>
-    <div class="node" style="left:16%;top:22%;--c: var(--lyons)"><span class="av">친구</span><span class="mini"><i><img src="img/2abdf1fca3.webp" alt=""></i><i><img src="img/5e09a3bfd6.webp" alt=""></i></span></div>
-    <div class="node" style="left:84%;top:23%;--c: var(--greenblue)"><span class="av">친구</span><span class="mini"><i><img src="img/7c30e3f39c.webp" alt=""></i><i><img src="img/59692ada9e.webp" alt=""></i></span></div>
-    <div class="node" style="left:19%;top:84%;--c: var(--oilgreen)"><span class="av" style="font-size:24px">큐레이터</span><span class="mini"><i><img src="img/b38fe3e709.webp" alt=""></i><i><img src="img/f082bd5791.webp" alt=""></i></span></div>
-    <div class="node" style="left:84%;top:84%;--c: var(--ocher)"><span class="av" style="color:var(--ink)">AI</span></div>
-    <span class="edge" style="left:33%;top:37%">취향 궁합</span>
-    <span class="edge" style="left:67%;top:37%">공동 전시</span>
-    <span class="edge" style="left:50%;top:22%">서로의 방 방문</span>
-    <span class="edge" style="left:34%;top:68%">팔로우</span>
-    <span class="edge" style="left:67%;top:68%">동의한 범위만</span>
+  <div class="flow">
+    <div class="st reveal" style="--c: var(--lyons)"><span class="num">01</span><h3>Explore</h3><span class="k">탐색</span><p data-edit>영화, 시리즈, 책, 앨범을 한 컬렉션에서 검색하고 분위기로 거르기</p></div>
+    <div class="st reveal" style="--c: var(--greenblue)"><span class="num">02</span><h3>Collect</h3><span class="k">담기</span><p data-edit>마음이 가는 작품을 + 로 트레이에 담기</p></div>
+    <div class="st reveal light" style="--c: var(--ocher)"><span class="num">03</span><h3>Curate</h3><span class="k">전시</span><p data-edit>제목과 소개, 순서, 작품마다 한 줄 이유를 남겨 방 하나 완성</p></div>
+    <div class="st reveal" style="--c: var(--etruscan)"><span class="num">04</span><h3>Recommend</h3><span class="k">추천</span><p data-edit>전시의 맥락과 이유로 다른 매체의 다음 작품을 근거와 함께 추천</p></div>
+    <div class="st reveal" style="--c: var(--oilgreen)"><span class="num">05</span><h3>Agent</h3><span class="k">MCP</span><p data-edit>같은 데이터와 추천을 MCP 도구로 AI에 열기, 쓰기는 승인 후에만</p></div>
   </div>
-  <div class="social-list reveal">
-    <ul class="b" data-edit>
-      <li><b>피드</b><span>친구와 큐레이터의 새 전시를 둘러보고 마음에 드는 작품을 내 방으로 가져오기</span></li>
-      <li><b>취향 궁합</b><span>함께 고른 이유와 엇갈리는 지점을 보여주고, 둘이 같이 볼 작품을 추천</span></li>
-      <li><b>공동 전시</b><span>친구와 한 방을 함께 꾸미고 서로의 한 줄 이유를 나란히 걸기</span></li>
-      <li><b>공유 카드</b><span>전시를 인스타그램 스토리용 이미지와 링크로 내보내 바깥에서 사람을 데려오기</span></li>
-      <li><b>내 취향을 아는 AI</b><span>내가 허락한 범위에서 에이전트가 친구 취향까지 참고해 선물이나 함께 볼 것을 제안</span></li>
-    </ul>
-  </div>
-  <div class="folio"><span>11/14부터 계정과 팔로우, 12/19에 궁합과 공동 전시를 시연합니다</span><b>10</b></div>
-</section>
-
-<!-- TASTE BLOG -->
-<section class="slide" style="--c: var(--oldrose)" aria-label="취향 블로그">
-  <div class="chrome"><span class="mk">Lecta</span><span>04 궁극적 그림, 나의 페이지</span></div>
-  <div style="position:absolute;left:var(--pad);right:var(--pad);top:150px">
-    <p class="kicker reveal">방이 모이면</p>
-    <h2 class="h reveal" data-edit style="font-size:58px;margin-top:14px">내 전시들이 모여 <em>나의 취향 블로그</em>가 됩니다</h2>
-  </div>
-  <div class="blog reveal" aria-label="취향 블로그 화면 예시">
-    <div class="bar"><i></i><i></i><i></i><span>lecta.app/@me</span></div>
-    <div class="hd"><span class="pic">Y</span><div><div class="nm">Y의 전시실</div><div class="st">전시 12, 담은 작품 84, 남긴 이유 61, 팔로워 128</div></div></div>
-    <div class="tabs"><b>전시</b><span>감상 기록</span><span>보관함</span><span>취향 지도</span></div>
-    <div class="grid">
-      <div class="rm" style="--c: var(--lyons)"><div class="w"><img src="img/0e6f1a8d70.webp" alt=""><img src="img/0dc269431c.webp" alt=""><img src="img/b9e0671a8b.webp" alt="" class="sq"></div><h5>말하지 못한 것들</h5><p>10월 28일, 작품 3, 이유 3</p></div>
-      <div class="rm" style="--c: var(--ocher)"><div class="w"><img src="img/2abdf1fca3.webp" alt=""><img src="img/7c30e3f39c.webp" alt=""><img src="img/59692ada9e.webp" alt="" class="sq"></div><h5>여름이 끝나는 자리</h5><p>9월 30일, 작품 3, 이유 2</p></div>
-      <div class="rm" style="--c: var(--greenblue)"><div class="w"><img src="img/219c2421df.webp" alt=""><img src="img/17c401ce3c.webp" alt=""><img src="img/f082bd5791.webp" alt="" class="sq"></div><h5>되돌아보는 사람들</h5><p>8월 12일, 작품 3, 이유 3</p></div>
-    </div>
-    <p class="note">"복도 장면은 끝내지 못한 문장 같다." 최근 남긴 이유, In the Mood for Love</p>
-  </div>
-  <div class="blog-side reveal">
-    <ul class="b" data-edit style="--c: var(--oldrose)">
-      <li style="font-size:25px"><b>시간순 아카이브</b><span>내가 만든 방이 날짜순으로 쌓이는 개인 페이지</span></li>
-      <li style="font-size:25px"><b>짧게도 길게도</b><span>한 줄 이유부터 블로그 글 같은 긴 감상까지</span></li>
-      <li style="font-size:25px"><b>취향 지도</b><span>쌓인 이유로 보는 나의 취향 구성 (Taste Profile)</span></li>
-      <li style="font-size:25px"><b>공개 범위</b><span>방마다 전체 공개, 친구만, 나만 보기</span></li>
-    </ul>
-  </div>
-  <p class="mock-tag">화면 예시이며 아직 구현 전입니다. 12/19 최종 데모 목표</p>
-  <div class="folio"><span>THE GLEANERS 1차 스프린트 리뷰</span><b>11</b></div>
-</section>
-
-<!-- 09 ROADMAP -->
-<section class="slide" aria-label="스프린트 계획">
-  <div class="chrome"><span class="mk">Lecta</span><span>04 스프린트 계획</span></div>
-  <div style="position:absolute;left:var(--pad);top:160px"><h2 class="h reveal" data-edit style="font-size:62px">세 번의 발표, 세 개의 <em>마일스톤</em></h2></div>
-  <div class="road">
-    <div class="line wipe"></div>
-    <div class="col reveal" style="--c: var(--oilgreen)">
-      <div class="date">10/31<span class="here">지금 여기</span></div><p class="what">1차 발표와 UAT</p>
-      <ul class="b" data-edit><li>실존 작품 132개, 실제 이미지 100개</li><li>검색, 필터, 선택 트레이</li><li>전시 저장과 편집, 새로고침 후 복원</li><li>교차 매체 추천과 근거 표시</li><li>MCP 도구 5개, Inspector로 호출 검증</li></ul>
-    </div>
-    <div class="col reveal" style="--c: var(--ocher)">
-      <div class="date">11/14</div><p class="what">중간발표</p>
-      <ul class="b" data-edit><li>로그인, 팔로우, 공개 전시 링크</li><li>TMDB, Google Books, MusicBrainz로 작품 검증, 200개 이상</li><li>담아두고 나중에 기록하는 보관함, 레이아웃 추가</li><li>이유 문장에서 태그 제안 (사용자 확인 후 저장)</li><li>임베딩 추천, 실제 LLM 에이전트, 원격 MCP</li></ul>
-    </div>
-    <div class="col reveal" style="--c: var(--etruscan)">
-      <div class="date">12/19</div><p class="what">최종 데모</p>
-      <ul class="b" data-edit><li>친구와 취향 비교, 공동 전시</li><li>취향 블로그(개인 페이지)와 Taste Profile</li><li>공개 전시 둘러보기, 외부 실시간 검색</li><li>추천 반응으로 가중치 조정</li><li>에이전트 권한(OAuth 범위) 관리 화면</li></ul>
-    </div>
-  </div>
-  <div class="folio"><span>THE GLEANERS 1차 스프린트 리뷰</span><b>12</b></div>
+  <div class="folio"><span>THE GLEANERS 1차 스프린트 리뷰</span><b>10</b></div>
 </section>
 
 <!-- 10 WHAT WE BUILT -->
 <section class="slide" aria-label="만든 것">
-  <div class="chrome"><span class="mk">Lecta</span><span>05 이번에 만든 것</span></div>
+  <div class="chrome"><span class="mk">Lecta</span><span>02 구현한 것, 실제 결과</span></div>
   <div class="built-wall reveal">
     <div class="hang wipe"></div>
     <figure class="art poster" style="width:250px"><div class="frame"><img src="img/0e6f1a8d70.webp" alt="In the Mood for Love" loading="eager" referrerpolicy="no-referrer" onerror="this.parentNode.classList.add('fail')"><span class="fb">In the Mood for Love</span></div><figcaption><b>In the Mood for Love</b><span>영화</span></figcaption></figure>
@@ -808,12 +793,32 @@ body.editing [data-edit] { outline: 2px dashed rgba(197,83,71,.5); outline-offse
     <div class="reveal" data-edit><b>03</b>저장하면 색이 칠해진 입구 벽을 가진 방이 되고 새로고침해도 유지</div>
     <div class="reveal" data-edit><b>04</b>방 아래에서 근거가 붙은 추천을 받아 바로 벽에 걸기</div>
   </div>
-  <div class="folio"><span>THE GLEANERS 1차 스프린트 리뷰</span><b>13</b></div>
+  <div class="folio"><span>THE GLEANERS 1차 스프린트 리뷰</span><b>11</b></div>
+</section>
+
+<!-- 15 UAT -->
+<section class="slide" aria-label="UAT">
+  <div class="chrome"><span class="mk">Lecta</span><span>02 구현한 것, UAT 현장 검증</span></div>
+  <div style="position:absolute;left:var(--pad);right:var(--pad);top:150px">
+    <h2 class="h reveal" data-edit style="font-size:58px;margin-bottom:40px">세 항목 모두 시트의 조건 그대로 미리 돌려 보았습니다</h2>
+    <div class="uat">
+      <div class="reveal" style="--c: var(--lyons)"><span class="num">01</span><h3>작품 탐색과 선택</h3><span class="pill">검증 가능</span>
+        <ul data-edit><li><code>longing</code> 검색에 영화 8, 시리즈 1, 책 4, 앨범 11</li><li>영화, 책, 앨범을 하나씩 담으면 편집기에 같은 ID</li><li>결과 없는 검색어도 오류 없이 빈 화면</li></ul>
+        <p class="need" data-edit>필요한 것: 웹 서버가 켜진 노트북</p></div>
+      <div class="reveal" style="--c: var(--ocher)"><span class="num">02</span><h3>전시 제작과 저장</h3><span class="pill">검증 가능</span>
+        <ul data-edit><li>저장하면 주소에 <code>ex_</code> 전시 ID</li><li>새로고침해도 제목, 소개, 작품, 순서 유지</li><li>제목이 비면 저장되지 않음</li></ul>
+        <p class="need" data-edit>테스터 여러 명이 모두 같은 데모 사용자로 저장된다는 점을 미리 안내</p></div>
+      <div class="reveal" style="--c: var(--greenblue)"><span class="num">03</span><h3>에이전트의 MCP 추천 조회</h3><span class="pill part">조건부 검증 가능</span>
+        <ul data-edit><li><code>find_related_works</code>, 시드 2개, 책, 3개</li><li>The Sense of an Ending, The Great Gatsby, Stoner</li><li>없는 ID는 <code>WORK_NOT_FOUND</code></li></ul>
+        <p class="need" data-edit>LLM이 스스로 고르는 장면까지 요구되면 Comments에 프로토콜 수준 검증으로 기록</p></div>
+    </div>
+  </div>
+  <div class="folio"><span>Pass는 현장에서 실제로 본 것에만 적습니다</span><b>12</b></div>
 </section>
 
 <!-- 11 ARCHITECTURE -->
 <section class="slide" style="--c: var(--lyons)" aria-label="구조">
-  <div class="chrome"><span class="mk">Lecta</span><span>06 설계와 개발</span></div>
+  <div class="chrome"><span class="mk">Lecta</span><span>03 기술, 구조</span></div>
   <div class="label reveal"><span class="no">Architecture</span><h2>엔진 하나,<br>입구 두 개</h2><span class="cn">Deep Lyons Blue</span></div>
   <div style="position:absolute;left:var(--pad);top:500px;width:360px" class="reveal">
     <ul class="b">
@@ -842,12 +847,12 @@ body.editing [data-edit] { outline: 2px dashed rgba(197,83,71,.5); outline-offse
     <div class="reveal" data-edit><b>데이터</b>영화와 책과 앨범을 works 테이블 하나로 통합, 이유 원문과 추출 태그는 따로 저장</div>
     <div class="reveal" data-edit><b>개발 방식</b>팀이 명세와 디자인과 검수, 구현은 AI 코딩 에이전트와 함께, 모든 단계를 자동 검사로 확인</div>
   </div>
-  <div class="folio"><span>THE GLEANERS 1차 스프린트 리뷰</span><b>14</b></div>
+  <div class="folio"><span>THE GLEANERS 1차 스프린트 리뷰</span><b>13</b></div>
 </section>
 
 <!-- 12 RECOMMENDATION -->
 <section class="slide" style="--c: var(--etruscan)" aria-label="추천">
-  <div class="chrome"><span class="mk">Lecta</span><span>06 추천은 어떻게 계산하나</span></div>
+  <div class="chrome"><span class="mk">Lecta</span><span>03 기술, 추천 알고리즘</span></div>
   <div class="label reveal"><span class="no">Recommend</span><h2>설명할 수<br>있는 추천</h2><span class="cn">Etruscan Red</span></div>
   <div class="main">
     <p class="formula reveal">score = .35 맥락 + .25 이유 + .20 주제 + .10 다양성 + .10 확장</p>
@@ -858,18 +863,23 @@ body.editing [data-edit] { outline: 2px dashed rgba(197,83,71,.5); outline-offse
       <div style="width:10%;background:var(--oldrose)"><b>10</b>다양성</div>
       <div style="width:10%;background:var(--oilgreen)"><b>10</b>확장</div>
     </div>
-    <div class="cols3">
+    <div class="cols3" style="margin-top:44px">
       <div class="reveal" data-edit><b>데이터가 없어도 동작</b>사용자 행동이 아니라 지금 만드는 전시를 입력으로 써서 작품 두 개만 있어도 추천</div>
       <div class="reveal" data-edit><b>근거는 지어내지 않음</b>실제로 겹치는 태그와 사용자가 쓴 문구로만 이유를 조립하고, 근거가 약하면 Exploratory로 표시</div>
       <div class="reveal" data-edit><b>재현 가능</b>같은 입력엔 같은 결과, 같은 제목의 다른 매체판과 이미 걸린 작품은 제외</div>
     </div>
   </div>
-  <div class="folio"><span>THE GLEANERS 1차 스프린트 리뷰</span><b>15</b></div>
+  <div class="tune reveal">
+    <div style="--c: var(--lyons)"><b>지금</b>고정 가중치 35, 25, 20, 10, 10으로 시작</div>
+    <div class="light" style="--c: var(--ocher)"><b>다음: 만족도 팝업</b>추천 카드의 "이 추천 어때요?" 버튼으로 받은 반응으로 다섯 항목의 비율을 조정</div>
+    <div style="--c: var(--etruscan)"><b>데이터가 쌓이면: 머신러닝</b>노출, 추가, 만족도 기록으로 학습하는 랭킹 모델로 전환</div>
+  </div>
+  <div class="folio"><span>THE GLEANERS 1차 스프린트 리뷰</span><b>14</b></div>
 </section>
 
 <!-- 13 MCP -->
 <section class="slide" style="--c: var(--greenblue)" aria-label="MCP">
-  <div class="chrome"><span class="mk">Lecta</span><span>06 AI 에이전트와 MCP</span></div>
+  <div class="chrome"><span class="mk">Lecta</span><span>03 기술, MCP 도구</span></div>
   <div class="label reveal"><span class="no">Agent</span><h2>에이전트도<br>사용자다</h2><span class="cn">Green Blue</span></div>
   <div class="main">
     <div class="tools reveal">
@@ -886,12 +896,12 @@ body.editing [data-edit] { outline: 2px dashed rgba(197,83,71,.5); outline-offse
       <div class="reveal" data-edit><span class="n">04</span><b>복구 가능한 실패</b>WORK_NOT_FOUND 같은 코드와 retryable로 에이전트가 스스로 고침</div>
     </div>
   </div>
-  <div class="folio"><span>THE GLEANERS 1차 스프린트 리뷰</span><b>16</b></div>
+  <div class="folio"><span>THE GLEANERS 1차 스프린트 리뷰</span><b>15</b></div>
 </section>
 
 <!-- WHY MCP -->
 <section class="slide" style="--c: var(--greenblue)" aria-label="왜 MCP인가">
-  <div class="chrome"><span class="mk">Lecta</span><span>06 왜 MCP인가</span></div>
+  <div class="chrome"><span class="mk">Lecta</span><span>03 기술, 왜 MCP인가</span></div>
   <div style="position:absolute;left:var(--pad);right:var(--pad);top:150px">
     <h2 class="h reveal" data-edit style="font-size:58px">한 번 연결하면, <em>내 취향이 어디든</em> 따라갑니다</h2>
   </div>
@@ -910,12 +920,12 @@ body.editing [data-edit] { outline: 2px dashed rgba(197,83,71,.5); outline-offse
     <div class="reveal"><span class="n">03</span><b>양방향</b><p data-edit>대화 중에 발견한 작품을 AI가 바로 Lecta 보관함이나 전시 초안에 담아서, 기록하는 수고가 줄고 데이터가 계속 쌓입니다</p></div>
   </div>
   <p class="howto reveal" data-edit><b>불러오는 방법</b> 11/14 원격 배포 이후, 사용자는 쓰는 AI의 커넥터 설정에 Lecta 주소를 추가하고 OAuth로 허락할 범위(읽기만, 초안 쓰기까지)를 고르면 됩니다.</p>
-  <div class="folio"><span>THE GLEANERS 1차 스프린트 리뷰</span><b>17</b></div>
+  <div class="folio"><span>THE GLEANERS 1차 스프린트 리뷰</span><b>16</b></div>
 </section>
 
 <!-- 14 QUALITY -->
 <section class="slide" aria-label="검증">
-  <div class="chrome"><span class="mk">Lecta</span><span>06 검증</span></div>
+  <div class="chrome"><span class="mk">Lecta</span><span>03 기술, 검증</span></div>
   <div style="position:absolute;left:var(--pad);right:var(--pad);top:160px">
     <h2 class="h reveal" data-edit style="font-size:62px">작동하지 않는 것은 <em>완료</em>라고 부르지 않았습니다</h2>
     <div class="stats">
@@ -923,34 +933,35 @@ body.editing [data-edit] { outline: 2px dashed rgba(197,83,71,.5); outline-offse
       <div class="reveal" style="--c: var(--greenblue)"><span class="num">29</span><h4>MCP 프로토콜 검사</h4><p data-edit>공식 클라이언트로 실제 서버에 접속해 도구 목록, 호출, 오류, 쓰기 권한, 저장 후 재조회</p></div>
       <div class="reveal" style="--c: var(--etruscan)"><span class="num">24</span><h4>브라우저 검사</h4><p data-edit>Playwright로 UAT 1번과 2번, 추천 추가를 데스크톱과 모바일 화면에서 클릭</p></div>
     </div>
-    <p class="honest reveal" data-edit>MCP Inspector로 UAT 3번 입력을 실제로 호출해 확인했습니다. 다만 LLM이 자연어를 받아 스스로 도구를 고르는 실행은 코드만 준비되어 있고 모델 키로 아직 돌려 보지 않았습니다.</p>
+    <p class="honest reveal" data-edit>MCP Inspector로 UAT 3번 입력을 실제로 호출해 확인했습니다. OpenAI 모델을 붙인 에이전트가 자연어 요청을 받아 get_exhibition과 find_related_works를 스스로 골라 호출하는 것도 확인했고, 사람 승인 후 초안을 저장하는 단계는 현장에서 함께 보여드립니다.</p>
   </div>
-  <div class="folio"><span>THE GLEANERS 1차 스프린트 리뷰</span><b>18</b></div>
+  <div class="folio"><span>THE GLEANERS 1차 스프린트 리뷰</span><b>17</b></div>
 </section>
 
-<!-- 15 UAT -->
-<section class="slide" aria-label="UAT">
-  <div class="chrome"><span class="mk">Lecta</span><span>07 UAT 현장 검증</span></div>
-  <div style="position:absolute;left:var(--pad);right:var(--pad);top:150px">
-    <h2 class="h reveal" data-edit style="font-size:58px;margin-bottom:40px">세 항목 모두 시트의 조건 그대로 미리 돌려 보았습니다</h2>
-    <div class="uat">
-      <div class="reveal" style="--c: var(--lyons)"><span class="num">01</span><h3>작품 탐색과 선택</h3><span class="pill">검증 가능</span>
-        <ul data-edit><li><code>longing</code> 검색에 영화 8, 시리즈 1, 책 4, 앨범 11</li><li>영화, 책, 앨범을 하나씩 담으면 편집기에 같은 ID</li><li>결과 없는 검색어도 오류 없이 빈 화면</li></ul>
-        <p class="need" data-edit>필요한 것: 웹 서버가 켜진 노트북</p></div>
-      <div class="reveal" style="--c: var(--ocher)"><span class="num">02</span><h3>전시 제작과 저장</h3><span class="pill">검증 가능</span>
-        <ul data-edit><li>저장하면 주소에 <code>ex_</code> 전시 ID</li><li>새로고침해도 제목, 소개, 작품, 순서 유지</li><li>제목이 비면 저장되지 않음</li></ul>
-        <p class="need" data-edit>테스터 여러 명이 모두 같은 데모 사용자로 저장된다는 점을 미리 안내</p></div>
-      <div class="reveal" style="--c: var(--greenblue)"><span class="num">03</span><h3>에이전트의 MCP 추천 조회</h3><span class="pill part">조건부 검증 가능</span>
-        <ul data-edit><li><code>find_related_works</code>, 시드 2개, 책, 3개</li><li>The Sense of an Ending, The Great Gatsby, Stoner</li><li>없는 ID는 <code>WORK_NOT_FOUND</code></li></ul>
-        <p class="need" data-edit>LLM이 스스로 고르는 장면까지 요구되면 Comments에 프로토콜 수준 검증으로 기록</p></div>
-    </div>
+<!-- VISION MAP -->
+<section class="slide" aria-label="비전과 현재 범위">
+  <div class="chrome"><span class="mk">Lecta</span><span>04 향후 계획, 비전과 현재 범위</span></div>
+  <div style="position:absolute;left:var(--pad);top:150px"><h2 class="h reveal" data-edit style="font-size:56px">전체 비전 안에서 <em>지금 우리가 있는 방</em></h2></div>
+  <div class="nest reveal">
+    <div class="ring r4"><h4>궁극적 비전 <small>이후</small></h4><p data-edit>취향으로 연결되는 SNS, 곡과 웹툰과 공연까지 넓힌 콘텐츠, 머신러닝 추천, 동의 기반 취향 API, 취향 맞춤 신작 광고</p></div>
+    <div class="ring r3"><h4>최종 데모 <small>12/19</small></h4><p data-edit>친구와 취향 궁합, 공동 전시와 피드, 나의 취향 블로그, 만족도 반응으로 추천 가중치 조정, 에이전트 권한 관리</p></div>
+    <div class="ring r2"><h4>중간발표 <small>11/14</small></h4><p data-edit>로그인과 팔로우, 공개 전시 링크, 담아두고 나중에 기록하는 보관함, 외부 API로 200개 이상 작품, 원격 MCP</p></div>
+    <div class="ring r1"><h4>지금 <small style="color:#fff">10/31, 현재 범위</small></h4><p data-edit style="color:#fff">탐색, 담기, 전시, 근거 있는 추천, MCP 도구 5개, 작품 132개</p></div>
   </div>
-  <div class="folio"><span>Pass는 현장에서 실제로 본 것에만 적습니다</span><b>19</b></div>
+  <div class="folio"><span>안쪽 방부터 차례로 짓습니다</span><b>18</b></div>
+</section>
+
+<!-- MILESTONES -->
+<section class="slide" aria-label="마일스톤">
+  <div class="chrome"><span class="mk">Lecta</span><span>04 향후 계획, 마일스톤</span></div>
+  <div style="position:absolute;left:var(--pad);top:150px"><h2 class="h reveal" data-edit style="font-size:56px">여섯 갈래를 <em>세 번의 발표</em>에 나눠 짓습니다</h2></div>
+  <div class="gantt reveal"><div class="hd"></div><div class="hd now"><b>10/31</b>1차 발표, 완료</div><div class="hd"><b>11/14</b>중간발표</div><div class="hd"><b>12/19</b>최종 데모</div><div class="hd"><b>이후</b>비전</div><div class="lane">콘텐츠</div><div class="c done">실존 작품 132개, 실제 이미지 100개</div><div class="c m1">TMDB, 알라딘, Spotify API 연동, 200개 이상</div><div class="c m2">곡 매체, 실시간 외부 검색</div><div class="c m3">웹툰, 공연과 전시, 다른 서비스 기록 가져오기</div><div class="lane">큐레이션</div><div class="c done">전시 저장과 편집, 순서, 한 줄 이유</div><div class="c m1">보관함, 담아두고 나중에 기록, 레이아웃</div><div class="c m2">취향 블로그, 긴 감상 글</div><div class="c m3">이유가 쌓이면 전시 초안 자동 제안</div><div class="lane">추천</div><div class="c done">coldstart-v1 공식과 근거 표시</div><div class="c m1">만족도 팝업 버튼, 임베딩 유사도</div><div class="c m2">반응 데이터로 가중치 조정</div><div class="c m3">머신러닝 랭킹, 협업 필터링</div><div class="lane">소셜</div><div class="c none">아직 없음</div><div class="c m1">계정, 팔로우, 공개 전시 링크</div><div class="c m2">취향 궁합, 공동 전시, 피드</div><div class="c m3">취향 SNS, 공유 카드</div><div class="lane">AI와 MCP</div><div class="c done">도구 5개, Inspector와 LLM 에이전트 호출</div><div class="c m1">원격 배포, OAuth 동의 범위</div><div class="c m2">권한 관리 화면, 취향 조회 도구</div><div class="c m3">동의 기반 취향 API</div><div class="lane">비즈니스</div><div class="c none">검증 전</div><div class="c m1">커머스 제휴 실험</div><div class="c m2">Lecta+ 구독 설계</div><div class="c m3">취향 맞춤 신작 광고, B2B</div></div>
+  <div class="folio"><span>초록은 완료, 노랑은 11/14, 빨강은 12/19, 파랑은 그 이후</span><b>19</b></div>
 </section>
 
 <!-- FUTURE PLAN -->
 <section class="slide" aria-label="향후 계획">
-  <div class="chrome"><span class="mk">Lecta</span><span>08 향후 계획</span></div>
+  <div class="chrome"><span class="mk">Lecta</span><span>04 향후 계획, 세 갈래</span></div>
   <div style="position:absolute;left:var(--pad);right:var(--pad);top:150px">
     <h2 class="h reveal" data-edit style="font-size:58px">기록을 넘어 <em>콘텐츠의 가치</em>를 만드는 세 갈래</h2>
   </div>
@@ -966,9 +977,73 @@ body.editing [data-edit] { outline: 2px dashed rgba(197,83,71,.5); outline-offse
   <div class="folio"><span>THE GLEANERS 1차 스프린트 리뷰</span><b>20</b></div>
 </section>
 
+<!-- 09 SOCIAL VISION -->
+<section class="slide" style="--c: var(--etruscan)" aria-label="궁극적 그림">
+  <div class="chrome"><span class="mk">Lecta</span><span>04 향후 계획, 취향 SNS</span></div>
+  <div style="position:absolute;left:var(--pad);right:var(--pad);top:150px">
+    <p class="kicker reveal">우리가 결국 만들고 싶은 것</p>
+    <h2 class="h reveal" data-edit style="font-size:56px;margin-top:14px">전시는 보여주려고 만드는 것,<br>그래서 Lecta는 <em>취향으로 연결되는 SNS</em>가 됩니다</h2>
+  </div>
+  <div class="graph reveal" aria-hidden="true">
+    <svg viewBox="0 0 900 640" preserveAspectRatio="none"><g stroke="#1b1a17" stroke-width="2.5" fill="none" stroke-dasharray="2 10" stroke-linecap="round">
+      <path d="M450 330 L150 140"/><path d="M450 330 L760 150"/><path d="M450 330 L170 540"/><path d="M450 330 L760 540"/><path d="M150 140 L760 150"/>
+    </g></svg>
+    <div class="node me" style="left:50%;top:51%;--c: var(--etruscan)"><span class="av">나</span><span class="mini"><i><img src="img/0e6f1a8d70.webp" alt=""></i><i><img src="img/0dc269431c.webp" alt=""></i><i><img src="img/b9e0671a8b.webp" alt=""></i></span></div>
+    <div class="node" style="left:16%;top:22%;--c: var(--lyons)"><span class="av">친구</span><span class="mini"><i><img src="img/2abdf1fca3.webp" alt=""></i><i><img src="img/5e09a3bfd6.webp" alt=""></i></span></div>
+    <div class="node" style="left:84%;top:23%;--c: var(--greenblue)"><span class="av">친구</span><span class="mini"><i><img src="img/7c30e3f39c.webp" alt=""></i><i><img src="img/59692ada9e.webp" alt=""></i></span></div>
+    <div class="node" style="left:19%;top:84%;--c: var(--oilgreen)"><span class="av" style="font-size:24px">큐레이터</span><span class="mini"><i><img src="img/b38fe3e709.webp" alt=""></i><i><img src="img/f082bd5791.webp" alt=""></i></span></div>
+    <div class="node" style="left:84%;top:84%;--c: var(--ocher)"><span class="av" style="color:var(--ink)">AI</span></div>
+    <span class="edge" style="left:33%;top:37%">취향 궁합</span>
+    <span class="edge" style="left:67%;top:37%">공동 전시</span>
+    <span class="edge" style="left:50%;top:22%">서로의 방 방문</span>
+    <span class="edge" style="left:34%;top:68%">팔로우</span>
+    <span class="edge" style="left:67%;top:68%">동의한 범위만</span>
+  </div>
+  <div class="social-list reveal">
+    <ul class="b" data-edit>
+      <li><b>피드</b><span>친구와 큐레이터의 새 전시를 둘러보고 마음에 드는 작품을 내 방으로 가져오기</span></li>
+      <li><b>취향 궁합</b><span>함께 고른 이유와 엇갈리는 지점을 보여주고, 둘이 같이 볼 작품을 추천</span></li>
+      <li><b>공동 전시</b><span>친구와 한 방을 함께 꾸미고 서로의 한 줄 이유를 나란히 걸기</span></li>
+      <li><b>공유 카드</b><span>전시를 인스타그램 스토리용 이미지와 링크로 내보내 바깥에서 사람을 데려오기</span></li>
+      <li><b>내 취향을 아는 AI</b><span>내가 허락한 범위에서 에이전트가 친구 취향까지 참고해 선물이나 함께 볼 것을 제안</span></li>
+    </ul>
+  </div>
+  <div class="folio"><span>11/14부터 계정과 팔로우, 12/19에 궁합과 공동 전시를 시연합니다</span><b>21</b></div>
+</section>
+
+<!-- TASTE BLOG -->
+<section class="slide" style="--c: var(--oldrose)" aria-label="취향 블로그">
+  <div class="chrome"><span class="mk">Lecta</span><span>04 향후 계획, 나의 페이지</span></div>
+  <div style="position:absolute;left:var(--pad);right:var(--pad);top:150px">
+    <p class="kicker reveal">방이 모이면</p>
+    <h2 class="h reveal" data-edit style="font-size:58px;margin-top:14px">내 전시들이 모여 <em>나의 취향 블로그</em>가 됩니다</h2>
+  </div>
+  <div class="blog reveal" aria-label="취향 블로그 화면 예시">
+    <div class="bar"><i></i><i></i><i></i><span>lecta.app/@me</span></div>
+    <div class="hd"><span class="pic">Y</span><div><div class="nm">Y의 전시실</div><div class="st">전시 12, 담은 작품 84, 남긴 이유 61, 팔로워 128</div></div></div>
+    <div class="tabs"><b>전시</b><span>감상 기록</span><span>보관함</span><span>취향 지도</span></div>
+    <div class="grid">
+      <div class="rm" style="--c: var(--lyons)"><div class="w"><img src="img/0e6f1a8d70.webp" alt=""><img src="img/0dc269431c.webp" alt=""><img src="img/b9e0671a8b.webp" alt="" class="sq"></div><h5>말하지 못한 것들</h5><p>10월 28일, 작품 3, 이유 3</p></div>
+      <div class="rm" style="--c: var(--ocher)"><div class="w"><img src="img/2abdf1fca3.webp" alt=""><img src="img/7c30e3f39c.webp" alt=""><img src="img/59692ada9e.webp" alt="" class="sq"></div><h5>여름이 끝나는 자리</h5><p>9월 30일, 작품 3, 이유 2</p></div>
+      <div class="rm" style="--c: var(--greenblue)"><div class="w"><img src="img/219c2421df.webp" alt=""><img src="img/17c401ce3c.webp" alt=""><img src="img/f082bd5791.webp" alt="" class="sq"></div><h5>되돌아보는 사람들</h5><p>8월 12일, 작품 3, 이유 3</p></div>
+    </div>
+    <p class="note">"복도 장면은 끝내지 못한 문장 같다." 최근 남긴 이유, In the Mood for Love</p>
+  </div>
+  <div class="blog-side reveal">
+    <ul class="b" data-edit style="--c: var(--oldrose)">
+      <li style="font-size:25px"><b>시간순 아카이브</b><span>내가 만든 방이 날짜순으로 쌓이는 개인 페이지</span></li>
+      <li style="font-size:25px"><b>짧게도 길게도</b><span>한 줄 이유부터 블로그 글 같은 긴 감상까지</span></li>
+      <li style="font-size:25px"><b>취향 지도</b><span>쌓인 이유로 보는 나의 취향 구성 (Taste Profile)</span></li>
+      <li style="font-size:25px"><b>공개 범위</b><span>방마다 전체 공개, 친구만, 나만 보기</span></li>
+    </ul>
+  </div>
+  <p class="mock-tag">화면 예시이며 아직 구현 전입니다. 12/19 최종 데모 목표</p>
+  <div class="folio"><span>THE GLEANERS 1차 스프린트 리뷰</span><b>22</b></div>
+</section>
+
 <!-- 16 REVENUE -->
 <section class="slide" style="--c: var(--ocher)" aria-label="수익">
-  <div class="chrome"><span class="mk">Lecta</span><span>08 수익</span></div>
+  <div class="chrome"><span class="mk">Lecta</span><span>04 향후 계획, 수익</span></div>
   <div class="label light reveal"><span class="no">Business</span><h2>사람이 모일수록<br>커지는 구조</h2><span class="cn">Yellow Ocher</span></div>
   <div style="position:absolute;left:var(--pad);top:500px;width:360px" class="reveal">
     <ul class="b">
@@ -979,16 +1054,16 @@ body.editing [data-edit] { outline: 2px dashed rgba(197,83,71,.5); outline-offse
   </div>
   <div class="stairs">
     <div class="reveal" style="--c: var(--oldrose);height:330px"><span class="when">초기, 혼자 쓰는 단계</span><h3>큐레이티드 커머스 제휴</h3><p data-edit>전시 속 작품에서 서점, 음반, 영화 예매로 연결. 월 1만 명 기준 월 16만 원 안팎이라 검증용</p></div>
-    <div class="reveal" style="--c: var(--greenblue);height:470px"><span class="when">중기, SNS로 커지는 단계</span><h3>Lecta+ 구독과 스폰서 전시</h3><p data-edit>무제한 전시와 테마, 상세 취향 리포트, 친구 궁합 심화를 묶은 월 구독. 배급사와 출판사의 신작 전시는 광고 표시를 달고 피드에 노출</p></div>
+    <div class="reveal" style="--c: var(--greenblue);height:500px"><span class="when">중기, SNS로 커지는 단계</span><h3>취향 맞춤 신작 광고와 Lecta+</h3><p data-edit>새 전시회, 영화 개봉, 신간과 앨범 발매가 내 취향과 맞으면 광고 표시를 달고 피드와 보관함에 노출. 함께 무제한 전시와 상세 취향 리포트를 묶은 구독</p></div>
     <div class="reveal" style="--c: var(--lyons);height:610px"><span class="when">장기, 취향 데이터 층</span><h3>동의 기반 취향 API와 B2B</h3><p data-edit>사용자가 허락한 취향을 다른 AI 앱과 플랫폼이 MCP나 API로 호출할 때 사용량만큼 과금. 독립 서점과 영화제용 큐레이션 도구도 함께</p></div>
   </div>
-  <p class="principle reveal" data-edit>광고비는 추천 점수에 섞지 않고, 비공개 감상과 취향 정보는 팔지 않습니다.</p>
-  <div class="folio"><span>THE GLEANERS 1차 스프린트 리뷰</span><b>21</b></div>
+  <p class="principle reveal" data-edit>광고는 광고로 표시하고 추천 순위에는 섞지 않습니다. 광고주는 개인이 아니라 취향 묶음 단위로만 고르고, 비공개 감상은 팔지 않습니다.</p>
+  <div class="folio"><span>THE GLEANERS 1차 스프린트 리뷰</span><b>23</b></div>
 </section>
 
 <!-- 17 CLOSING -->
 <section class="slide" style="--c: var(--etruscan)" aria-label="피드백">
-  <div class="chrome"><span class="mk">Lecta</span><span>09 듣고 싶은 것</span></div>
+  <div class="chrome"><span class="mk">Lecta</span><span>마무리</span></div>
   <div style="position:absolute;left:var(--pad);right:var(--pad);top:160px">
     <h2 class="h reveal" data-edit style="font-size:64px">오늘 가장 궁금한 네 가지</h2>
     <div class="asks">
@@ -1002,7 +1077,7 @@ body.editing [data-edit] { outline: 2px dashed rgba(197,83,71,.5); outline-offse
     <figure class="art poster"><div class="frame"><img src="img/2abdf1fca3.webp" alt="Aftersun" loading="eager" referrerpolicy="no-referrer" onerror="this.parentNode.classList.add('fail')"><span class="fb">Aftersun</span></div><figcaption><b>Aftersun</b><span>영화</span></figcaption></figure><figure class="art poster"><div class="frame"><img src="img/7c30e3f39c.webp" alt="Past Lives" loading="eager" referrerpolicy="no-referrer" onerror="this.parentNode.classList.add('fail')"><span class="fb">Past Lives</span></div><figcaption><b>Past Lives</b><span>영화</span></figcaption></figure><figure class="art book"><div class="frame"><img src="img/b38fe3e709.webp" alt="Never Let Me Go" loading="eager" referrerpolicy="no-referrer" onerror="this.parentNode.classList.add('fail')"><span class="fb">Never Let Me Go</span></div><figcaption><b>Never Let Me Go</b><span>책</span></figcaption></figure><figure class="art square"><div class="frame"><img src="img/f082bd5791.webp" alt="Blonde" loading="eager" referrerpolicy="no-referrer" onerror="this.parentNode.classList.add('fail')"><span class="fb">Blonde</span></div><figcaption><b>Blonde</b><span>앨범</span></figcaption></figure><figure class="art square"><div class="frame"><img src="img/59692ada9e.webp" alt="Pink Moon" loading="eager" referrerpolicy="no-referrer" onerror="this.parentNode.classList.add('fail')"><span class="fb">Pink Moon</span></div><figcaption><b>Pink Moon</b><span>앨범</span></figcaption></figure>
   </div>
   <p class="thanks reveal">Thank you.</p>
-  <div class="folio"><span>github.com/yerielk/LT_THEGLEANERS, feat/uat-editorial-mcp</span><b>22</b></div>
+  <div class="folio"><span>THE GLEANERS 김예은, 배한준, 서지안, 홍순형</span><b>24</b></div>
 </section>
 
 </main>
@@ -1010,7 +1085,7 @@ body.editing [data-edit] { outline: 2px dashed rgba(197,83,71,.5); outline-offse
 
 <div class="deck-controls" aria-label="슬라이드 이동">
   <button type="button" id="prevBtn" aria-label="이전 슬라이드">←</button>
-  <span id="count">1 / 22</span>
+  <span id="count">1 / 24</span>
   <button type="button" id="nextBtn" aria-label="다음 슬라이드">→</button>
 </div>
 
