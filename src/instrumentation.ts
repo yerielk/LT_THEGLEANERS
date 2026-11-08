@@ -1,11 +1,6 @@
-/** Runs once when the Next.js server starts. A failing check exits, so a misconfigured container stops instead of idling. */
+/** Runs once when the Next.js server starts. Node-only code lives in instrumentation-node.ts (it calls process.exit). */
 export async function register() {
-  if (process.env.NEXT_RUNTIME !== "nodejs") return;
-  const { assertSafeConfig } = await import("./lib/deployment");
-  try {
-    assertSafeConfig();
-  } catch (e) {
-    console.error(`[lecta] refusing to start: ${(e as Error).message}`);
-    process.exit(1);
+  if (process.env.NEXT_RUNTIME === "nodejs") {
+    await import("./instrumentation-node");
   }
 }
