@@ -18,8 +18,8 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         <head>
           <link rel="preconnect" href="https://fonts.googleapis.com" />
           <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
-          {/* All fonts are SIL Open Font License: Instrument Serif, Instrument Sans, Gowun Batang (Google Fonts), Pretendard (jsDelivr). */}
-          <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Instrument+Sans:wght@400;500;600&family=Gowun+Batang&display=swap" />
+          {/* All fonts are SIL Open Font License: Instrument Serif, Instrument Sans, Gowun Batang, DM Serif Display (Google Fonts), Pretendard (jsDelivr). */}
+          <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Instrument+Sans:wght@400;500;600&family=Gowun+Batang&family=DM+Serif+Display&display=swap" />
           <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css" />
         </head>
         <body>

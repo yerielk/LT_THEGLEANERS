@@ -107,8 +107,8 @@ export function ExhibitionEditor({ mode, init, canWrite }: { mode: "new" | "edit
     return (
       <div className="wrap" style={{ paddingBlock: "48px 120px" }}>
         <h1 className="display">Begin an exhibition.</h1>
-        <p className="lede">아직 선반이 비어 있어요. Discover에서 작품 2개 이상을 골라 오면 여기서 전시로 엮을 수 있어요.</p>
-        <Link className="btn" href="/discover">Choose works in Discover</Link>
+        <p className="lede">아직 선반이 비어 있어요. Browse works에서 작품 2개 이상을 골라 오면 여기서 전시로 엮을 수 있어요.</p>
+        <Link className="btn" href="/discover">Choose works</Link>
       </div>
     );
   }

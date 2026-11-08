@@ -1,9 +1,11 @@
 "use client";
 import { useEffect, useRef } from "react";
+import { sidewaysDelta } from "@/lib/scroll";
+import { ScrollArrows } from "./ScrollArrows";
 
 /**
- * Horizontal gallery wall. On desktop the vertical wheel walks you along the wall; at either end the page
- * scrolls on normally. Arrow keys and trackpads work natively. On narrow screens CSS turns it into a vertical walk.
+ * Horizontal gallery wall. The vertical wheel always scrolls the page; a sideways swipe, Shift+wheel,
+ * arrow keys or the prev/next buttons walk the wall. On narrow screens CSS turns it into a vertical walk.
  */
 export function RoomWall({ children }: { children: React.ReactNode }) {
   const track = useRef<HTMLDivElement>(null);
@@ -11,15 +13,12 @@ export function RoomWall({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     const el = track.current;
     if (!el) return;
-    const horizontal = () => window.matchMedia("(min-width: 821px)").matches;
     const onWheel = (e: WheelEvent) => {
-      if (!horizontal() || Math.abs(e.deltaX) > Math.abs(e.deltaY)) return;
-      const max = el.scrollWidth - el.clientWidth;
-      const atStart = el.scrollLeft <= 0 && e.deltaY < 0;
-      const atEnd = el.scrollLeft >= max - 1 && e.deltaY > 0;
-      if (atStart || atEnd) return;
+      const dx = sidewaysDelta(e);
+      // native scrolling already handles deltaX; only Shift+wheel reported as deltaY needs translating
+      if (dx === null || e.deltaX !== 0) return;
       e.preventDefault();
-      el.scrollLeft += e.deltaY;
+      el.scrollLeft += dx;
     };
     const onScroll = () => {
       const max = el.scrollWidth - el.clientWidth;
@@ -35,7 +34,10 @@ export function RoomWall({ children }: { children: React.ReactNode }) {
       <div ref={track} className="gallery-track" tabIndex={0} aria-label="Exhibition wall — scroll sideways to walk through the room">
         {children}
       </div>
-      <div className="track-progress" aria-hidden><i ref={bar} /></div>
+      <div className="track-foot">
+        <div className="track-progress" aria-hidden><i ref={bar} /></div>
+        <ScrollArrows track={track} label="Exhibition wall" />
+      </div>
     </>
   );
 }

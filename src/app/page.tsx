@@ -5,6 +5,7 @@ import { searchWorks, allWorks } from "@/lib/services/works";
 import { canUseAgentLab, webActor } from "@/lib/services/web-actor";
 import { MEDIUM_PLURAL } from "@/components/WorkCover";
 import { WorkImage } from "@/components/WorkImage";
+import { HangRow } from "@/components/HangRow";
 import { TAGS } from "@/lib/recommendation/tags";
 import { wallFor } from "@/lib/design";
 
@@ -26,19 +27,21 @@ export default async function Home() {
       <section className="entrance">
         <div className="wrap">
           <div className="entrance-top"><span>Lecta, by THE GLEANERS</span><span>Opening exhibition, autumn 2026</span></div>
-          <h1 className="mega">The things<br />we keep.</h1>
-          <div className="entrance-sub">
-            <p className="lede">
-              영화, 시리즈, 책, 앨범. 좋아하는 작품을 고르고 왜 좋았는지 한 줄을 남기면, 그것들은 하나의 방이 됩니다.
-              Lecta는 그 방을 읽고, 벽에 걸릴 다음 작품을 찾아 줍니다.
-            </p>
-            <div style={{ display: "flex", gap: 22, alignItems: "center", flexWrap: "wrap" }}>
-              <Link className="btn" href="/discover">Explore the collection</Link>
-              <Link className="btn-ghost" href="/exhibitions/new">Make an exhibition</Link>
+          <div className="entrance-head">
+            <h1 className="mega">The things<br />we keep.</h1>
+            <div className="entrance-sub">
+              <p className="lede">
+                영화, 시리즈, 책, 앨범. 좋아하는 작품을 고르고 왜 좋았는지 한 줄을 남기면, 그것들은 하나의 방이 됩니다.
+                Lecta는 그 방을 읽고, 벽에 걸릴 다음 작품을 찾아 줍니다.
+              </p>
+              <div style={{ display: "flex", gap: 22, alignItems: "center", flexWrap: "wrap" }}>
+                <Link className="btn" href="/discover">Explore the collection</Link>
+                <Link className="btn-ghost" href="/exhibitions/new">Make an exhibition</Link>
+              </div>
             </div>
           </div>
         </div>
-        <div className="hang-row" aria-label="On the wall today">
+        <HangRow>
           {HANG.map((id) => byId.get(id)).filter((w) => !!w).map((w) => (
             <Link key={w!.id} href={`/works/${w!.id}`} style={{ height: HANG_H[w!.medium] }} aria-label={`${w!.title}, details`}>
               <span style={{ display: "block", height: "100%", aspectRatio: w!.artwork ? `${w!.artwork.width} / ${w!.artwork.height}` : undefined }}>
@@ -46,7 +49,7 @@ export default async function Home() {
               </span>
             </Link>
           ))}
-        </div>
+        </HangRow>
       </section>
 
       <section className="rooms wrap" aria-labelledby="rooms-title">
