@@ -1,0 +1,900 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lecta Sprint Deck</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Instrument+Sans:wght@400;500;600&family=Gowun+Batang:wght@400;700&family=Noto+Sans+KR:wght@400;500;700&display=swap">
+<style>
+/* ===========================================
+   THEME: a white gallery. Each slide is a wall; painted wall labels use
+   six colours from Sanzo Wada's "A Dictionary of Color Combinations".
+   =========================================== */
+:root {
+  --stage-bg: #ecebe7;
+  --slide-bg: #ffffff;
+  --ink: #1b1a17; --grey: #6f6b64; --soft: #f5f4f1; --mist: #faf9f7;
+  --lyons: #1c4286; --etruscan: #c55347; --ocher: #e2b540; --greenblue: #099197; --oldrose: #d46d7a; --oilgreen: #819238;
+  --display: "Instrument Serif", "Gowun Batang", Georgia, serif;
+  --kserif: "Gowun Batang", "Instrument Serif", Georgia, serif;
+  --sans: "Instrument Sans", "Noto Sans KR", sans-serif;
+  --mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  --pad: 112px;
+  --ease: cubic-bezier(0.16, 1, 0.3, 1);
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+/* ===========================================
+   FIXED 16:9 STAGE: MANDATORY BASE STYLES
+   Include this ENTIRE file in every presentation.
+   Slides are authored at 1920×1080 and scaled as a whole.
+   =========================================== */
+
+/* 1. Lock the browser viewport */
+html,
+body {
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    overflow: hidden;
+    background: var(--stage-bg, #000);
+}
+
+/* 2. Full-window deck viewport */
+.deck-viewport {
+    position: fixed;
+    inset: 0;
+    overflow: hidden;
+    background: var(--stage-bg, #000);
+}
+
+/* 3. Fixed 16:9 design canvas.
+   JavaScript sets transform: translate(...) scale(...). */
+.deck-stage {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 1920px;
+    height: 1080px;
+    overflow: hidden;
+    transform-origin: 0 0;
+    background: var(--slide-bg, #fff);
+}
+
+/* 4. Slides stack inside the fixed stage.
+   Content must be laid out at 1920×1080, not reflowed per device. */
+.slide {
+    position: absolute;
+    inset: 0;
+    width: 1920px;
+    height: 1080px;
+    overflow: hidden;
+    display: block;
+    visibility: hidden;
+    opacity: 0;
+    pointer-events: none;
+    background: var(--slide-bg, #fff);
+}
+
+.slide.active,
+.slide.visible {
+    visibility: visible;
+    opacity: 1;
+    pointer-events: auto;
+    z-index: 1;
+}
+
+/* 5. Keep media inside authored slide bounds */
+img,
+video,
+canvas,
+svg {
+    max-width: 100%;
+    max-height: 100%;
+}
+
+/* 6. Presentation chrome stays outside the slide design system */
+.deck-controls {
+    position: fixed;
+    left: 50%;
+    bottom: 22px;
+    transform: translateX(-50%);
+    z-index: 1000;
+}
+
+/* 7. Print one fixed-size slide per page */
+@media print {
+    html,
+    body {
+        width: 1920px;
+        height: auto;
+        overflow: visible;
+        background: #fff;
+    }
+
+    .deck-viewport {
+        position: static;
+        overflow: visible;
+        background: #fff;
+    }
+
+    .deck-stage {
+        position: static;
+        width: auto;
+        height: auto;
+        transform: none !important;
+        background: none;
+    }
+
+    .slide {
+        position: relative;
+        display: block !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+        pointer-events: auto !important;
+        width: 1920px;
+        height: 1080px;
+        break-after: page;
+        page-break-after: always;
+    }
+
+    .slide:last-child {
+        break-after: auto;
+        page-break-after: auto;
+    }
+
+    .deck-controls {
+        display: none !important;
+    }
+}
+
+/* 8. Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        transition-duration: 0.2s !important;
+    }
+}
+
+
+body { font-family: var(--sans); color: var(--ink); -webkit-font-smoothing: antialiased; word-break: keep-all; }
+img { display: block; }
+
+/* === SLIDE CHROME: running header and folio, like a magazine page === */
+.slide { padding: 0; }
+.chrome { position: absolute; left: var(--pad); right: var(--pad); top: 56px; display: flex; justify-content: space-between; font-size: 20px; color: var(--grey); letter-spacing: .01em; }
+.chrome .mk { font-family: var(--display); font-size: 34px; color: var(--ink); line-height: 1; }
+.folio { position: absolute; left: var(--pad); right: var(--pad); bottom: 52px; display: flex; justify-content: space-between; font-size: 18px; color: var(--grey); }
+.folio b { font-family: var(--display); font-weight: 400; font-size: 26px; color: var(--ink); }
+
+/* === TYPE === */
+.kicker { font-size: 22px; color: var(--grey); letter-spacing: .02em; }
+.h { font-family: var(--kserif); font-weight: 400; font-size: 76px; line-height: 1.14; letter-spacing: -0.02em; }
+.h em { font-family: var(--display); font-style: italic; }
+.lead { font-size: 30px; line-height: 1.6; color: #3d3a35; }
+.small { font-size: 20px; color: var(--grey); line-height: 1.5; }
+.num { font-family: var(--display); font-weight: 400; line-height: .9; }
+
+/* === WALL LABEL: painted block that names the room === */
+.label { position: absolute; left: var(--pad); top: 150px; width: 340px; height: 300px; background: var(--c); color: #fff; padding: 30px; display: flex; flex-direction: column; justify-content: space-between; }
+.label.light { color: var(--ink); }
+.label .no { font-size: 20px; opacity: .85; }
+.label h2 { font-family: var(--kserif); font-weight: 400; font-size: 50px; line-height: 1.12; }
+.label .cn { font-size: 16px; opacity: .8; }
+.main { position: absolute; left: 540px; right: var(--pad); top: 150px; bottom: 130px; }
+
+/* === BULLETS (개조식) === */
+ul.b { list-style: none; display: grid; gap: 26px; }
+ul.b li { font-size: 30px; line-height: 1.45; padding-left: 40px; position: relative; }
+ul.b li::before { content: ""; position: absolute; left: 0; top: 17px; width: 14px; height: 14px; border-radius: 50%; background: var(--c, var(--ink)); }
+ul.b li b { font-weight: 600; }
+ul.b li span { display: block; font-size: 23px; color: var(--grey); margin-top: 4px; }
+
+/* === ARTWORK ON THE WALL === */
+.art { display: flex; flex-direction: column; gap: 14px; }
+.art .frame { position: relative; background: var(--soft); box-shadow: 0 18px 40px -22px rgba(27,26,23,.45); overflow: hidden; }
+.art img { width: 100%; height: 100%; object-fit: cover; }
+.art .fb { display: none; }
+.art .frame.fail { background: var(--lyons); }
+.art .frame.fail img { display: none; }
+.art .frame.fail .fb { display: flex; position: absolute; inset: 0; padding: 18px; align-items: flex-end; color: #fff; font-family: var(--display); font-size: 30px; line-height: 1.05; }
+.art figcaption { display: flex; flex-direction: column; font-size: 18px; color: var(--grey); line-height: 1.35; }
+.art figcaption b { font-weight: 500; color: var(--ink); font-size: 20px; }
+.art.poster .frame { aspect-ratio: 2 / 3; }
+.art.square .frame { aspect-ratio: 1 / 1; }
+.art.book .frame { aspect-ratio: 5 / 8; }
+
+/* === ANIMATION: staggered reveal on entering a slide === */
+.reveal { opacity: 0; transform: translateY(26px); transition: opacity .8s var(--ease), transform .8s var(--ease); }
+.slide.visible .reveal { opacity: 1; transform: none; }
+.slide.visible .reveal:nth-child(2) { transition-delay: .08s; }
+.slide.visible .reveal:nth-child(3) { transition-delay: .16s; }
+.slide.visible .reveal:nth-child(4) { transition-delay: .24s; }
+.slide.visible .reveal:nth-child(5) { transition-delay: .32s; }
+.slide.visible .reveal:nth-child(6) { transition-delay: .40s; }
+.wipe { transform-origin: left; transform: scaleX(0); transition: transform 1.1s var(--ease) .15s; }
+.slide.visible .wipe { transform: scaleX(1); }
+
+/* === 01 COVER === */
+.cover .title { position: absolute; left: var(--pad); top: 210px; font-family: var(--display); font-size: 330px; line-height: .8; letter-spacing: -0.035em; }
+.cover .tag { position: absolute; left: var(--pad); top: 520px; font-family: var(--display); font-style: italic; font-size: 64px; line-height: 1.1; width: 900px; }
+.cover .sub { position: absolute; left: var(--pad); top: 720px; width: 760px; font-size: 27px; line-height: 1.6; color: #3d3a35; }
+.cover .wall { position: absolute; right: var(--pad); top: 210px; display: flex; gap: 40px; align-items: flex-start; }
+.cover .rail { position: absolute; right: var(--pad); top: 200px; width: 760px; height: 4px; background: var(--etruscan); }
+.cover .meta { position: absolute; right: var(--pad); bottom: 120px; text-align: right; font-size: 22px; color: var(--grey); line-height: 1.6; }
+
+/* === 02 PROBLEM === */
+.trio { display: grid; grid-template-columns: repeat(3, 1fr); gap: 56px; margin-top: 80px; }
+.trio > div { display: flex; flex-direction: column; gap: 18px; }
+.trio .num { font-size: 120px; color: var(--c); }
+.trio h3 { font-family: var(--kserif); font-weight: 400; font-size: 40px; line-height: 1.25; }
+.trio p { font-size: 24px; line-height: 1.6; color: #3d3a35; }
+
+/* === 03 FLOW (five rooms in a row) === */
+.flow { position: absolute; left: var(--pad); right: var(--pad); top: 470px; display: grid; grid-template-columns: repeat(5, 1fr); gap: 0; }
+.flow .st { position: relative; padding: 36px 30px 30px; min-height: 360px; background: var(--c); color: #fff; display: flex; flex-direction: column; gap: 14px; }
+.flow .st.light { color: var(--ink); }
+.flow .st .num { font-size: 72px; opacity: .9; }
+.flow .st h3 { font-family: var(--display); font-weight: 400; font-size: 52px; line-height: 1; }
+.flow .st p { font-size: 22px; line-height: 1.5; }
+.flow .st .k { font-family: var(--kserif); font-size: 30px; }
+
+/* === 04 POSITIONING MAP === */
+.map { position: absolute; left: 540px; top: 160px; width: 1180px; height: 760px; }
+.map .ax { position: absolute; background: var(--ink); }
+.map .ax.x { left: 0; right: 0; top: 50%; height: 2px; }
+.map .ax.y { top: 0; bottom: 0; left: 50%; width: 2px; }
+.map .q { position: absolute; font-size: 20px; color: var(--grey); }
+.map .pt { position: absolute; transform: translate(-50%, -50%); display: flex; flex-direction: column; align-items: center; gap: 8px; }
+.map .pt i { width: 22px; height: 22px; border-radius: 50%; background: var(--grey); }
+.map .pt span { font-size: 22px; white-space: nowrap; }
+.map .pt.me i { width: 56px; height: 56px; background: var(--etruscan); box-shadow: 0 0 0 16px rgba(197,83,71,.16); }
+.map .pt.me span { font-family: var(--display); font-size: 44px; }
+.map .zone { position: absolute; right: 0; top: 0; width: 50%; height: 50%; background: rgba(197,83,71,.06); }
+
+/* === 05 06 SERVICES WITH PHOTOS === */
+.svcs { position: absolute; left: var(--pad); right: var(--pad); top: 150px; bottom: 120px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 52px; }
+.svc { display: flex; flex-direction: column; min-width: 0; }
+.phones { position: relative; height: 430px; margin-bottom: 28px; }
+.ph { position: absolute; left: 0; top: 0; width: 205px; height: 420px; border-radius: 26px; overflow: hidden; background: var(--soft); box-shadow: 0 24px 50px -26px rgba(27,26,23,.55); }
+.ph img { width: 100%; height: 100%; object-fit: cover; object-position: top; }
+.ph.back { left: 140px; top: 22px; transform: rotate(4deg); opacity: .96; }
+.ph .fb { display: none; }
+.ph.fail img { display: none; }
+.ph.fail { background: var(--lyons); }
+.ph.fail .fb { display: flex; position: absolute; inset: 0; align-items: flex-end; padding: 20px; color: #fff; font-family: var(--display); font-size: 34px; }
+.svc h3 { font-family: var(--display); font-weight: 400; font-size: 52px; line-height: 1; }
+.svc .media { font-size: 20px; color: var(--grey); margin: 8px 0 16px; }
+.svc ul { list-style: none; display: grid; gap: 8px; margin-bottom: 18px; }
+.svc li { font-size: 21px; line-height: 1.4; padding-left: 20px; position: relative; }
+.svc li::before { content: ""; position: absolute; left: 0; top: 11px; width: 8px; height: 8px; border-radius: 50%; background: var(--grey); }
+.svc .diff { font-size: 21px; line-height: 1.45; background: var(--mist); padding: 16px 18px; box-shadow: inset 4px 0 0 var(--etruscan); }
+.svc .diff span { display: block; font-size: 16px; color: var(--etruscan); font-weight: 600; margin-bottom: 4px; }
+.qbox { height: 430px; margin-bottom: 28px; background: var(--lyons); color: #fff; padding: 30px; display: flex; flex-direction: column; justify-content: space-between; }
+.qbox .qk { font-size: 16px; letter-spacing: .14em; opacity: .8; }
+.qflow { display: flex; flex-direction: column; gap: 10px; }
+.qflow b { font-weight: 500; font-size: 24px; background: rgba(255,255,255,.14); padding: 12px 16px; }
+.qflow i { width: 2px; height: 18px; background: rgba(255,255,255,.6); margin-left: 22px; }
+.qbox p { font-size: 18px; opacity: .85; line-height: 1.45; }
+
+/* === 07 MATRIX (no cell borders: soft bands only) === */
+.mx { border-collapse: collapse; width: 100%; font-size: 22px; }
+.mx th, .mx td { padding: 15px 10px; text-align: center; }
+.mx thead th { font-weight: 500; font-size: 19px; color: var(--grey); vertical-align: bottom; line-height: 1.3; }
+.mx tbody th { text-align: left; font-weight: 500; font-size: 24px; padding-left: 20px; }
+.mx tbody tr:nth-child(odd) td, .mx tbody tr:nth-child(odd) th { background: var(--mist); }
+.mx tr.me td, .mx tr.me th { background: rgba(197,83,71,.10) !important; }
+.mx tr.me th { font-family: var(--display); font-size: 36px; font-weight: 400; }
+.d { display: inline-block; width: 22px; height: 22px; border-radius: 50%; vertical-align: middle; }
+.d.f { background: var(--ink); }
+.d.h { background: linear-gradient(90deg, var(--ink) 50%, #d9d6d0 50%); }
+.d.n { background: #e4e1dc; }
+.mx tr.me .d.f { background: var(--etruscan); }
+.legend { display: flex; gap: 32px; font-size: 19px; color: var(--grey); margin-top: 22px; align-items: center; }
+.legend .d { width: 16px; height: 16px; margin-right: 8px; }
+
+/* === 08 FLOOR PLAN (full scope) === */
+.plan { position: absolute; left: 540px; right: var(--pad); top: 160px; bottom: 140px; display: grid; grid-template-rows: auto 1fr auto 1fr; gap: 16px; }
+.plan .lv { font-size: 21px; color: var(--grey); display: flex; justify-content: space-between; }
+.plan .row { display: grid; gap: 14px; }
+.plan .row.built { grid-template-columns: repeat(5, 1fr); }
+.plan .row.next { grid-template-columns: repeat(4, 1fr); }
+.room { padding: 26px; display: flex; flex-direction: column; justify-content: space-between; gap: 10px; }
+.room h4 { font-family: var(--display); font-weight: 400; font-size: 40px; line-height: 1; }
+.room p { font-size: 20px; line-height: 1.45; }
+.room.built { background: var(--c); color: #fff; }
+.room.built.light { color: var(--ink); }
+.room.next { background: repeating-linear-gradient(135deg, var(--mist) 0 14px, #f1efeb 14px 28px); }
+.room.next h4 { font-family: var(--kserif); font-size: 34px; }
+.room .when { font-size: 18px; font-weight: 600; color: var(--c); }
+
+/* === 09 ROADMAP === */
+.road { position: absolute; left: var(--pad); right: var(--pad); top: 300px; bottom: 130px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 44px; }
+.road .line { position: absolute; left: 0; right: 0; top: -40px; height: 4px; background: linear-gradient(90deg, var(--oilgreen) 0 33%, var(--ocher) 33% 66%, var(--etruscan) 66%); }
+.road .col { position: relative; }
+.road .col::before { content: ""; position: absolute; left: 0; top: -52px; width: 28px; height: 28px; border-radius: 50%; background: var(--c); }
+.road .date { font-family: var(--display); font-size: 84px; line-height: .9; }
+.road .what { font-size: 24px; color: var(--grey); margin: 8px 0 28px; }
+.road .here { display: inline-block; font-size: 17px; font-weight: 600; color: #fff; background: var(--oilgreen); padding: 4px 12px; margin-left: 14px; vertical-align: middle; }
+.road ul.b { gap: 16px; }
+.road ul.b li { font-size: 24px; padding-left: 30px; }
+.road ul.b li::before { top: 13px; width: 11px; height: 11px; }
+
+/* === 10 WHAT WE BUILT === */
+.built-wall { position: absolute; left: var(--pad); top: 200px; display: flex; gap: 36px; align-items: flex-start; }
+.built-wall .hang { position: absolute; left: 0; right: 0; top: -22px; height: 3px; background: var(--ocher); }
+.recs { position: absolute; left: 1070px; right: var(--pad); top: 200px; }
+.recs h4 { font-size: 22px; font-weight: 500; color: var(--grey); margin-bottom: 22px; }
+.rec { display: grid; grid-template-columns: 96px 1fr; gap: 22px; align-items: center; padding: 14px 18px; }
+.rec:nth-child(odd) { background: var(--mist); }
+.rec .frame { width: 96px; aspect-ratio: 5 / 8; }
+.rec .art figcaption { display: none; }
+.rec b { font-family: var(--display); font-weight: 400; font-size: 38px; line-height: 1; }
+.rec span { display: block; font-size: 19px; color: var(--grey); margin-top: 6px; }
+.steps4 { position: absolute; left: var(--pad); right: var(--pad); bottom: 130px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 40px; }
+.steps4 div { font-size: 23px; line-height: 1.45; }
+.steps4 b { display: block; font-family: var(--display); font-weight: 400; font-size: 46px; color: var(--ocher); line-height: 1; margin-bottom: 8px; }
+
+/* === 11 ARCHITECTURE === */
+.arch { position: absolute; left: 540px; right: var(--pad); top: 170px; height: 560px; }
+.arch .bx { position: absolute; padding: 22px 26px; display: flex; flex-direction: column; gap: 6px; }
+.arch .bx b { font-family: var(--display); font-weight: 400; font-size: 38px; line-height: 1; }
+.arch .bx span { font-size: 19px; line-height: 1.4; }
+.arch .who { background: var(--mist); }
+.arch .who b { font-family: var(--kserif); font-size: 30px; }
+.arch .web { background: var(--lyons); color: #fff; }
+.arch .mcp { background: var(--greenblue); color: #fff; }
+.arch .svc2 { background: var(--ink); color: #fff; }
+.arch .db { background: var(--ocher); color: var(--ink); }
+.arch svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+.arch-notes { position: absolute; left: 540px; right: var(--pad); bottom: 120px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 40px; }
+.arch-notes div { font-size: 22px; line-height: 1.5; color: #3d3a35; }
+.arch-notes b { display: block; font-size: 24px; color: var(--ink); margin-bottom: 6px; }
+
+/* === 12 FORMULA === */
+.formula { font-family: var(--display); font-size: 46px; white-space: nowrap; line-height: 1.2; margin-bottom: 40px; }
+.wbar { display: flex; height: 180px; margin-bottom: 14px; }
+.wbar div { display: flex; flex-direction: column; justify-content: flex-end; padding: 16px; color: #fff; font-size: 20px; line-height: 1.25; }
+.wbar div b { font-family: var(--display); font-weight: 400; font-size: 46px; line-height: 1; }
+.cols3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 44px; margin-top: 90px; }
+.cols3 div { font-size: 26px; line-height: 1.55; color: #3d3a35; }
+.cols3 b { display: block; font-size: 26px; color: var(--ink); margin-bottom: 8px; }
+
+/* === 13 MCP === */
+.tools { display: grid; gap: 0; }
+.tool { display: grid; grid-template-columns: 440px 120px 1fr; align-items: center; padding: 26px 24px; font-size: 25px; }
+.tool:nth-child(odd) { background: var(--mist); }
+.tool code { font-family: var(--mono); font-size: 24px; }
+.tool .rw { font-size: 17px; font-weight: 600; padding: 4px 12px; justify-self: start; }
+.tool .rw.r { background: rgba(9,145,151,.12); color: var(--greenblue); }
+.tool .rw.w { background: rgba(197,83,71,.14); color: var(--etruscan); }
+.guards { display: grid; grid-template-columns: repeat(4, 1fr); gap: 32px; margin-top: 72px; }
+.guards div { font-size: 23px; line-height: 1.5; color: #3d3a35; }
+.guards b { display: block; font-size: 24px; color: var(--ink); margin-bottom: 6px; }
+.guards .n { font-family: var(--display); font-size: 48px; color: var(--greenblue); line-height: 1; display: block; margin-bottom: 8px; }
+
+/* === 14 QUALITY === */
+.stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 40px; margin-top: 30px; }
+.stats .num { font-size: 260px; color: var(--c); letter-spacing: -0.03em; }
+.stats h4 { font-size: 30px; font-weight: 500; margin: 12px 0 8px; }
+.stats p { font-size: 22px; line-height: 1.5; color: #3d3a35; }
+.honest { margin-top: 56px; font-size: 24px; line-height: 1.55; padding: 22px 26px; background: var(--mist); box-shadow: inset 5px 0 0 var(--ocher); }
+
+/* === 15 UAT === */
+.uat { display: grid; grid-template-columns: repeat(3, 1fr); gap: 36px; }
+.uat > div { background: var(--mist); padding: 34px; display: flex; flex-direction: column; gap: 18px; min-height: 620px; }
+.uat .num { font-size: 96px; color: var(--c); }
+.uat h3 { font-family: var(--kserif); font-weight: 400; font-size: 36px; line-height: 1.25; }
+.pill { align-self: flex-start; font-size: 20px; font-weight: 600; color: #fff; background: var(--oilgreen); padding: 6px 16px; }
+.pill.part { background: var(--ocher); color: var(--ink); }
+.uat ul { list-style: none; display: grid; gap: 12px; }
+.uat li { font-size: 21px; line-height: 1.45; padding-left: 22px; position: relative; }
+.uat li::before { content: ""; position: absolute; left: 0; top: 11px; width: 9px; height: 9px; border-radius: 50%; background: var(--c); }
+.uat .need { margin-top: auto; font-size: 19px; color: var(--grey); line-height: 1.5; }
+
+/* === 16 REVENUE (staircase) === */
+.stairs { position: absolute; left: 540px; right: var(--pad); top: 230px; height: 560px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; align-items: end; }
+.stairs > div { padding: 30px; display: flex; flex-direction: column; gap: 14px; background: var(--c); color: #fff; }
+.stairs > div.light { color: var(--ink); }
+.stairs .when { font-size: 20px; opacity: .85; }
+.stairs h3 { font-family: var(--kserif); font-weight: 400; font-size: 36px; line-height: 1.25; }
+.stairs p { font-size: 21px; line-height: 1.5; }
+.principle { position: absolute; left: 540px; right: var(--pad); bottom: 130px; font-family: var(--kserif); font-size: 28px; line-height: 1.5; }
+
+/* === 17 CLOSING === */
+.asks { display: grid; grid-template-columns: repeat(2, 1fr); gap: 34px 60px; margin-top: 60px; }
+.asks div { font-family: var(--kserif); font-size: 34px; line-height: 1.4; display: grid; grid-template-columns: 70px 1fr; }
+.asks .num { font-size: 52px; color: var(--c); }
+.endstrip { position: absolute; left: var(--pad); right: var(--pad); bottom: 120px; display: flex; gap: 26px; align-items: flex-end; }
+.endstrip .art { width: 150px; }
+.endstrip .art figcaption { display: none; }
+.thanks { position: absolute; right: var(--pad); bottom: 120px; font-family: var(--display); font-style: italic; font-size: 110px; line-height: .9; }
+
+/* === PRESENTER UI (outside the stage) === */
+.deck-controls { display: flex; gap: 14px; align-items: center; font: 500 14px var(--sans); color: var(--grey); background: rgba(255,255,255,.85); backdrop-filter: blur(8px); padding: 8px 14px; border-radius: 999px; }
+.deck-controls button { background: none; border: 0; font: inherit; color: var(--ink); cursor: pointer; padding: 4px 8px; }
+.progress { position: fixed; left: 0; top: 0; height: 3px; background: var(--etruscan); z-index: 1000; transition: width .5s var(--ease); }
+.edit-hotzone { position: fixed; top: 0; left: 0; width: 80px; height: 80px; z-index: 10000; cursor: pointer; }
+.edit-toggle { position: fixed; top: 16px; left: 16px; z-index: 10001; opacity: 0; pointer-events: none; transition: opacity .3s; font: 500 13px var(--sans); background: var(--ink); color: #fff; border: 0; border-radius: 999px; padding: 8px 14px; cursor: pointer; }
+.edit-toggle.show, .edit-toggle.active { opacity: 1; pointer-events: auto; }
+body.editing [data-edit] { outline: 2px dashed rgba(197,83,71,.5); outline-offset: 4px; }
+</style>
+</head>
+<body>
+<div class="progress" id="progress"></div>
+<div class="edit-hotzone" aria-hidden="true"></div>
+<button class="edit-toggle" id="editToggle" title="편집 모드 (E)">편집</button>
+
+<div class="deck-viewport">
+<main class="deck-stage" id="deckStage">
+
+<!-- 01 COVER -->
+<section class="slide cover active" aria-label="표지">
+  <div class="chrome"><span>THE GLEANERS</span><span>1차 스프린트 리뷰와 UAT</span></div>
+  <h1 class="title reveal" data-edit>Lecta</h1>
+  <p class="tag reveal" data-edit>A living exhibition of what you love, and why.</p>
+  <p class="sub reveal" data-edit>좋아하는 영화와 책과 앨범을 이유와 함께 하나의 전시로 엮으면, Lecta가 그 방을 읽고 다음 작품을 걸어 줍니다. 같은 기능을 AI 에이전트도 MCP로 씁니다.</p>
+  <div class="rail wipe"></div>
+  <div class="wall">
+    <figure class="art poster" style="width:220px"><div class="frame"><img src="img/2abdf1fca3.webp" alt="Aftersun" loading="eager" referrerpolicy="no-referrer" onerror="this.parentNode.classList.add('fail')"><span class="fb">Aftersun</span></div><figcaption><b>Aftersun</b><span>영화</span></figcaption></figure>
+    <figure class="art book" style="width:200px"><div class="frame"><img src="img/5e09a3bfd6.webp" alt="Stoner" loading="eager" referrerpolicy="no-referrer" onerror="this.parentNode.classList.add('fail')"><span class="fb">Stoner</span></div><figcaption><b>Stoner</b><span>책</span></figcaption></figure>
+    <figure class="art square" style="width:260px"><div class="frame"><img src="img/59692ada9e.webp" alt="Pink Moon" loading="eager" referrerpolicy="no-referrer" onerror="this.parentNode.classList.add('fail')"><span class="fb">Pink Moon</span></div><figcaption><b>Pink Moon</b><span>앨범</span></figcaption></figure>
+  </div>
+  <div class="meta">2026년 10월 31일<br>팀 THE GLEANERS (4명)</div>
+</section>
+
+<!-- 02 PROBLEM -->
+<section class="slide" style="--c: var(--lyons)" aria-label="문제">
+  <div class="chrome"><span class="mk">Lecta</span><span>01 문제</span></div>
+  <div style="position:absolute;left:var(--pad);right:var(--pad);top:170px">
+    <p class="kicker reveal">우리가 풀려는 문제</p>
+    <h2 class="h reveal" data-edit style="margin-top:18px;max-width:1500px">취향은 하나로 이어져 있는데,<br>기록은 <em>흩어져</em> 있고 이유는 사라집니다.</h2>
+    <div class="trio">
+      <div class="reveal"><span class="num">01</span><h3 data-edit>매체마다 앱이 다르다</h3><p data-edit>영화는 왓챠피디아, 책은 독서 앱, 음악은 스트리밍. 한 사람의 취향이 이어지는 모습을 어디서도 볼 수 없습니다.</p></div>
+      <div class="reveal"><span class="num">02</span><h3 data-edit>왜 좋았는지가 남지 않는다</h3><p data-edit>남는 것은 별점과 시청 이력뿐이라, 무엇을 좋아했는지는 있어도 왜 좋아했는지는 금방 잊힙니다.</p></div>
+      <div class="reveal"><span class="num">03</span><h3 data-edit>AI는 내 취향을 모른다</h3><p data-edit>에이전트는 내 기록을 볼 수 없어서, 추천을 부탁할 때마다 취향을 처음부터 다시 설명해야 합니다.</p></div>
+    </div>
+  </div>
+  <div class="folio"><span>THE GLEANERS 1차 스프린트 리뷰</span><b>02</b></div>
+</section>
+
+<!-- 03 SOLUTION FLOW -->
+<section class="slide" aria-label="해결">
+  <div class="chrome"><span class="mk">Lecta</span><span>02 해결</span></div>
+  <div style="position:absolute;left:var(--pad);right:var(--pad);top:170px">
+    <p class="kicker reveal">Lecta가 하는 일</p>
+    <h2 class="h reveal" data-edit style="margin-top:18px">작품을 고르고, 이유와 함께 <em>전시</em>로 엮으면<br>사람도 에이전트도 그 방을 읽습니다.</h2>
+  </div>
+  <div class="flow">
+    <div class="st reveal" style="--c: var(--lyons)"><span class="num">01</span><h3>Explore</h3><span class="k">탐색</span><p data-edit>영화, 시리즈, 책, 앨범을 한 컬렉션에서 검색하고 분위기로 거르기</p></div>
+    <div class="st reveal" style="--c: var(--greenblue)"><span class="num">02</span><h3>Collect</h3><span class="k">담기</span><p data-edit>마음이 가는 작품을 + 로 트레이에 담기</p></div>
+    <div class="st reveal light" style="--c: var(--ocher)"><span class="num">03</span><h3>Curate</h3><span class="k">전시</span><p data-edit>제목과 소개, 순서, 작품마다 한 줄 이유를 남겨 방 하나 완성</p></div>
+    <div class="st reveal" style="--c: var(--etruscan)"><span class="num">04</span><h3>Recommend</h3><span class="k">추천</span><p data-edit>전시의 맥락과 이유로 다른 매체의 다음 작품을 근거와 함께 추천</p></div>
+    <div class="st reveal" style="--c: var(--oilgreen)"><span class="num">05</span><h3>Agent</h3><span class="k">MCP</span><p data-edit>AI 에이전트가 같은 데이터와 추천을 도구로 호출, 쓰기는 승인 후에만</p></div>
+  </div>
+  <div class="folio"><span>THE GLEANERS 1차 스프린트 리뷰</span><b>03</b></div>
+</section>
+
+<!-- 04 POSITIONING MAP -->
+<section class="slide" style="--c: var(--etruscan)" aria-label="포지셔닝">
+  <div class="chrome"><span class="mk">Lecta</span><span>03 기존 서비스</span></div>
+  <div class="label reveal"><span class="no">Map</span><h2>우리가 서는 자리</h2><span class="cn">팀의 해석, 2026년 10월 기준</span></div>
+  <div style="position:absolute;left:var(--pad);top:500px;width:360px" class="reveal">
+    <ul class="b" style="--c: var(--etruscan)">
+      <li style="font-size:24px"><b>가로</b>는 다루는 매체의 폭</li>
+      <li style="font-size:24px"><b>세로</b>는 기록과 평가에서 표현과 큐레이션까지</li>
+      <li style="font-size:24px">오른쪽 위가 비어 있고, 그 칸에 <b>작품 데이터와 이유</b>를 더한 것이 Lecta</li>
+    </ul>
+  </div>
+  <div class="map reveal">
+    <div class="zone"></div>
+    <div class="ax x"></div><div class="ax y"></div>
+    <span class="q" style="left:0;top:calc(50% + 14px)">한 매체</span>
+    <span class="q" style="right:0;top:calc(50% + 14px)">여러 매체</span>
+    <span class="q" style="left:calc(50% + 14px);top:0">표현과 큐레이션</span>
+    <span class="q" style="left:calc(50% + 14px);bottom:0">기록과 평가</span>
+    <div class="pt" style="left:16%;top:62%"><i></i><span>Letterboxd</span></div>
+    <div class="pt" style="left:14%;top:82%"><i></i><span>StoryGraph</span></div>
+    <div class="pt" style="left:70%;top:80%"><i></i><span>왓챠피디아</span></div>
+    <div class="pt" style="left:84%;top:64%"><i></i><span>Sofa</span></div>
+    <div class="pt" style="left:80%;top:92%"><i></i><span>Likewise</span></div>
+    <div class="pt" style="left:30%;top:20%"><i></i><span>Cosmos (이미지)</span></div>
+    <div class="pt" style="left:57%;top:12%"><i></i><span>Are.na (링크, 이미지)</span></div>
+    <div class="pt me" style="left:82%;top:24%"><i></i><span>Lecta</span></div>
+    <div class="pt" style="left:93%;top:-2%;align-items:flex-end"><span style="font-size:18px;color:var(--grey)">Qloo는 B2B 데이터 층이라 지도 밖</span></div>
+  </div>
+  <div class="folio"><span>THE GLEANERS 1차 스프린트 리뷰</span><b>04</b></div>
+</section>
+
+<!-- 05 SERVICES 1 -->
+<section class="slide" aria-label="비교 서비스 1">
+  <div class="chrome"><span class="mk">Lecta</span><span>03 기존 서비스, 기록 앱</span></div>
+  <div class="svcs"><article class="svc reveal">
+  <div class="phones"><div class="ph back"><img src="img/b347bb7eb8.webp" alt="Letterboxd 앱 화면" referrerpolicy="no-referrer" onerror="this.parentNode.classList.add('fail')"></div><div class="ph"><img src="img/5606779020.webp" alt="Letterboxd 앱 화면" referrerpolicy="no-referrer" onerror="this.parentNode.classList.add('fail')"><span class="fb">Letterboxd</span></div></div>
+  <h3>Letterboxd</h3><p class="media">영화 중심</p>
+  <ul><li>감상 일지, 별점, 리스트, 활동 피드</li><li>회원 1,700만 명 이상(2024)</li></ul>
+  <p class="diff"><span>Lecta와 다른 점</span>한 매체 안의 기록이라 영화와 책과 음악을 한 전시에 섞을 수 없음</p>
+</article><article class="svc reveal">
+  <div class="phones"><div class="ph back"><img src="img/49d590e88f.webp" alt="왓챠피디아 앱 화면" referrerpolicy="no-referrer" onerror="this.parentNode.classList.add('fail')"></div><div class="ph"><img src="img/505b46d05a.webp" alt="왓챠피디아 앱 화면" referrerpolicy="no-referrer" onerror="this.parentNode.classList.add('fail')"><span class="fb">왓챠피디아</span></div></div>
+  <h3>왓챠피디아</h3><p class="media">영화, 드라마, 책, 웹툰</p>
+  <ul><li>별점 평가와 예상 별점 추천</li><li>국내 최대 평가 데이터</li></ul>
+  <p class="diff"><span>Lecta와 다른 점</span>매체는 넓지만 점수가 중심이라 왜 좋았는지가 쌓이지 않음</p>
+</article><article class="svc reveal">
+  <div class="phones"><div class="ph back"><img src="img/f1dedfa105.webp" alt="StoryGraph 앱 화면" referrerpolicy="no-referrer" onerror="this.parentNode.classList.add('fail')"></div><div class="ph"><img src="img/94fc24e7db.webp" alt="StoryGraph 앱 화면" referrerpolicy="no-referrer" onerror="this.parentNode.classList.add('fail')"><span class="fb">StoryGraph</span></div></div>
+  <h3>StoryGraph</h3><p class="media">책</p>
+  <ul><li>분위기와 속도로 고르는 독서 기록</li><li>감성 축 추천</li></ul>
+  <p class="diff"><span>Lecta와 다른 점</span>감성 추천은 가깝지만 책 한 매체에 머묾</p>
+</article><article class="svc reveal">
+  <div class="phones"><div class="ph back"><img src="img/f882e1e82f.webp" alt="Sofa 앱 화면" referrerpolicy="no-referrer" onerror="this.parentNode.classList.add('fail')"></div><div class="ph"><img src="img/4cff8f5053.webp" alt="Sofa 앱 화면" referrerpolicy="no-referrer" onerror="this.parentNode.classList.add('fail')"><span class="fb">Sofa</span></div></div>
+  <h3>Sofa</h3><p class="media">영화, TV, 책, 앨범, 게임</p>
+  <ul><li>나중에 볼 것을 정리하는 리스트</li><li>공유 리스트 기능 종료 공지</li></ul>
+  <p class="diff"><span>Lecta와 다른 점</span>매체는 넓지만 표현보다 할 일 관리에 가까움</p>
+</article></div>
+  <div class="folio"><span>앱 화면은 각 서비스의 App Store 스크린샷</span><b>05</b></div>
+</section>
+
+<!-- 06 SERVICES 2 -->
+<section class="slide" aria-label="비교 서비스 2">
+  <div class="chrome"><span class="mk">Lecta</span><span>03 기존 서비스, 추천과 큐레이션</span></div>
+  <div class="svcs"><article class="svc reveal">
+  <div class="phones"><div class="ph back"><img src="img/27793c3169.webp" alt="Likewise 앱 화면" referrerpolicy="no-referrer" onerror="this.parentNode.classList.add('fail')"></div><div class="ph"><img src="img/239f33f268.webp" alt="Likewise 앱 화면" referrerpolicy="no-referrer" onerror="this.parentNode.classList.add('fail')"><span class="fb">Likewise</span></div></div>
+  <h3>Likewise</h3><p class="media">영화, TV, 책, 팟캐스트</p>
+  <ul><li>개인화 추천 피드와 AI 비서 Pix</li><li>유료 플랜 월 2달러</li></ul>
+  <p class="diff"><span>Lecta와 다른 점</span>교차 매체 추천이지만 내가 엮은 전시와 이유를 근거로 쓰지 않음</p>
+</article><article class="svc reveal">
+  <div class="phones"><div class="ph back"><img src="img/d46348be10.webp" alt="Are.na 앱 화면" referrerpolicy="no-referrer" onerror="this.parentNode.classList.add('fail')"></div><div class="ph"><img src="img/4be1b29a0b.webp" alt="Are.na 앱 화면" referrerpolicy="no-referrer" onerror="this.parentNode.classList.add('fail')"><span class="fb">Are.na</span></div></div>
+  <h3>Are.na</h3><p class="media">링크, 이미지, 텍스트</p>
+  <ul><li>채널에 블록을 모으는 큐레이션</li><li>광고와 알고리즘 없음, 공개 API</li></ul>
+  <p class="diff"><span>Lecta와 다른 점</span>철학은 가장 가깝지만 작품 단위 데이터와 취향 추천이 없음</p>
+</article><article class="svc reveal">
+  <div class="phones"><div class="ph back"><img src="img/b77232e24a.webp" alt="Cosmos 앱 화면" referrerpolicy="no-referrer" onerror="this.parentNode.classList.add('fail')"></div><div class="ph"><img src="img/4fd3847e22.webp" alt="Cosmos 앱 화면" referrerpolicy="no-referrer" onerror="this.parentNode.classList.add('fail')"><span class="fb">Cosmos</span></div></div>
+  <h3>Cosmos</h3><p class="media">이미지 중심의 시각 영감</p>
+  <ul><li>클러스터(무드보드)로 모으기</li><li>AI 캡션과 유사 이미지 검색</li></ul>
+  <p class="diff"><span>Lecta와 다른 점</span>미감은 가깝지만 작품의 정체성과 감상 이유를 다루지 않음</p>
+</article><article class="svc reveal qloo">
+  <div class="qbox"><span class="qk">B2B ONLY</span><div class="qflow"><b>기업 고객</b><i></i><b>Qloo API</b><i></i><b>문화 취향 데이터</b></div><p>소비자 앱이 없어 화면 대신 구조로 보여드립니다</p></div>
+  <h3>Qloo</h3><p class="media">영화, 음악, 책, 장소 등 문화 전반</p>
+  <ul><li>기업용 취향 인텔리전스 API</li><li>교차 도메인 추천, 에이전트 그라운딩</li></ul>
+  <p class="diff"><span>Lecta와 다른 점</span>대규모 집계 데이터라 개인이 남긴 이유와 전시 맥락이 없음</p>
+</article></div>
+  <div class="folio"><span>앱 화면은 각 서비스의 App Store 스크린샷</span><b>06</b></div>
+</section>
+
+<!-- 07 MATRIX -->
+<section class="slide" style="--c: var(--etruscan)" aria-label="비교 요약">
+  <div class="chrome"><span class="mk">Lecta</span><span>03 기존 서비스, 한눈에</span></div>
+  <div style="position:absolute;left:var(--pad);right:var(--pad);top:150px">
+    <h2 class="h reveal" data-edit style="font-size:60px;margin-bottom:34px">여섯 가지를 <em>한 곳에서</em> 모두 하는 서비스는 아직 없습니다</h2>
+    <div class="reveal"><table class="mx"><thead><tr><th></th><th>여러 매체를 한곳에</th><th>작품 단위 데이터</th><th>좋아한 이유 기록</th><th>전시처럼 엮기</th><th>근거를 보여주는 추천</th><th>AI 에이전트 접근</th></tr></thead><tbody><tr class=""><th>Letterboxd</th><td><i class="d n" aria-label="없음"></i></td><td><i class="d f" aria-label="있음"></i></td><td><i class="d h" aria-label="일부"></i></td><td><i class="d h" aria-label="일부"></i></td><td><i class="d n" aria-label="없음"></i></td><td><i class="d n" aria-label="없음"></i></td></tr><tr class=""><th>왓챠피디아</th><td><i class="d f" aria-label="있음"></i></td><td><i class="d f" aria-label="있음"></i></td><td><i class="d h" aria-label="일부"></i></td><td><i class="d h" aria-label="일부"></i></td><td><i class="d h" aria-label="일부"></i></td><td><i class="d n" aria-label="없음"></i></td></tr><tr class=""><th>StoryGraph</th><td><i class="d n" aria-label="없음"></i></td><td><i class="d f" aria-label="있음"></i></td><td><i class="d h" aria-label="일부"></i></td><td><i class="d n" aria-label="없음"></i></td><td><i class="d h" aria-label="일부"></i></td><td><i class="d n" aria-label="없음"></i></td></tr><tr class=""><th>Sofa</th><td><i class="d f" aria-label="있음"></i></td><td><i class="d f" aria-label="있음"></i></td><td><i class="d n" aria-label="없음"></i></td><td><i class="d h" aria-label="일부"></i></td><td><i class="d n" aria-label="없음"></i></td><td><i class="d n" aria-label="없음"></i></td></tr><tr class=""><th>Likewise</th><td><i class="d f" aria-label="있음"></i></td><td><i class="d f" aria-label="있음"></i></td><td><i class="d n" aria-label="없음"></i></td><td><i class="d h" aria-label="일부"></i></td><td><i class="d h" aria-label="일부"></i></td><td><i class="d n" aria-label="없음"></i></td></tr><tr class=""><th>Are.na</th><td><i class="d f" aria-label="있음"></i></td><td><i class="d n" aria-label="없음"></i></td><td><i class="d h" aria-label="일부"></i></td><td><i class="d f" aria-label="있음"></i></td><td><i class="d n" aria-label="없음"></i></td><td><i class="d h" aria-label="일부"></i></td></tr><tr class=""><th>Cosmos</th><td><i class="d n" aria-label="없음"></i></td><td><i class="d n" aria-label="없음"></i></td><td><i class="d n" aria-label="없음"></i></td><td><i class="d f" aria-label="있음"></i></td><td><i class="d h" aria-label="일부"></i></td><td><i class="d n" aria-label="없음"></i></td></tr><tr class=""><th>Qloo</th><td><i class="d f" aria-label="있음"></i></td><td><i class="d f" aria-label="있음"></i></td><td><i class="d n" aria-label="없음"></i></td><td><i class="d n" aria-label="없음"></i></td><td><i class="d h" aria-label="일부"></i></td><td><i class="d f" aria-label="있음"></i></td></tr><tr class="me"><th>Lecta</th><td><i class="d f" aria-label="있음"></i></td><td><i class="d f" aria-label="있음"></i></td><td><i class="d f" aria-label="있음"></i></td><td><i class="d f" aria-label="있음"></i></td><td><i class="d f" aria-label="있음"></i></td><td><i class="d f" aria-label="있음"></i></td></tr></tbody></table></div>
+    <div class="legend reveal"><span><i class="d f"></i>있음</span><span><i class="d h"></i>일부</span><span><i class="d n"></i>없음</span><span>각 서비스의 공개 소개와 앱 스토어 정보를 바탕으로 한 팀의 판단이며, 기능은 바뀔 수 있습니다</span></div>
+  </div>
+  <div class="folio"><span>THE GLEANERS 1차 스프린트 리뷰</span><b>07</b></div>
+</section>
+
+<!-- 08 FLOOR PLAN -->
+<section class="slide" style="--c: var(--oilgreen)" aria-label="전체 범위">
+  <div class="chrome"><span class="mk">Lecta</span><span>04 전체 범위</span></div>
+  <div class="label reveal"><span class="no">Floor plan</span><h2>지은 방과<br>지을 방</h2><span class="cn">Oil Green</span></div>
+  <div style="position:absolute;left:var(--pad);top:500px;width:360px" class="reveal">
+    <ul class="b">
+      <li style="font-size:23px">아래층 다섯 방은 <b>이번 스프린트에 실제로 동작</b></li>
+      <li style="font-size:23px">위층은 친구와 연결되는 확장 공간으로, <b>혼자 쓰는 가치가 먼저</b>라 다음 스프린트로</li>
+    </ul>
+  </div>
+  <div class="plan">
+    <div class="lv reveal"><span>위층, 확장</span><span>11월 14일 중간발표와 12월 19일 최종 데모</span></div>
+    <div class="row next reveal">
+      <div class="room next" style="--c: var(--ocher)"><span class="when" style="color:#a9821c">11/14</span><h4>계정과 공개 링크</h4><p>로그인, 팔로우, 전시를 링크로 공유</p></div>
+      <div class="room next" style="--c: var(--etruscan)"><span class="when">12/19</span><h4>친구와 취향 비교</h4><p>공통 취향과 차이, 함께 볼 작품 추천</p></div>
+      <div class="room next" style="--c: var(--etruscan)"><span class="when">12/19</span><h4>공동 전시</h4><p>친구와 한 방을 함께 꾸미기</p></div>
+      <div class="room next" style="--c: var(--etruscan)"><span class="when">12/19</span><h4>Taste Profile</h4><p>쌓인 이유로 보는 내 취향의 구성</p></div>
+    </div>
+    <div class="lv reveal"><span>아래층, 핵심 경험</span><span>10월 31일 현재</span></div>
+    <div class="row built reveal">
+      <div class="room built" style="--c: var(--lyons)"><h4>Explore</h4><p>실존 작품 46개, 검색과 필터</p></div>
+      <div class="room built" style="--c: var(--greenblue)"><h4>Collect</h4><p>선택 트레이, 중복 방지</p></div>
+      <div class="room built light" style="--c: var(--ocher)"><h4>Curate</h4><p>저장, 편집, 순서, 한 줄 이유</p></div>
+      <div class="room built" style="--c: var(--etruscan)"><h4>Recommend</h4><p>교차 매체 추천과 근거</p></div>
+      <div class="room built" style="--c: var(--oilgreen)"><h4>Agent</h4><p>MCP 도구 5개, 승인 후 쓰기</p></div>
+    </div>
+  </div>
+  <div class="folio"><span>THE GLEANERS 1차 스프린트 리뷰</span><b>08</b></div>
+</section>
+
+<!-- 09 ROADMAP -->
+<section class="slide" aria-label="스프린트 계획">
+  <div class="chrome"><span class="mk">Lecta</span><span>04 스프린트 계획</span></div>
+  <div style="position:absolute;left:var(--pad);top:160px"><h2 class="h reveal" data-edit style="font-size:62px">세 번의 발표, 세 개의 <em>마일스톤</em></h2></div>
+  <div class="road">
+    <div class="line wipe"></div>
+    <div class="col reveal" style="--c: var(--oilgreen)">
+      <div class="date">10/31<span class="here">지금 여기</span></div><p class="what">1차 발표와 UAT</p>
+      <ul class="b" data-edit><li>실존 작품 46개, 실제 이미지 40개</li><li>검색, 필터, 선택 트레이</li><li>전시 저장과 편집, 새로고침 후 복원</li><li>교차 매체 추천과 근거 표시</li><li>MCP 도구 5개, Inspector로 호출 검증</li></ul>
+    </div>
+    <div class="col reveal" style="--c: var(--ocher)">
+      <div class="date">11/14</div><p class="what">중간발표</p>
+      <ul class="b" data-edit><li>로그인, 팔로우, 공개 전시 링크</li><li>TMDB, Google Books, MusicBrainz로 작품 검증, 100개 안팎</li><li>전시 레이아웃 두세 가지</li><li>이유 문장에서 태그 제안 (사용자 확인 후 저장)</li><li>임베딩 추천, 실제 LLM 에이전트, 원격 MCP</li></ul>
+    </div>
+    <div class="col reveal" style="--c: var(--etruscan)">
+      <div class="date">12/19</div><p class="what">최종 데모</p>
+      <ul class="b" data-edit><li>친구와 취향 비교, 공동 전시</li><li>Taste Profile 화면</li><li>공개 전시 둘러보기, 외부 실시간 검색</li><li>추천 반응으로 가중치 조정</li><li>에이전트 권한(OAuth 범위) 관리 화면</li></ul>
+    </div>
+  </div>
+  <div class="folio"><span>THE GLEANERS 1차 스프린트 리뷰</span><b>09</b></div>
+</section>
+
+<!-- 10 WHAT WE BUILT -->
+<section class="slide" aria-label="만든 것">
+  <div class="chrome"><span class="mk">Lecta</span><span>05 이번에 만든 것</span></div>
+  <div class="built-wall reveal">
+    <div class="hang wipe"></div>
+    <figure class="art poster" style="width:250px"><div class="frame"><img src="img/0e6f1a8d70.webp" alt="In the Mood for Love" loading="eager" referrerpolicy="no-referrer" onerror="this.parentNode.classList.add('fail')"><span class="fb">In the Mood for Love</span></div><figcaption><b>In the Mood for Love</b><span>영화</span></figcaption></figure>
+    <figure class="art book" style="width:220px"><div class="frame"><img src="img/0dc269431c.webp" alt="The Remains of the Day" loading="eager" referrerpolicy="no-referrer" onerror="this.parentNode.classList.add('fail')"><span class="fb">The Remains of the Day</span></div><figcaption><b>The Remains of the Day</b><span>책</span></figcaption></figure>
+    <figure class="art square" style="width:290px"><div class="frame"><img src="img/b9e0671a8b.webp" alt="Carrie & Lowell" loading="eager" referrerpolicy="no-referrer" onerror="this.parentNode.classList.add('fail')"><span class="fb">Carrie & Lowell</span></div><figcaption><b>Carrie & Lowell</b><span>앨범</span></figcaption></figure>
+  </div>
+  <div class="recs reveal">
+    <h4>이 방에 어울리는 책 세 권, UAT 3번과 같은 입력으로 받은 실제 결과</h4>
+    <div class="rec"><figure class="art book"><div class="frame"><img src="img/5e09a3bfd6.webp" alt="Stoner" loading="eager" referrerpolicy="no-referrer" onerror="this.parentNode.classList.add('fail')"><span class="fb">Stoner</span></div><figcaption><b>Stoner</b><span>책</span></figcaption></figure><div><b>Stoner</b><span>John Williams, 책</span></div></div>
+    <div class="rec"><figure class="art book"><div class="frame"><img src="img/f43cccd3ec.webp" alt="Giovanni's Room" loading="eager" referrerpolicy="no-referrer" onerror="this.parentNode.classList.add('fail')"><span class="fb">Giovanni's Room</span></div><figcaption><b>Giovanni's Room</b><span>책</span></figcaption></figure><div><b>Giovanni's Room</b><span>James Baldwin, 책</span></div></div>
+    <div class="rec"><figure class="art book"><div class="frame"><img src="img/b38fe3e709.webp" alt="Never Let Me Go" loading="eager" referrerpolicy="no-referrer" onerror="this.parentNode.classList.add('fail')"><span class="fb">Never Let Me Go</span></div><figcaption><b>Never Let Me Go</b><span>책</span></figcaption></figure><div><b>Never Let Me Go</b><span>Kazuo Ishiguro, 책</span></div></div>
+  </div>
+  <div class="steps4">
+    <div class="reveal" data-edit><b>01</b>Discover에서 영화와 책과 앨범을 검색하고 + 로 담기</div>
+    <div class="reveal" data-edit><b>02</b>전시 편집기에서 제목, 소개, 순서, 작품별 한 줄 이유 쓰기</div>
+    <div class="reveal" data-edit><b>03</b>저장하면 색이 칠해진 입구 벽을 가진 방이 되고 새로고침해도 유지</div>
+    <div class="reveal" data-edit><b>04</b>방 아래에서 근거가 붙은 추천을 받아 바로 벽에 걸기</div>
+  </div>
+  <div class="folio"><span>THE GLEANERS 1차 스프린트 리뷰</span><b>10</b></div>
+</section>
+
+<!-- 11 ARCHITECTURE -->
+<section class="slide" style="--c: var(--lyons)" aria-label="구조">
+  <div class="chrome"><span class="mk">Lecta</span><span>06 설계와 개발</span></div>
+  <div class="label reveal"><span class="no">Architecture</span><h2>엔진 하나,<br>입구 두 개</h2><span class="cn">Deep Lyons Blue</span></div>
+  <div style="position:absolute;left:var(--pad);top:500px;width:360px" class="reveal">
+    <ul class="b">
+      <li style="font-size:23px">웹과 MCP는 <b>다른 프로세스</b></li>
+      <li style="font-size:23px">하지만 <b>같은 서비스 코드와 같은 DB</b>를 쓰기 때문에 사람과 에이전트가 같은 결과를 받음</li>
+    </ul>
+  </div>
+  <div class="arch reveal">
+    <svg viewBox="0 0 1268 560" preserveAspectRatio="none" aria-hidden="true">
+      <defs><marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="9" markerHeight="9" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#1b1a17"/></marker></defs>
+      <g stroke="#1b1a17" stroke-width="3" fill="none" marker-end="url(#ah)">
+        <path d="M250 80 L392 80"/><path d="M250 330 L392 330"/>
+        <path d="M720 80 L800 80 L800 185 L860 185"/><path d="M720 330 L800 330 L800 230 L860 230"/>
+        <path d="M1060 270 L1060 380"/>
+      </g>
+    </svg>
+    <div class="bx who" style="left:0;top:20px;width:250px;height:120px"><b>사람</b><span>브라우저</span></div>
+    <div class="bx who" style="left:0;top:270px;width:250px;height:120px"><b>AI 에이전트</b><span>MCP 클라이언트, Inspector</span></div>
+    <div class="bx web" style="left:400px;top:10px;width:320px;height:140px"><b>Next.js 웹앱</b><span>페이지와 REST API, :3000</span></div>
+    <div class="bx mcp" style="left:400px;top:260px;width:320px;height:140px"><b>MCP 서버</b><span>Streamable HTTP, :3333/mcp</span></div>
+    <div class="bx svc2" style="left:868px;top:130px;width:400px;height:140px"><b>공용 서비스 코드</b><span>작품, 전시, 추천 엔진 coldstart-v1</span></div>
+    <div class="bx db" style="left:868px;top:390px;width:400px;height:140px"><b>SQLite</b><span>node:sqlite, WAL, 테이블 8개</span></div>
+  </div>
+  <div class="arch-notes">
+    <div class="reveal" data-edit><b>스택</b>Next.js 16, React 19, TypeScript, Zod 4, 공식 MCP TypeScript SDK v2</div>
+    <div class="reveal" data-edit><b>데이터</b>영화와 책과 앨범을 works 테이블 하나로 통합, 이유 원문과 추출 태그는 따로 저장</div>
+    <div class="reveal" data-edit><b>개발 방식</b>팀이 명세와 디자인과 검수, 구현은 AI 코딩 에이전트와 함께, 모든 단계를 자동 검사로 확인</div>
+  </div>
+  <div class="folio"><span>THE GLEANERS 1차 스프린트 리뷰</span><b>11</b></div>
+</section>
+
+<!-- 12 RECOMMENDATION -->
+<section class="slide" style="--c: var(--etruscan)" aria-label="추천">
+  <div class="chrome"><span class="mk">Lecta</span><span>06 추천은 어떻게 계산하나</span></div>
+  <div class="label reveal"><span class="no">Recommend</span><h2>설명할 수<br>있는 추천</h2><span class="cn">Etruscan Red</span></div>
+  <div class="main">
+    <p class="formula reveal">score = .35 맥락 + .25 이유 + .20 주제 + .10 다양성 + .10 확장</p>
+    <div class="wbar reveal">
+      <div style="width:35%;background:var(--lyons)"><b>35</b>맥락, 전시 작품과의 태그와 TF-IDF 유사도</div>
+      <div style="width:25%;background:var(--etruscan)"><b>25</b>사용자가 고른 이유</div>
+      <div style="width:20%;background:var(--greenblue)"><b>20</b>전시 제목과 소개의 주제</div>
+      <div style="width:10%;background:var(--oldrose)"><b>10</b>다양성</div>
+      <div style="width:10%;background:var(--oilgreen)"><b>10</b>확장</div>
+    </div>
+    <div class="cols3">
+      <div class="reveal" data-edit><b>데이터가 없어도 동작</b>사용자 행동이 아니라 지금 만드는 전시를 입력으로 써서 작품 두 개만 있어도 추천</div>
+      <div class="reveal" data-edit><b>근거는 지어내지 않음</b>실제로 겹치는 태그와 사용자가 쓴 문구로만 이유를 조립하고, 근거가 약하면 Exploratory로 표시</div>
+      <div class="reveal" data-edit><b>재현 가능</b>같은 입력엔 같은 결과, 같은 제목의 다른 매체판과 이미 걸린 작품은 제외</div>
+    </div>
+  </div>
+  <div class="folio"><span>THE GLEANERS 1차 스프린트 리뷰</span><b>12</b></div>
+</section>
+
+<!-- 13 MCP -->
+<section class="slide" style="--c: var(--greenblue)" aria-label="MCP">
+  <div class="chrome"><span class="mk">Lecta</span><span>06 AI 에이전트와 MCP</span></div>
+  <div class="label reveal"><span class="no">Agent</span><h2>에이전트도<br>사용자다</h2><span class="cn">Green Blue</span></div>
+  <div class="main">
+    <div class="tools reveal">
+      <div class="tool"><code>search_works</code><span class="rw r">읽기</span><span>작품 검색</span></div>
+      <div class="tool"><code>find_related_works</code><span class="rw r">읽기</span><span>시드 작품으로 관련 작품 찾기 (UAT 3번)</span></div>
+      <div class="tool"><code>get_exhibition</code><span class="rw r">읽기</span><span>전시 읽기</span></div>
+      <div class="tool"><code>recommend_for_exhibition</code><span class="rw r">읽기</span><span>전시 기준 추천과 근거</span></div>
+      <div class="tool"><code>create_exhibition_draft</code><span class="rw w">쓰기</span><span>비공개 전시 초안 만들기, 승인 필요</span></div>
+    </div>
+    <div class="guards">
+      <div class="reveal" data-edit><span class="n">01</span><b>키</b>쓰기는 bearer 키가 있어야 열리고 상수 시간으로 비교</div>
+      <div class="reveal" data-edit><span class="n">02</span><b>사람의 승인</b>approvedByHuman은 모델이 아니라 사람의 y/N 입력으로만 채움</div>
+      <div class="reveal" data-edit><span class="n">03</span><b>중복 방지</b>같은 requestId는 초안을 하나만 만들고 처음 결과를 돌려줌</div>
+      <div class="reveal" data-edit><span class="n">04</span><b>복구 가능한 실패</b>WORK_NOT_FOUND 같은 코드와 retryable로 에이전트가 스스로 고침</div>
+    </div>
+  </div>
+  <div class="folio"><span>THE GLEANERS 1차 스프린트 리뷰</span><b>13</b></div>
+</section>
+
+<!-- 14 QUALITY -->
+<section class="slide" aria-label="검증">
+  <div class="chrome"><span class="mk">Lecta</span><span>06 검증</span></div>
+  <div style="position:absolute;left:var(--pad);right:var(--pad);top:160px">
+    <h2 class="h reveal" data-edit style="font-size:62px">작동하지 않는 것은 <em>완료</em>라고 부르지 않았습니다</h2>
+    <div class="stats">
+      <div class="reveal" style="--c: var(--lyons)"><span class="num">15</span><h4>단위 테스트</h4><p data-edit>추천 재현성, 시드 제외, 매체 필터, 근거 태그 실재, 권한 오류</p></div>
+      <div class="reveal" style="--c: var(--greenblue)"><span class="num">29</span><h4>MCP 프로토콜 검사</h4><p data-edit>공식 클라이언트로 실제 서버에 접속해 도구 목록, 호출, 오류, 쓰기 권한, 저장 후 재조회</p></div>
+      <div class="reveal" style="--c: var(--etruscan)"><span class="num">24</span><h4>브라우저 검사</h4><p data-edit>Playwright로 UAT 1번과 2번, 추천 추가를 데스크톱과 모바일 화면에서 클릭</p></div>
+    </div>
+    <p class="honest reveal" data-edit>MCP Inspector로 UAT 3번 입력을 실제로 호출해 확인했습니다. 다만 LLM이 자연어를 받아 스스로 도구를 고르는 실행은 코드만 준비되어 있고 모델 키로 아직 돌려 보지 않았습니다.</p>
+  </div>
+  <div class="folio"><span>THE GLEANERS 1차 스프린트 리뷰</span><b>14</b></div>
+</section>
+
+<!-- 15 UAT -->
+<section class="slide" aria-label="UAT">
+  <div class="chrome"><span class="mk">Lecta</span><span>07 UAT 현장 검증</span></div>
+  <div style="position:absolute;left:var(--pad);right:var(--pad);top:150px">
+    <h2 class="h reveal" data-edit style="font-size:58px;margin-bottom:40px">세 항목 모두 시트의 조건 그대로 미리 돌려 보았습니다</h2>
+    <div class="uat">
+      <div class="reveal" style="--c: var(--lyons)"><span class="num">01</span><h3>작품 탐색과 선택</h3><span class="pill">검증 가능</span>
+        <ul data-edit><li><code>longing</code> 검색에 영화 2, 책 2, 앨범 4</li><li>영화, 책, 앨범을 하나씩 담으면 편집기에 같은 ID</li><li>결과 없는 검색어도 오류 없이 빈 화면</li></ul>
+        <p class="need" data-edit>필요한 것: 웹 서버가 켜진 노트북</p></div>
+      <div class="reveal" style="--c: var(--ocher)"><span class="num">02</span><h3>전시 제작과 저장</h3><span class="pill">검증 가능</span>
+        <ul data-edit><li>저장하면 주소에 <code>ex_</code> 전시 ID</li><li>새로고침해도 제목, 소개, 작품, 순서 유지</li><li>제목이 비면 저장되지 않음</li></ul>
+        <p class="need" data-edit>테스터 여러 명이 모두 같은 데모 사용자로 저장된다는 점을 미리 안내</p></div>
+      <div class="reveal" style="--c: var(--greenblue)"><span class="num">03</span><h3>에이전트의 MCP 추천 조회</h3><span class="pill part">조건부 검증 가능</span>
+        <ul data-edit><li><code>find_related_works</code>, 시드 2개, 책, 3개</li><li>Stoner, Giovanni's Room, Never Let Me Go</li><li>없는 ID는 <code>WORK_NOT_FOUND</code></li></ul>
+        <p class="need" data-edit>LLM이 스스로 고르는 장면까지 요구되면 Comments에 프로토콜 수준 검증으로 기록</p></div>
+    </div>
+  </div>
+  <div class="folio"><span>Pass는 현장에서 실제로 본 것에만 적습니다</span><b>15</b></div>
+</section>
+
+<!-- 16 REVENUE -->
+<section class="slide" style="--c: var(--ocher)" aria-label="수익">
+  <div class="chrome"><span class="mk">Lecta</span><span>08 수익</span></div>
+  <div class="label light reveal"><span class="no">Business</span><h2>발견에서<br>데이터까지</h2><span class="cn">Yellow Ocher</span></div>
+  <div class="stairs">
+    <div class="reveal" style="--c: var(--oldrose);height:300px"><span class="when">초기</span><h3>큐레이티드 커머스 제휴</h3><p data-edit>전시 속 작품에서 서점, 음반, 영화 예매로 연결. 다만 월 1만 명 기준 월 16만 원 안팎이라 이것만으론 부족</p></div>
+    <div class="reveal" style="--c: var(--greenblue);height:420px"><span class="when">중기</span><h3>B2B 큐레이션 도구와 스폰서 전시</h3><p data-edit>독립 서점, 영화제, 전시 공간의 큐레이션 아카이브. 출판사와 배급사의 신작 전시는 광고임을 분명히 표시</p></div>
+    <div class="reveal" style="--c: var(--lyons);height:560px"><span class="when">장기</span><h3>동의 기반 취향 API</h3><p data-edit>사용자가 동의한 취향 데이터를 다른 AI 앱과 플랫폼이 MCP나 API로 호출할 때 사용량만큼 과금. Lecta 구조와 가장 잘 맞는 모델</p></div>
+  </div>
+  <p class="principle reveal" data-edit>어떤 단계에서도 광고비는 추천 점수에 섞지 않고, 비공개 감상과 취향 정보는 팔지 않습니다.</p>
+  <div class="folio"><span>THE GLEANERS 1차 스프린트 리뷰</span><b>16</b></div>
+</section>
+
+<!-- 17 CLOSING -->
+<section class="slide" style="--c: var(--etruscan)" aria-label="피드백">
+  <div class="chrome"><span class="mk">Lecta</span><span>09 듣고 싶은 것</span></div>
+  <div style="position:absolute;left:var(--pad);right:var(--pad);top:160px">
+    <h2 class="h reveal" data-edit style="font-size:64px">오늘 가장 궁금한 네 가지</h2>
+    <div class="asks">
+      <div class="reveal"><span class="num">1</span><span data-edit>전시라는 경험이 기록 앱과 충분히 다르게 느껴지나요?</span></div>
+      <div class="reveal"><span class="num">2</span><span data-edit>작품을 담아 방을 완성하는 흐름이 자연스러운가요?</span></div>
+      <div class="reveal"><span class="num">3</span><span data-edit>추천 이유가 이해되고 믿을 만한가요?</span></div>
+      <div class="reveal"><span class="num">4</span><span data-edit>AI가 MCP로 서비스를 직접 쓴다는 점이 분명히 보이나요?</span></div>
+    </div>
+  </div>
+  <div class="endstrip reveal">
+    <figure class="art poster"><div class="frame"><img src="img/2abdf1fca3.webp" alt="Aftersun" loading="eager" referrerpolicy="no-referrer" onerror="this.parentNode.classList.add('fail')"><span class="fb">Aftersun</span></div><figcaption><b>Aftersun</b><span>영화</span></figcaption></figure><figure class="art poster"><div class="frame"><img src="img/7c30e3f39c.webp" alt="Past Lives" loading="eager" referrerpolicy="no-referrer" onerror="this.parentNode.classList.add('fail')"><span class="fb">Past Lives</span></div><figcaption><b>Past Lives</b><span>영화</span></figcaption></figure><figure class="art book"><div class="frame"><img src="img/b38fe3e709.webp" alt="Never Let Me Go" loading="eager" referrerpolicy="no-referrer" onerror="this.parentNode.classList.add('fail')"><span class="fb">Never Let Me Go</span></div><figcaption><b>Never Let Me Go</b><span>책</span></figcaption></figure><figure class="art square"><div class="frame"><img src="img/f082bd5791.webp" alt="Blonde" loading="eager" referrerpolicy="no-referrer" onerror="this.parentNode.classList.add('fail')"><span class="fb">Blonde</span></div><figcaption><b>Blonde</b><span>앨범</span></figcaption></figure><figure class="art square"><div class="frame"><img src="img/59692ada9e.webp" alt="Pink Moon" loading="eager" referrerpolicy="no-referrer" onerror="this.parentNode.classList.add('fail')"><span class="fb">Pink Moon</span></div><figcaption><b>Pink Moon</b><span>앨범</span></figcaption></figure>
+  </div>
+  <p class="thanks reveal">Thank you.</p>
+  <div class="folio"><span>github.com/yerielk/LT_THEGLEANERS, feat/uat-editorial-mcp</span><b>17</b></div>
+</section>
+
+</main>
+</div>
+
+<div class="deck-controls" aria-label="슬라이드 이동">
+  <button type="button" id="prevBtn" aria-label="이전 슬라이드">←</button>
+  <span id="count">1 / 17</span>
+  <button type="button" id="nextBtn" aria-label="다음 슬라이드">→</button>
+</div>
+
+<script>
+/* ===========================================
+   SLIDE PRESENTATION CONTROLLER
+   Fixed 1920x1080 stage scaled to the window; keys, wheel, swipe, hash.
+   =========================================== */
+class SlidePresentation {
+  constructor() {
+    this.slides = document.querySelectorAll('.slide');
+    this.stage = document.getElementById('deckStage');
+    this.count = document.getElementById('count');
+    this.bar = document.getElementById('progress');
+    this.current = 0;
+    this.lock = false;
+    this.setupStageScale();
+    this.setupNav();
+    const h = parseInt((location.hash || '').replace('#', ''), 10);
+    this.show(isNaN(h) ? 0 : h - 1);
+  }
+  setupStageScale() {
+    const scale = () => {
+      const f = Math.min(window.innerWidth / 1920, window.innerHeight / 1080);
+      const x = (window.innerWidth - 1920 * f) / 2, y = (window.innerHeight - 1080 * f) / 2;
+      this.stage.style.transform = `translate(${x}px, ${y}px) scale(${f})`;
+    };
+    scale(); window.addEventListener('resize', scale);
+  }
+  setupNav() {
+    document.addEventListener('keydown', (e) => {
+      if (document.body.classList.contains('editing')) return;
+      if (['ArrowRight', 'ArrowDown', 'PageDown', ' ', 'Enter'].includes(e.key)) { e.preventDefault(); this.show(this.current + 1); }
+      if (['ArrowLeft', 'ArrowUp', 'PageUp', 'Backspace'].includes(e.key)) { e.preventDefault(); this.show(this.current - 1); }
+      if (e.key === 'Home') this.show(0);
+      if (e.key === 'End') this.show(this.slides.length - 1);
+    });
+    window.addEventListener('wheel', (e) => {
+      if (this.lock || Math.abs(e.deltaY) < 30 || document.body.classList.contains('editing')) return;
+      this.lock = true; setTimeout(() => (this.lock = false), 700);
+      this.show(this.current + (e.deltaY > 0 ? 1 : -1));
+    }, { passive: true });
+    let sx = 0, sy = 0;
+    window.addEventListener('touchstart', (e) => { sx = e.touches[0].clientX; sy = e.touches[0].clientY; }, { passive: true });
+    window.addEventListener('touchend', (e) => {
+      const dx = e.changedTouches[0].clientX - sx, dy = e.changedTouches[0].clientY - sy;
+      if (Math.max(Math.abs(dx), Math.abs(dy)) < 40) return;
+      this.show(this.current + ((Math.abs(dx) > Math.abs(dy) ? dx : dy) < 0 ? 1 : -1));
+    }, { passive: true });
+    document.getElementById('prevBtn').onclick = () => this.show(this.current - 1);
+    document.getElementById('nextBtn').onclick = () => this.show(this.current + 1);
+  }
+  show(i) {
+    this.current = Math.max(0, Math.min(i, this.slides.length - 1));
+    this.slides.forEach((s, k) => { s.classList.toggle('active', k === this.current); s.classList.toggle('visible', k === this.current); });
+    this.count.textContent = `${this.current + 1} / ${this.slides.length}`;
+    this.bar.style.width = `${((this.current + 1) / this.slides.length) * 100}%`;
+    try { history.replaceState(null, '', '#' + (this.current + 1)); } catch (e) {}
+  }
+}
+const deck = new SlidePresentation();
+
+/* ===========================================
+   INLINE EDITING: hover the top-left corner or press E.
+   Edits are kept in this browser only (localStorage), wrapped in try/catch.
+   =========================================== */
+const editor = {
+  isActive: false, key: 'lecta.deck.edits.v1',
+  nodes() { return [...document.querySelectorAll('[data-edit]')]; },
+  load() { try { const saved = JSON.parse(localStorage.getItem(this.key) || '{}'); this.nodes().forEach((n, i) => { if (saved[i] != null) n.innerHTML = saved[i]; }); } catch (e) {} },
+  save() { try { const o = {}; this.nodes().forEach((n, i) => (o[i] = n.innerHTML)); localStorage.setItem(this.key, JSON.stringify(o)); } catch (e) {} },
+  toggleEditMode() {
+    this.isActive = !this.isActive;
+    document.body.classList.toggle('editing', this.isActive);
+    this.nodes().forEach((n) => n.setAttribute('contenteditable', this.isActive ? 'true' : 'false'));
+    const t = document.getElementById('editToggle');
+    t.classList.toggle('active', this.isActive); t.textContent = this.isActive ? '편집 끝내기' : '편집';
+    if (!this.isActive) this.save();
+  },
+};
+editor.load();
+const hotzone = document.querySelector('.edit-hotzone'), editToggle = document.getElementById('editToggle');
+let hideT = null;
+editToggle.addEventListener('click', () => editor.toggleEditMode());
+hotzone.addEventListener('mouseenter', () => { clearTimeout(hideT); editToggle.classList.add('show'); });
+hotzone.addEventListener('mouseleave', () => { hideT = setTimeout(() => { if (!editor.isActive) editToggle.classList.remove('show'); }, 400); });
+editToggle.addEventListener('mouseenter', () => clearTimeout(hideT));
+editToggle.addEventListener('mouseleave', () => { hideT = setTimeout(() => { if (!editor.isActive) editToggle.classList.remove('show'); }, 400); });
+hotzone.addEventListener('click', () => editor.toggleEditMode());
+document.addEventListener('keydown', (e) => {
+  if ((e.key === 'e' || e.key === 'E') && !e.target.getAttribute('contenteditable')) editor.toggleEditMode();
+  if ((e.metaKey || e.ctrlKey) && e.key === 's') { e.preventDefault(); editor.save(); }
+});
+</script>
+</body>
+</html>
