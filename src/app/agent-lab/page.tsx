@@ -32,11 +32,11 @@ export default async function AgentLab() {
           <h2 className="h3" style={{ marginTop: 0 }}>
             <span className={`status-dot${status.online ? " on" : ""}`} aria-hidden />MCP server {status.online ? "online" : "offline"}
           </h2>
-          <p style={{ fontSize: 14 }}><code>{status.url}</code></p>
+          <p style={{ fontSize: 14 }}><code className="url">{status.url}</code></p>
           {status.online ? (
             <>
               <p className="muted" style={{ fontSize: 14 }}>
-                DB {status.health.db ? "ok" : "unavailable"} / writes need a personal MCP key + human approval
+                <span className="nobr">DB {status.health.db ? "ok" : "unavailable"}</span> / <span className="nobr">writes need a personal MCP key</span> <span className="nobr">+ human approval</span>
               </p>
               <ul className="tool-list">
                 {status.tools.map((t) => (
@@ -55,7 +55,7 @@ export default async function AgentLab() {
             <ol className="trace">
               {activity.map((a, i) => (
                 <li key={i} style={{ gridTemplateColumns: "1fr auto" }}>
-                  <span><code>{a.tool_name}</code> <span className={`badge ${a.status === "ok" ? "badge-olive" : "badge-rust"}`}>{a.status}</span><br /><span className="muted" style={{ fontSize: 12.5 }}>{a.actor}{a.target_id ? ` / ${a.target_id}` : ""}</span></span>
+                  <span><code>{a.tool_name}</code> <span className={`badge ${a.status === "ok" ? "badge-olive" : "badge-rust"}`}>{a.status}</span><br /><span className="muted" style={{ fontSize: 12.5 }}><span className="nobr">{a.actor}</span>{a.target_id ? <> / <span className="nobr">{a.target_id}</span></> : ""}</span></span>
                   <span className="muted" style={{ fontSize: 12.5, textAlign: "right" }}>{new Date(a.created_at).toLocaleTimeString("ko-KR")}<br />{a.duration_ms}ms</span>
                 </li>
               ))}

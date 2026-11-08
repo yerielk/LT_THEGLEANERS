@@ -28,11 +28,16 @@ export function DiscoverClient({ initial, initialMedium, initialQ = "", moods, t
   const [state, setState] = useState<"idle" | "loading" | "error">("idle");
   const [retry, setRetry] = useState(0);
   const first = useRef(true);
+  const composing = useRef(false);
+  const animate = useRef(false);
   const { has } = useSelection();
+  const pick = (next: () => void) => { animate.current = true; next(); };
 
   useEffect(() => {
     if (first.current) { first.current = false; return; }
     const ctl = new AbortController();
+    // wait longer while a Hangul syllable is still being composed
+    const delay = composing.current ? 700 : 400;
     const t = setTimeout(async () => {
       setState("loading");
       const sp = new URLSearchParams({ limit: "60" });
@@ -42,7 +47,10 @@ export function DiscoverClient({ initial, initialMedium, initialQ = "", moods, t
         const res = await fetch(`/api/works?${sp}`, { signal: ctl.signal });
         const body = await res.json();
         if (!res.ok) throw new Error(body?.error?.message ?? "Search failed");
-        rehang(() => { setWorks(body.works); setTotal(body.total); setState("idle"); });
+        const apply = () => { setWorks(body.works); setTotal(body.total); setState("idle"); };
+        // re-hang only for filter clicks; typing swaps results in place
+        if (animate.current) rehang(apply); else apply();
+        animate.current = false;
         const url = new URL(window.location.href);
         medium === "ALL" ? url.searchParams.delete("medium") : url.searchParams.set("medium", medium);
         q.trim() ? url.searchParams.set("q", q.trim()) : url.searchParams.delete("q");
@@ -50,7 +58,7 @@ export function DiscoverClient({ initial, initialMedium, initialQ = "", moods, t
       } catch (e) {
         if ((e as Error).name !== "AbortError") setState("error");
       }
-    }, 220);
+    }, delay);
     return () => { clearTimeout(t); ctl.abort(); };
   }, [q, medium, retry]);
 
@@ -58,18 +66,19 @@ export function DiscoverClient({ initial, initialMedium, initialQ = "", moods, t
     <>
       <div className="wrap">
         <p className="mood-strip" aria-label="Moods">
-          {moods.map((m) => <button key={m} type="button" aria-pressed={q === m} onClick={() => setQ(q === m ? "" : m)}>{m}</button>)}
+          {moods.map((m) => <button key={m} type="button" aria-pressed={q === m} onClick={() => pick(() => setQ(q === m ? "" : m))}>{m}</button>)}
         </p>
         <div className="toolbar" role="search">
           <label className="search">
             <Search size={17} aria-hidden />
             <span className="sr-only">Search works</span>
-            <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="제목, 창작자, 분위기로 검색 — memory, Ishiguro, 그리움" />
+            <input value={q} onChange={(e) => { animate.current = false; setQ(e.target.value); }}
+              onCompositionStart={() => { composing.current = true; }} onCompositionEnd={() => { composing.current = false; }} placeholder="제목, 창작자, 분위기로 검색 — memory, Ishiguro, 그리움" />
             {q && <button type="button" onClick={() => setQ("")} aria-label="Clear search"><X size={16} /></button>}
           </label>
           <div className="toggles" role="group" aria-label="Filter by medium">
             {MEDIA.map((m) => (
-              <button key={m} type="button" className="toggle" aria-pressed={medium === m} onClick={() => setMedium(m)}>
+              <button key={m} type="button" className="toggle" aria-pressed={medium === m} onClick={() => pick(() => setMedium(m))}>
                 {m === "ALL" ? "All" : MEDIUM_PLURAL[m]}
               </button>
             ))}
@@ -89,7 +98,7 @@ export function DiscoverClient({ initial, initialMedium, initialQ = "", moods, t
           <div className="empty">
             <p className="h3">“{q}”에 맞는 작품이 아직 없어요.</p>
             <p className="muted">다른 제목이나 창작자, 혹은 ‘기억’, ‘solitude’ 같은 분위기 단어로 찾아보세요.</p>
-            <button className="btn" onClick={() => { setQ(""); setMedium("ALL"); }}>Reset search</button>
+            <button className="btn" onClick={() => pick(() => { setQ(""); setMedium("ALL"); })}>Reset search</button>
           </div>
         ) : (
           <div className="catalog" style={{ opacity: state === "loading" ? 0.6 : 1, transition: "opacity .25s" }}>

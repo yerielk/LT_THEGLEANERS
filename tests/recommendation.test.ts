@@ -11,6 +11,7 @@ let db: Db;
 beforeEach(async () => {
   db = await freshDb();
   delete process.env.ANTHROPIC_API_KEY; // the required path must not depend on a model key
+  delete process.env.OPENAI_API_KEY;
 });
 
 const EX = "ex_on_things_left_unsaid";

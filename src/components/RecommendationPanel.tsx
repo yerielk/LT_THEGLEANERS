@@ -95,10 +95,18 @@ export function RecommendationPanel({ exhibitionId, canAdd }: { exhibitionId: st
                 <Link href={`/works/${r.workId}`} className="serif" style={{ fontSize: 26, lineHeight: 1.1, display: "block", marginTop: 6, fontStyle: "italic" }}>{r.title}</Link>
                 <div className="muted" style={{ fontSize: 13 }}>{r.creator}{r.releaseYear ? `, ${r.releaseYear}` : ""}</div>
                 <ul className="reasons">{r.reasons.map((x, i) => <li key={i}>{x.text}</li>)}</ul>
-                <div className="score-bar" aria-label={PARTS.map(([k, l]) => `${l} ${r.scoreBreakdown[k] ?? "n/a"}`).join(", ")}>
-                  {PARTS.map(([k]) => <span key={k}><i style={{ width: `${Math.round((r.scoreBreakdown[k] ?? 0) * 100)}%`, opacity: r.scoreBreakdown[k] === null ? 0 : 1 }} /></span>)}
+                <div className="score-cols" role="img" aria-label={PARTS.map(([k, l]) => `${l} ${r.scoreBreakdown[k] ?? "n/a"}`).join(", ")}>
+                  {PARTS.map(([k, l]) => {
+                    const v = r.scoreBreakdown[k];
+                    return (
+                      <span key={k} className="score-col">
+                        <span className="v">{v === null ? "–" : Math.round(v * 100)}</span>
+                        <span className="bar"><i style={{ height: `${Math.round((v ?? 0) * 100)}%` }} /></span>
+                        <span className="k">{l}</span>
+                      </span>
+                    );
+                  })}
                 </div>
-                <div className="score-labels">{PARTS.map(([k, l]) => <span key={k}>{l}</span>)}</div>
                 {canAdd && (
                   <button className="btn btn-sm" style={{ marginTop: 16 }} disabled={adding !== null} onClick={() => add(r)}>
                     {adding === r.workId ? "Adding…" : "Add to exhibition"}
