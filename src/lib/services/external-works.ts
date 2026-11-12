@@ -5,7 +5,7 @@
  * from the request. Sources whose terms forbid keeping metadata get an expiry, and refreshExpiredWorks()
  * refetches those by id.
  */
-import { and, asc, eq, isNotNull, lte } from "drizzle-orm";
+import { and, asc, eq, inArray, isNotNull, lte } from "drizzle-orm";
 import { z } from "zod";
 import { getDb, newId, type Db } from "../db";
 import { works } from "../schema";
@@ -61,6 +61,17 @@ async function fetchFromSource(providers: ExternalProvider[], source: ExternalWo
   if (!provider) throw new LectaError("VALIDATION_ERROR", `${source} is not available`);
   const found = await provider.lookup(externalId, medium, { title });
   return found ? externalWorkSchema.parse(found) : null;
+}
+
+/** Drops the works that are already in our catalog: those show up in the catalog search itself. */
+export async function withoutSaved(found: ExternalWork[], db: Db = getDb()): Promise<ExternalWork[]> {
+  if (!found.length) return found;
+  const rows = await db
+    .select({ source: works.externalSource, externalId: works.externalId })
+    .from(works)
+    .where(inArray(works.externalId, found.map((w) => w.externalId)));
+  const saved = new Set(rows.map((r) => `${r.source}:${r.externalId}`));
+  return found.filter((w) => !saved.has(`${w.source}:${w.externalId}`));
 }
 
 /** Idempotent: saving a work that is already in the catalog refreshes its metadata and returns the same work. */

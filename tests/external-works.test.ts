@@ -7,7 +7,7 @@ import { searchExternal } from "../src/lib/external/registry";
 import { createKopis, workTitleOf } from "../src/lib/external/kopis";
 import { createSeoulCulture } from "../src/lib/external/seoul-culture";
 import { stamp, type ExternalMedium, type ExternalProvider, type ExternalSource, type ExternalWork } from "../src/lib/external/types";
-import { refreshExpiredWorks, saveExternalWork } from "../src/lib/services/external-works";
+import { refreshExpiredWorks, saveExternalWork, withoutSaved } from "../src/lib/services/external-works";
 import { createExhibition } from "../src/lib/services/exhibitions";
 import { searchWorks } from "../src/lib/services/works";
 import { LectaError } from "../src/lib/services/errors";
@@ -80,6 +80,17 @@ describe("saving an external work", () => {
     expect(new Set([a.work.id, b.work.id, first.work.id]).size).toBe(1);
     expect((await db.select().from(works).where(eq(works.externalSource, "MUSICBRAINZ")))).toHaveLength(1);
     expect(first.work.source.name).toBe("MUSICBRAINZ");
+  });
+
+  it("leaves works we already have out of the external results", async () => {
+    // TMDB and KOPIS ids can collide as plain strings, so the source has to match too
+    const film = work("TMDB", "movie:1", "FILM");
+    const other = work("TMDB", "movie:2", "FILM");
+    const sameIdElsewhere = work("KOPIS", "movie:1", "PERFORMANCE");
+    await saveExternalWork({ source: "TMDB", externalId: "movie:1", medium: "FILM" }, demo, { db, providers: [fake("TMDB", ["FILM"], [film])] });
+
+    expect((await withoutSaved([film, other, sameIdElsewhere], db)).map((w) => `${w.source}:${w.externalId}`)).toEqual(["TMDB:movie:2", "KOPIS:movie:1"]);
+    expect(await withoutSaved([], db)).toEqual([]);
   });
 
   it("stores a performance with its venue and dates, and keeps permanent sources without an expiry", async () => {
