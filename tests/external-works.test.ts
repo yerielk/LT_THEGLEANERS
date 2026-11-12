@@ -6,8 +6,10 @@ import { works } from "../src/lib/schema";
 import { searchExternal } from "../src/lib/external/registry";
 import { createKopis, workTitleOf } from "../src/lib/external/kopis";
 import { createSeoulCulture } from "../src/lib/external/seoul-culture";
+import { createTmdb } from "../src/lib/external/tmdb";
+import { createMusicBrainz } from "../src/lib/external/musicbrainz";
 import { stamp, type ExternalMedium, type ExternalProvider, type ExternalSource, type ExternalWork } from "../src/lib/external/types";
-import { refreshExpiredWorks, saveExternalWork, withoutSaved } from "../src/lib/services/external-works";
+import { importExternalWorks, refreshExpiredWorks, saveExternalWork, withoutSaved } from "../src/lib/services/external-works";
 import { createExhibition } from "../src/lib/services/exhibitions";
 import { searchWorks } from "../src/lib/services/works";
 import { LectaError } from "../src/lib/services/errors";
@@ -159,6 +161,74 @@ describe("saving an external work", () => {
     expect(await refreshExpiredWorks({ db, providers: [kakao], now: () => new Date("2026-12-01T00:00:00.000Z") })).toEqual({ refreshed: 0, failed: 1 });
     const [row] = await db.select().from(works).where(eq(works.id, saved.work.id));
     expect(row.title).toBe("kept");
+  });
+});
+
+describe("seeding the catalog with well-known works", () => {
+  it("imports a batch once, and only refreshes it when run again", async () => {
+    const db = await freshDb();
+    const batch = [work("TMDB", "movie:1", "FILM"), work("MUSICBRAINZ", "11111111-2222-3333-4444-555555555555", "ALBUM"), work("SEOUL_CULTURE", "160148", "EXHIBITION")];
+    expect(await importExternalWorks(batch, db)).toEqual({ created: 3, updated: 0 });
+    batch[0] = { ...batch[0], title: "renamed" };
+    expect(await importExternalWorks(batch, db)).toEqual({ created: 0, updated: 3 });
+    expect((await db.select().from(works).where(eq(works.externalId, "movie:1"))).map((r) => r.title)).toEqual(["renamed"]);
+  });
+
+  it("TMDB lists the most-voted films page by page and adds each director", async () => {
+    const urls: string[] = [];
+    const fetch = (async (url: string) => {
+      urls.push(url);
+      const u = new URL(url);
+      if (u.pathname.endsWith("/discover/movie")) {
+        const page = Number(u.searchParams.get("page"));
+        return new Response(JSON.stringify({ results: Array.from({ length: 20 }, (_, i) => ({ id: page * 100 + i, title: `film ${page * 100 + i}`, release_date: "2010-01-01" })) }));
+      }
+      const id = Number(u.pathname.split("/").pop());
+      if (id === 101) return new Response("{}", { status: 500 }); // one detail call fails: the listed film is kept
+      return new Response(JSON.stringify({ id, title: `film ${id}`, release_date: "2010-01-01", credits: { crew: [{ job: "Director", name: `director ${id}` }] } }));
+    }) as typeof globalThis.fetch;
+    const found = await createTmdb({ fetch, env: { TMDB_API_KEY: "k" } }).popular!(30);
+
+    expect(found).toHaveLength(30);
+    expect(found.map((w) => w.externalId).slice(0, 3)).toEqual(["movie:100", "movie:101", "movie:102"]);
+    expect([found[0].creator, found[1].creator, found[29].creator]).toEqual(["director 100", "", "director 209"]);
+    const lists = urls.filter((u) => u.includes("/discover/movie"));
+    expect(lists).toHaveLength(2);
+    expect(lists[0]).toContain("sort_by=vote_count.desc");
+  });
+
+  it("MusicBrainz takes the most-listened albums from ListenBrainz and their years in batches", async () => {
+    const top = Array.from({ length: 30 }, (_, i) => ({ release_group_mbid: `00000000-0000-0000-0000-0000000000${String(i).padStart(2, "0")}`, release_group_name: `album ${i}`, artist_name: `artist ${i}` }));
+    const calls: string[] = [];
+    const fetch = (async (url: string) => {
+      calls.push(url);
+      if (url.includes("listenbrainz")) return new Response(JSON.stringify({ payload: { release_groups: [...top, { release_group_name: "no id" }] } }));
+      if (calls.filter((c) => c.includes("musicbrainz.org")).length === 2) return new Response("{}", { status: 500 }); // second batch fails: no years for it
+      return new Response(JSON.stringify({ "release-groups": top.slice(0, 25).map((g) => ({ id: g.release_group_mbid, title: g.release_group_name, "first-release-date": "1997-05-21" })) }));
+    }) as typeof globalThis.fetch;
+    const found = await createMusicBrainz({ fetch, sleep: async () => {}, userAgent: "t" }).popular!(31);
+
+    expect(found).toHaveLength(30);
+    expect(found[0]).toMatchObject({ medium: "ALBUM", title: "album 0", creator: "artist 0", releaseYear: 1997, expiresAt: null });
+    expect(found[29]).toMatchObject({ title: "album 29", releaseYear: null });
+    expect(calls[0]).toContain("count=31");
+    expect(calls.filter((c) => c.includes("musicbrainz.org"))).toHaveLength(2);
+    expect(decodeURIComponent(calls[1])).toContain("rgid:(00000000-0000-0000-0000-000000000000 OR ");
+  });
+
+  it("Seoul lists exhibitions a thousand rows at a time", async () => {
+    const urls: string[] = [];
+    const row = (n: number, CODENAME = "전시/미술") => ({ CODENAME, TITLE: `전시 ${n}`, STRTDATE: "2026-11-10 00:00:00.0", END_DATE: "2026-12-10 00:00:00.0", HMPG_ADDR: `https://culture.seoul.go.kr/view.do?cultcode=${n}&menuNo=1` });
+    const fetch = (async (url: string) => {
+      urls.push(url);
+      const from = Number(url.split("/culturalEventInfo/")[1].split("/")[0]);
+      const rows = from === 1 ? [row(1), row(2), row(3, "전시/관람")] : from === 1001 ? [row(4)] : [];
+      return new Response(JSON.stringify(rows.length ? { culturalEventInfo: { RESULT: { CODE: "INFO-000", MESSAGE: "ok" }, row: rows } } : { RESULT: { CODE: "INFO-200", MESSAGE: "none" } }));
+    }) as typeof globalThis.fetch;
+    const found = await createSeoulCulture({ fetch, env: { SEOUL_OPENDATA_API_KEY: "sk" } }).popular!(10);
+
+    expect(found.map((w) => w.externalId)).toEqual(["1", "2", "4"]);
+    expect(urls.map((u) => u.split("/culturalEventInfo/")[1])).toEqual([`1/1000/${encodeURIComponent("전시")}`, `1001/2000/${encodeURIComponent("전시")}`, `2001/3000/${encodeURIComponent("전시")}`]);
   });
 });
 

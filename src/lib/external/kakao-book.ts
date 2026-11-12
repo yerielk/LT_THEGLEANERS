@@ -49,6 +49,33 @@ function toWork(doc: Doc, now: Date): ExternalWork | null {
   };
 }
 
+const squash = (s: string) => s.toLowerCase().replace(/\([^)]*\)/g, "").replace(/[^\p{L}\p{N}]/gu, "");
+
+/**
+ * The search result that is the wanted book, or null when none is. Kakao also returns study guides, sets and
+ * books that merely mention the title, so the title has to match and the author decides between editions.
+ */
+export function pickBook(title: string, author: string, found: ExternalWork[]): ExternalWork | null {
+  const want = squash(title);
+  const who = squash(author);
+  if (!want) return null;
+  let best: { w: ExternalWork; score: number } | null = null;
+  for (const w of found) {
+    const got = squash(w.title);
+    const titleScore = got === want ? 3 : got.startsWith(want) ? 2 : 0;
+    if (!titleScore) continue;
+    const by = squash(w.creator);
+    // names are transliterated differently between lists and publishers, so any shared 2-letter run counts
+    const sameAuthor = !!who && !!by && (by.includes(who) || who.includes(by) || [...who].some((_, i) => i + 2 <= who.length && by.includes(who.slice(i, i + 2))));
+    // a bare title match is not enough when we know the author: "변신" is many books
+    if (who && !sameAuthor) continue;
+    // among editions of the book, the plainest title wins over "(양장본 한정판)" and the like
+    const score = titleScore + (w.artwork ? 0.5 : 0) - Math.min(1.5, (w.title.length - title.length) / 20);
+    if (!best || score > best.score) best = { w, score };
+  }
+  return best?.w ?? null;
+}
+
 export function createKakaoBook(opts: KakaoBookOptions = {}): ExternalProvider {
   const env = opts.env ?? process.env;
   const now = opts.now ?? (() => new Date());

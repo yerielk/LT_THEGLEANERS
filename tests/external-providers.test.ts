@@ -1,9 +1,9 @@
 import { describe, it, expect } from "vitest";
 import { createTmdb } from "../src/lib/external/tmdb";
-import { createKakaoBook } from "../src/lib/external/kakao-book";
+import { createKakaoBook, pickBook } from "../src/lib/external/kakao-book";
 import { createKopis, parseDbs } from "../src/lib/external/kopis";
 import { createSeoulCulture } from "../src/lib/external/seoul-culture";
-import { externalWorkSchema } from "../src/lib/external/types";
+import { externalWorkSchema, stamp, type ExternalWork } from "../src/lib/external/types";
 
 const NOW = new Date("2026-11-12T00:00:00.000Z");
 const now = () => NOW;
@@ -92,6 +92,34 @@ describe("Kakao book provider", () => {
     expect(calls[0].headers.Authorization).toBe("KakaoAK login-id");
     expect(calls[0].url).toContain("target=isbn");
     expect(await kakao.search({ q: "x", medium: "FILM" })).toEqual([]);
+  });
+});
+
+describe("picking the wanted book out of Kakao's results", () => {
+  const book = (title: string, creator: string, id: string, cover = true): ExternalWork => ({
+    ...stamp("KAKAO_BOOK", NOW), externalId: id, medium: "BOOK", title, originalTitle: null, creator, releaseYear: 2010, synopsis: null,
+    artwork: cover ? { url: "https://img.example/b.jpg", credit: "Kakao 책 검색", sourcePage: null } : null, sourceUrl: null,
+  });
+
+  it("wants the title to match and lets the author choose between books", () => {
+    const found = [book("죄와 벌 독후감 쓰기", "편집부", "1"), book("변신", "오비디우스", "2"), book("변신(세계문학전집 4)", "프란츠 카프카", "3"), book("변신", "프란츠 카프카", "4", false)];
+    expect(pickBook("변신", "카프카", found)?.externalId).toBe("3"); // a cover makes up for a short series note in the title
+    expect(pickBook("변신", "프란츠 카프카", found.slice(0, 3))?.externalId).toBe("3");
+    expect(pickBook("죄와 벌", "도스토옙스키", found)).toBeNull(); // only a study guide is there
+    expect(pickBook("변신", "한강", found)).toBeNull(); // right title, somebody else's book
+  });
+
+  it("prefers the plainest edition title", () => {
+    const found = [book("죄와 벌(가죽양장본 100부 한정판)(양장본 HardCover)", "도스토예프스키", "1"), book("죄와 벌 1", "표도르 도스토옙스키", "2"), book("죄와 벌", "도스토예프스키", "3", false)];
+    expect(pickBook("죄와 벌", "도스토옙스키", found)?.externalId).toBe("3");
+    expect(pickBook("죄와 벌", "도스토옙스키", found.slice(0, 2))?.externalId).toBe("2");
+  });
+
+  it("copes with different spellings of a name, and with no author at all", () => {
+    const found = [book("백년의 고독 1", "가브리엘 가르시아 마르케스", "1"), book("데미안", "헤르만 헤세", "2")];
+    expect(pickBook("백년의 고독", "G. 마르께스", found)?.externalId).toBe("1");
+    expect(pickBook("데미안", "", found)?.externalId).toBe("2");
+    expect(pickBook("", "헤세", found)).toBeNull();
   });
 });
 

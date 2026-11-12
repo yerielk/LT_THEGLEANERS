@@ -98,6 +98,24 @@ export async function saveExternalWork(input: unknown, actor: Actor, deps: Deps 
   return { work: await getWork(row.id, db), created: row.id === id };
 }
 
+/** Seeds the catalog with works already fetched from a source. Safe to repeat: existing works are refreshed. */
+export async function importExternalWorks(found: ExternalWork[], db: Db = getDb()): Promise<{ created: number; updated: number }> {
+  const out = { created: 0, updated: 0 };
+  for (const raw of found) {
+    const w = externalWorkSchema.parse(raw);
+    const same = and(eq(works.externalSource, w.source), eq(works.externalId, w.externalId));
+    const [existing] = await db.select({ id: works.id }).from(works).where(same);
+    if (existing) {
+      await db.update(works).set({ ...columns(w), updatedAt: new Date() }).where(eq(works.id, existing.id));
+      out.updated++;
+    } else {
+      await db.insert(works).values({ id: newId("w"), externalSource: w.source, externalId: w.externalId, ...columns(w) });
+      out.created++;
+    }
+  }
+  return out;
+}
+
 /**
  * Refetches works whose cached metadata has expired, oldest first. Meant to be called by a scheduled job.
  * A work the source no longer answers for is left as it is and counted as failed.

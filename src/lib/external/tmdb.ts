@@ -75,9 +75,35 @@ export function createTmdb(opts: TmdbOptions = {}): ExternalProvider {
     return (data?.results ?? []).filter((it) => (kind === "movie" ? it.title : it.name)).slice(0, limit).map((it) => toWork(kind, it, now()));
   }
 
+  /** Runs `job` over `items`, a few at a time: TMDB allows about 40 requests a second. */
+  async function pooled<T, R>(items: T[], job: (item: T) => Promise<R>, size = 8): Promise<R[]> {
+    const out: R[] = new Array(items.length);
+    let next = 0;
+    await Promise.all(Array.from({ length: Math.min(size, items.length) }, async () => {
+      while (next < items.length) { const i = next++; out[i] = await job(items[i]); }
+    }));
+    return out;
+  }
+
   return {
     source: "TMDB",
     media: MEDIA,
+    /** Films with the most votes: a steadier measure of "well known" than TMDB's day-to-day popularity. */
+    async popular(limit: number) {
+      const want = Math.min(Math.max(limit, 1), 2000);
+      const listed: Item[] = [];
+      for (let page = 1; listed.length < want; page++) {
+        const data = await get<{ results?: Item[] }>("/discover/movie", { sort_by: "vote_count.desc", include_adult: "false", page: String(page) });
+        const batch = (data?.results ?? []).filter((it) => it.title);
+        listed.push(...batch);
+        if (batch.length === 0) break;
+      }
+      // the list has no credits: fetch each film once more for its director, and keep the listed one if that fails
+      return pooled(listed.slice(0, want), async (it) => {
+        const full = await get<Item>(`/movie/${it.id}`, { append_to_response: "credits" }).catch(() => null);
+        return toWork("movie", full ?? it, now());
+      });
+    },
     async search({ q, medium, limit }: ExternalSearchParams) {
       const text = q.trim();
       if (!text) return [];

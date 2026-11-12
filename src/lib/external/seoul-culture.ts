@@ -11,6 +11,7 @@ import { stamp, type ExternalMedium, type ExternalProvider, type ExternalSearchP
 const API = "http://openapi.seoul.go.kr:8088";
 const MEDIA = ["EXHIBITION", "PERFORMANCE"] as const;
 const EXHIBITION = "전시/미술";
+const PAGE = 1000;
 
 interface Row {
   CODENAME?: string;
@@ -59,17 +60,12 @@ export function createSeoulCulture(opts: SeoulCultureOptions = {}): ExternalProv
   const env = opts.env ?? process.env;
   const now = opts.now ?? (() => new Date());
 
-  const provider: ExternalProvider = {
-    source: "SEOUL_CULTURE",
-    media: MEDIA,
-    async search({ q, medium, limit }: ExternalSearchParams) {
-      const text = q.trim();
-      if (!text || (medium && medium !== "EXHIBITION" && medium !== "PERFORMANCE")) return [];
+  /** Rows from..to (1-based) of the event list, optionally narrowed by codename and title. */
+  async function rows(from: number, to: number, codename: string, title?: string): Promise<ExternalWork[]> {
       const key = requireKey("서울 열린데이터광장", env.SEOUL_OPENDATA_API_KEY);
       // path: /{key}/json/culturalEventInfo/{from}/{to}/{codename}/{title}; a blank codename is a single space.
       // The codename matches by prefix, and "전시/미술" cannot be sent whole: its slash splits the path.
-      const codename = medium === "EXHIBITION" ? "전시" : " ";
-      const url = `${API}/${encodeURIComponent(key)}/json/culturalEventInfo/1/${clampLimit(limit, 50)}/${encodeURIComponent(codename)}/${encodeURIComponent(text)}`;
+      const url = `${API}/${encodeURIComponent(key)}/json/culturalEventInfo/${from}/${to}/${encodeURIComponent(codename)}${title ? `/${encodeURIComponent(title)}` : ""}`;
       const res = await getOrNull("서울 열린데이터광장", url, {}, opts.fetch);
       const body = res ? await res.text() : "{}";
       // some errors come back as XML even when JSON was asked for
@@ -78,8 +74,29 @@ export function createSeoulCulture(opts: SeoulCultureOptions = {}): ExternalProv
       const result = data.culturalEventInfo?.RESULT ?? data.RESULT;
       if (result?.CODE === "INFO-200") return []; // no rows
       if (result && result.CODE !== "INFO-000") throw new LectaError("SERVICE_UNAVAILABLE", `서울 열린데이터광장: ${result.MESSAGE}`, false);
-      const works = (data.culturalEventInfo?.row ?? []).map((r) => toWork(r, now())).filter((w): w is ExternalWork => !!w);
+      return (data.culturalEventInfo?.row ?? []).map((r) => toWork(r, now())).filter((w): w is ExternalWork => !!w);
+  }
+
+  const provider: ExternalProvider = {
+    source: "SEOUL_CULTURE",
+    media: MEDIA,
+    async search({ q, medium, limit }: ExternalSearchParams) {
+      const text = q.trim();
+      if (!text || (medium && medium !== "EXHIBITION" && medium !== "PERFORMANCE")) return [];
+      const works = await rows(1, clampLimit(limit, 50), medium === "EXHIBITION" ? "전시" : " ", text);
       return medium === "PERFORMANCE" ? works.filter((w) => w.medium === "PERFORMANCE") : works;
+    },
+    /** Exhibitions in the order the API lists them. The source has no measure of how well known one is. */
+    async popular(limit: number) {
+      const want = Math.min(Math.max(limit, 1), 3000);
+      const found: ExternalWork[] = [];
+      // one request returns 1,000 rows at most
+      for (let from = 1; found.length < want; from += PAGE) {
+        const batch = await rows(from, from + PAGE - 1, "전시");
+        found.push(...batch.filter((w) => w.medium === "EXHIBITION"));
+        if (batch.length === 0) break;
+      }
+      return found.slice(0, want);
     },
     /** The API cannot look an event up by id, so the event is found again by its title and matched on the id. */
     async lookup(externalId: string, _medium: ExternalMedium, hint?: { title?: string }) {

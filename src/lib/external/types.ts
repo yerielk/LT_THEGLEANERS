@@ -99,6 +99,8 @@ export interface ExternalProvider {
   /** null when the source has no such id. */
   /** `hint.title` helps sources that cannot look up by id alone. */
   lookup(externalId: string, medium: ExternalMedium, hint?: { title?: string }): Promise<ExternalWork | null>;
+  /** The source's best-known works, most famous first, for seeding the catalog. Only where the source can rank. */
+  popular?(limit: number): Promise<ExternalWork[]>;
 }
 
 /** Stamps the licence and expiry that SOURCE_POLICY sets for the source. */

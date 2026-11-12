@@ -9,6 +9,9 @@ import { LectaError } from "../services/errors";
 import { stamp, type ExternalMedium, type ExternalProvider, type ExternalSearchParams, type ExternalWork } from "./types";
 
 const API = "https://musicbrainz.org/ws/2";
+// ListenBrainz (same foundation, CC0 statistics) ranks release groups by listens; MusicBrainz itself has no ranking
+const TOP_ALBUMS = "https://api.listenbrainz.org/1/stats/sitewide/release-groups";
+const YEAR_BATCH = 25;
 const MIN_INTERVAL_MS = 1100;
 const RETRY_AFTER_MS = 2000;
 const MEDIA = ["ALBUM", "TRACK"] as const;
@@ -134,6 +137,21 @@ export function createMusicBrainz(opts: MusicBrainzOptions = {}): ExternalProvid
   return {
     source: "MUSICBRAINZ",
     media: MEDIA,
+    async popular(limit: number) {
+      const want = Math.min(Math.max(limit, 1), 1000);
+      const res = await (opts.fetch ?? fetch)(`${TOP_ALBUMS}?range=all_time&count=${want}`, { headers: { "User-Agent": ua, Accept: "application/json" } });
+      if (!res.ok) throw new LectaError("SERVICE_UNAVAILABLE", `ListenBrainz answered ${res.status}`);
+      const body = (await res.json()) as { payload?: { release_groups?: { release_group_mbid?: string; release_group_name?: string; artist_name?: string }[] } };
+      const top = (body.payload?.release_groups ?? []).filter((g) => g.release_group_mbid && g.release_group_name);
+      // the ranking has no dates: ask MusicBrainz for them a batch at a time, and go without a year if it will not answer
+      const years = new Map<string, string | undefined>();
+      for (let i = 0; i < top.length; i += YEAR_BATCH) {
+        const ids = top.slice(i, i + YEAR_BATCH).map((g) => g.release_group_mbid!);
+        const data = await get<{ "release-groups"?: ReleaseGroup[] }>(`/release-group?query=${encodeURIComponent(`rgid:(${ids.join(" OR ")})`)}&fmt=json&limit=${YEAR_BATCH}`).catch(() => null);
+        for (const g of data?.["release-groups"] ?? []) years.set(g.id, g["first-release-date"]);
+      }
+      return top.map((g) => fromReleaseGroup({ id: g.release_group_mbid!, title: g.release_group_name!, "first-release-date": years.get(g.release_group_mbid!), "artist-credit": [{ name: g.artist_name ?? "" }] }, new Date(now())));
+    },
     async search({ q, medium, limit = 10 }: ExternalSearchParams) {
       const text = q.trim();
       if (!text) return [];
