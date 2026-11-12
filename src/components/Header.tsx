@@ -4,8 +4,8 @@ import { usePathname } from "next/navigation";
 import { AuthButton } from "./AuthButton";
 
 const NAV: { href: string; label: string; xs?: string; small?: boolean }[] = [
-  { href: "/discover", label: "Browse works", xs: "Browse" },
-  { href: "/exhibitions/new", label: "Curate" },
+  { href: "/discover", label: "작품 검색", xs: "작품" },
+  { href: "/curations", label: "큐레이션 검색", xs: "큐레이션" },
   { href: "/me", label: "My rooms" },
   { href: "/agent-lab", label: "Agent lab", small: true },
 ];
