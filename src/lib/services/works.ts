@@ -5,6 +5,7 @@ import { LectaError } from "./errors";
 import { normalize, TAG_BY_KEY } from "../recommendation/tags";
 import type { Medium } from "../data/catalog";
 import { ARTWORK } from "../data/artwork";
+import { SOURCE_POLICY, type ExternalSource } from "../external/types";
 
 export interface WorkTagView {
   key: string;
@@ -25,7 +26,9 @@ export interface WorkView {
   artwork: { url: string; width: number; height: number; credit: string; sourcePage: string | null } | null;
   coverTone: string | null;
   metadataStatus: "VERIFIED" | "CURATED" | "INCOMPLETE";
-  source: { name: string; url: string | null; note: string };
+  source: { name: string; url: string | null; note: string; attribution: string | null };
+  /** Venue, dates and genre of a performance or exhibition. null for everything else. */
+  event: Row["event"];
   tags: WorkTagView[];
   tagKeys: string[];
 }
@@ -36,6 +39,8 @@ function sourceOf(r: Row) {
   return {
     name: r.externalSource || "Lecta editorial",
     url: null as string | null,
+    // what the source's terms ask us to show next to its data
+    attribution: SOURCE_POLICY[r.externalSource as ExternalSource]?.attribution ?? null,
     note:
       r.metadataStatus === "VERIFIED"
         ? "Metadata verified against the external source."
@@ -65,6 +70,7 @@ function toView(r: Row, tags: WorkTagView[]): WorkView {
     coverTone: r.coverTone,
     metadataStatus: r.metadataStatus,
     source: sourceOf(r),
+    event: r.event,
     tags,
     tagKeys: tags.map((t) => t.key),
   };

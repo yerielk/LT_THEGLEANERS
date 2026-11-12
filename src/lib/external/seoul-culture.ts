@@ -2,7 +2,7 @@
  * 서울시 문화행사 정보 (서울 열린데이터광장, 공공누리 1유형): exhibitions and performances in Seoul.
  *
  * The API has no id field and no lookup by id. externalId is the `cultcode` in the event's 서울문화포털 link;
- * rows without one are skipped. The API is served over plain http only, with the key in the path.
+ * rows without one are skipped, and lookup needs the title to find the event again. The API is served over plain http only, with the key in the path.
  */
 import { LectaError } from "../services/errors";
 import { clampLimit, getOrNull, requireKey, type Fetch } from "./http";
@@ -50,7 +50,7 @@ function toWork(r: Row, now: Date): ExternalWork | null {
     releaseYear: start ? Number(start.slice(0, 4)) : null,
     synopsis: r.PROGRAM?.trim() || null,
     artwork: /^https:\/\//.test(r.MAIN_IMG ?? "") ? { url: r.MAIN_IMG!, credit: "서울문화포털", sourcePage: r.HMPG_ADDR! } : null,
-    event: { venue: r.PLACE || null, startDate: start, endDate: day(r.END_DATE), genre: r.CODENAME || null },
+    event: { venue: r.PLACE || null, startDate: start, endDate: day(r.END_DATE), genre: r.CODENAME || null, workTitle: null },
     sourceUrl: r.HMPG_ADDR!,
   };
 }
@@ -59,7 +59,7 @@ export function createSeoulCulture(opts: SeoulCultureOptions = {}): ExternalProv
   const env = opts.env ?? process.env;
   const now = opts.now ?? (() => new Date());
 
-  return {
+  const provider: ExternalProvider = {
     source: "SEOUL_CULTURE",
     media: MEDIA,
     async search({ q, medium, limit }: ExternalSearchParams) {
@@ -81,9 +81,12 @@ export function createSeoulCulture(opts: SeoulCultureOptions = {}): ExternalProv
       const works = (data.culturalEventInfo?.row ?? []).map((r) => toWork(r, now())).filter((w): w is ExternalWork => !!w);
       return medium === "PERFORMANCE" ? works.filter((w) => w.medium === "PERFORMANCE") : works;
     },
-    /** The API cannot look an event up by id; what was saved stays as saved (the licence lets us keep it). */
-    async lookup(_externalId: string, _medium: ExternalMedium) {
-      return null;
+    /** The API cannot look an event up by id, so the event is found again by its title and matched on the id. */
+    async lookup(externalId: string, _medium: ExternalMedium, hint?: { title?: string }) {
+      if (!hint?.title?.trim()) return null;
+      const found = await provider.search({ q: hint.title, limit: 50 });
+      return found.find((w) => w.externalId === externalId) ?? null;
     },
   };
+  return provider;
 }

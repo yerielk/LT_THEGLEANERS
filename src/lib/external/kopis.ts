@@ -14,6 +14,8 @@ import { stamp, type ExternalMedium, type ExternalProvider, type ExternalSearchP
 const API = "http://kopis.or.kr/openApi/restful/pblprfr";
 const MEDIA = ["PERFORMANCE"] as const;
 const DAY = 86_400_000;
+const PAGE_SIZE = 100;
+const MAX_RESULTS = 300;
 
 export interface KopisOptions {
   fetch?: Fetch;
@@ -42,6 +44,20 @@ export function parseDbs(xml: string): Record<string, string>[] {
   });
 }
 
+/**
+ * The work a run belongs to, as far as the title tells: "레미제라블 [구미]" and "레미제라블 [청주]" are one work.
+ * KOPIS has no id for the work itself, so runs can only be grouped by this.
+ */
+export function workTitleOf(prfnm: string): string {
+  return prfnm
+    .replace(/\[[^\]]*\]/g, " ") // tour stops and venues: [구미], [대학로]
+    .replace(/\((앙코르|앵콜|재공연|내한공연|내한)\)/g, " ")
+    .replace(/(^|\s)(앙코르|앵콜)(?=\s|$)/g, " ")
+    .replace(/^\s*(19|20)\d{2}\s+/, "") // a leading season year
+    .replace(/\s+/g, " ")
+    .trim() || prfnm.trim();
+}
+
 const ymd = (d: Date) => d.toISOString().slice(0, 10).replace(/-/g, "");
 const isoDay = (s?: string) => (s && /^\d{4}\.\d{2}\.\d{2}$/.test(s) ? s.replace(/\./g, "-") : null);
 
@@ -60,7 +76,7 @@ function toWork(r: Record<string, string>, now: Date): ExternalWork | null {
     releaseYear: start ? Number(start.slice(0, 4)) : null,
     synopsis: r.sty || null,
     artwork: /^https?:\/\//.test(r.poster ?? "") ? { url: r.poster.replace(/^http:/, "https:"), credit: "KOPIS", sourcePage: page } : null,
-    event: { venue: r.fcltynm || null, startDate: start, endDate: isoDay(r.prfpdto), genre: r.genrenm || null },
+    event: { venue: r.fcltynm || null, startDate: start, endDate: isoDay(r.prfpdto), genre: r.genrenm || null, workTitle: workTitleOf(r.prfnm) },
     sourceUrl: page,
   };
 }
@@ -86,14 +102,22 @@ export function createKopis(opts: KopisOptions = {}): ExternalProvider {
       const text = q.trim();
       if (!text || (medium && medium !== "PERFORMANCE")) return [];
       const today = now().getTime();
-      const records = await get("", {
-        stdate: ymd(new Date(today - (opts.daysBack ?? 3650) * DAY)),
-        eddate: ymd(new Date(today + (opts.daysAhead ?? 90) * DAY)),
-        cpage: "1",
-        rows: String(clampLimit(limit, 100)),
-        shprfnm: text,
-      });
-      return records.map((r) => toWork(r, now())).filter((w): w is ExternalWork => !!w);
+      const want = clampLimit(limit, MAX_RESULTS);
+      const rows = Math.min(want, PAGE_SIZE);
+      const records: Record<string, string>[] = [];
+      // one page holds 100 runs at most; pages are fetched one after another to stay far below 10 requests a second
+      for (let page = 1; records.length < want; page++) {
+        const batch = await get("", {
+          stdate: ymd(new Date(today - (opts.daysBack ?? 3650) * DAY)),
+          eddate: ymd(new Date(today + (opts.daysAhead ?? 90) * DAY)),
+          cpage: String(page),
+          rows: String(rows),
+          shprfnm: text,
+        });
+        records.push(...batch);
+        if (batch.length < rows) break;
+      }
+      return records.slice(0, want).map((r) => toWork(r, now())).filter((w): w is ExternalWork => !!w);
     },
     async lookup(externalId: string, _medium: ExternalMedium) {
       if (!/^PF\d+$/.test(externalId)) return null;

@@ -62,6 +62,8 @@ export const externalEventSchema = z.object({
   endDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).nullable(),
   /** The source's own genre label, e.g. KOPIS "뮤지컬". */
   genre: z.string().nullable(),
+  /** The run's title with tour stops and season marks removed, to group runs of one work. */
+  workTitle: z.string().nullable(),
 });
 
 export const externalWorkSchema = z.object({
@@ -95,7 +97,8 @@ export interface ExternalProvider {
   readonly media: readonly ExternalMedium[];
   search(params: ExternalSearchParams): Promise<ExternalWork[]>;
   /** null when the source has no such id. */
-  lookup(externalId: string, medium: ExternalMedium): Promise<ExternalWork | null>;
+  /** `hint.title` helps sources that cannot look up by id alone. */
+  lookup(externalId: string, medium: ExternalMedium, hint?: { title?: string }): Promise<ExternalWork | null>;
 }
 
 /** Stamps the licence and expiry that SOURCE_POLICY sets for the source. */
