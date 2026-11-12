@@ -92,6 +92,22 @@ describe("saving an external work", () => {
     expect(row.metadataExpiresAt).toBeNull();
   });
 
+  it("lists the whole catalog, new media included, when nothing is filtered", async () => {
+    // an unfiltered listing interleaves the media; it used to loop forever once a performance was in the catalog
+    const kopis = fake("KOPIS", ["PERFORMANCE"], [work("KOPIS", "PF132236", "PERFORMANCE")]);
+    const seoul = fake("SEOUL_CULTURE", ["EXHIBITION"], [work("SEOUL_CULTURE", "160148", "EXHIBITION")]);
+    const mb = fake("MUSICBRAINZ", ["TRACK"], [work("MUSICBRAINZ", "cf3b2fd9-e6cc-49bf-abf3-63a3af75a6dc", "TRACK")]);
+    const providers = [kopis, seoul, mb];
+    const before = (await searchWorks({ limit: 60 }, db)).total;
+    for (const p of providers) await saveExternalWork({ source: p.source, externalId: (await p.search())[0].externalId, medium: p.media[0] }, demo, { db, providers });
+
+    const { works: listed, total } = await searchWorks({ limit: 60 }, db);
+    expect(total).toBe(before + 3);
+    expect(listed).toHaveLength(60);
+    expect(listed.slice(0, 7).map((w) => w.medium)).toEqual(["FILM", "BOOK", "ALBUM", "SERIES", "TRACK", "PERFORMANCE", "EXHIBITION"]);
+    expect((await searchWorks({ medium: "PERFORMANCE" }, db)).total).toBe(1);
+  });
+
   it("refuses anonymous callers, bad input and ids the source does not have, without calling the source needlessly", async () => {
     const tmdb = fake("TMDB", ["FILM"], []);
     const deps = { db, providers: [tmdb] };
