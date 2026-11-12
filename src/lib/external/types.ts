@@ -55,6 +55,15 @@ export const externalArtworkSchema = z.object({
   sourcePage: z.string().url().nullable(),
 });
 
+/** Only for PERFORMANCE and EXHIBITION: a run at one venue, not the work itself. Dates are YYYY-MM-DD. */
+export const externalEventSchema = z.object({
+  venue: z.string().nullable(),
+  startDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).nullable(),
+  endDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).nullable(),
+  /** The source's own genre label, e.g. KOPIS "뮤지컬". */
+  genre: z.string().nullable(),
+});
+
 export const externalWorkSchema = z.object({
   source: z.enum(EXTERNAL_SOURCES),
   externalId: z.string().min(1).max(128),
@@ -65,6 +74,7 @@ export const externalWorkSchema = z.object({
   releaseYear: z.number().int().nullable(),
   synopsis: z.string().nullable(),
   artwork: externalArtworkSchema.nullable(),
+  event: externalEventSchema.optional(),
   /** The work's page on the source, for the attribution link. */
   sourceUrl: z.string().url().nullable(),
   license: z.string().min(1),

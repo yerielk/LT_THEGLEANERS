@@ -12,6 +12,7 @@
     "mcp:dev": "tsx mcp/server.ts",
     "mcp:smoke": "tsx scripts/mcp-smoke.ts",
     "agent:demo": "tsx scripts/agent-demo.ts",
+    "external:smoke": "tsx scripts/external-smoke.ts",
     "test": "vitest run",
     "typecheck": "tsc --noEmit",
     "test:e2e": "node scripts/e2e-uat.mjs",
