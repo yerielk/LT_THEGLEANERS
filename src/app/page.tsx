@@ -1,7 +1,7 @@
 import { Link } from "next-view-transitions";
 import type { CSSProperties } from "react";
 import { listFeatured } from "@/lib/services/exhibitions";
-import { searchWorks, allWorks } from "@/lib/services/works";
+import { allWorks } from "@/lib/services/works";
 import { canUseAgentLab, webActor } from "@/lib/services/web-actor";
 import { MEDIUM_PLURAL } from "@/components/WorkCover";
 import { WorkImage } from "@/components/WorkImage";
@@ -19,7 +19,7 @@ export default async function Home() {
   const actor = await webActor();
   const [featured, works] = await Promise.all([listFeatured(actor), allWorks()]);
   const byId = new Map(works.map((w) => [w.id, w]));
-  const counts = await Promise.all((["FILM", "SERIES", "BOOK", "ALBUM"] as const).map(async (m) => ({ m, n: (await searchWorks({ medium: m, limit: 60 })).total })));
+  const counts = (["FILM", "SERIES", "BOOK", "ALBUM"] as const).map((m) => ({ m, n: works.filter((w) => w.medium === m).length }));
   const moodCount = (k: string) => works.filter((w) => w.tagKeys.includes(k)).length;
 
   return (
