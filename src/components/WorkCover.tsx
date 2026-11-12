@@ -4,15 +4,15 @@ export interface CoverWork {
   title: string;
   originalTitle?: string | null;
   creator: string;
-  medium: "FILM" | "SERIES" | "BOOK" | "ALBUM";
+  medium: "FILM" | "SERIES" | "BOOK" | "ALBUM" | "TRACK" | "PERFORMANCE" | "EXHIBITION";
   releaseYear?: number | null;
   coverTone?: string | null;
   artwork?: { url: string; width: number; height: number } | null;
 }
 
-export const MEDIUM_LABEL: Record<CoverWork["medium"], string> = { FILM: "Film", SERIES: "Series", BOOK: "Book", ALBUM: "Album" };
-export const MEDIUM_PLURAL: Record<CoverWork["medium"], string> = { FILM: "Films", SERIES: "Series", BOOK: "Books", ALBUM: "Albums" };
-export const MEDIUM_KO: Record<CoverWork["medium"], string> = { FILM: "영화", SERIES: "시리즈", BOOK: "책", ALBUM: "앨범" };
+export const MEDIUM_LABEL: Record<CoverWork["medium"], string> = { FILM: "Film", SERIES: "Series", BOOK: "Book", ALBUM: "Album", TRACK: "Track", PERFORMANCE: "Performance", EXHIBITION: "Exhibition" };
+export const MEDIUM_PLURAL: Record<CoverWork["medium"], string> = { FILM: "Films", SERIES: "Series", BOOK: "Books", ALBUM: "Albums", TRACK: "Tracks", PERFORMANCE: "Performances", EXHIBITION: "Exhibitions" };
+export const MEDIUM_KO: Record<CoverWork["medium"], string> = { FILM: "영화", SERIES: "시리즈", BOOK: "책", ALBUM: "앨범", TRACK: "곡", PERFORMANCE: "공연", EXHIBITION: "전시" };
 
 /** Longest word drives the size so a title never breaks mid-word. */
 function titleSize(t: string, medium: CoverWork["medium"]) {

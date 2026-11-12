@@ -25,7 +25,7 @@ import type { Medium } from "../data/catalog";
  * Deterministic: no randomness, ties broken by workId.
  */
 export const ALGORITHM_VERSION = "coldstart-v1";
-const MEDIUM_KO: Record<Medium, string> = { FILM: "영화", SERIES: "시리즈", BOOK: "책", ALBUM: "앨범" };
+const MEDIUM_KO: Record<Medium, string> = { FILM: "영화", SERIES: "시리즈", BOOK: "책", ALBUM: "앨범", TRACK: "곡", PERFORMANCE: "공연", EXHIBITION: "전시" };
 const WEIGHTS = { S: 0.35, W: 0.25, C: 0.2, D: 0.1, N: 0.1 } as const;
 
 export interface Reason {

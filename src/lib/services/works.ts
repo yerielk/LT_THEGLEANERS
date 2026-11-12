@@ -5,6 +5,7 @@ import { LectaError } from "./errors";
 import { normalize, TAG_BY_KEY } from "../recommendation/tags";
 import type { Medium } from "../data/catalog";
 import { ARTWORK } from "../data/artwork";
+import { SOURCE_POLICY, type ExternalSource } from "../external/types";
 
 export interface WorkTagView {
   key: string;
@@ -25,17 +26,26 @@ export interface WorkView {
   artwork: { url: string; width: number; height: number; credit: string; sourcePage: string | null } | null;
   coverTone: string | null;
   metadataStatus: "VERIFIED" | "CURATED" | "INCOMPLETE";
-  source: { name: string; url: string | null; note: string };
+  source: { name: string; url: string | null; note: string; attribution: string | null };
+  /** Venue, dates and genre of a performance or exhibition. null for everything else. */
+  event: Row["event"];
   tags: WorkTagView[];
   tagKeys: string[];
 }
 
 type Row = typeof works.$inferSelect;
 
+// The shelf order of an unfiltered catalog. A Record so that adding a medium without placing it here fails to compile:
+// a medium missing from the interleave once made the loop below never end.
+const SHELF: Record<Medium, number> = { FILM: 0, BOOK: 1, ALBUM: 2, SERIES: 3, TRACK: 4, PERFORMANCE: 5, EXHIBITION: 6 };
+const MEDIA_ORDER = (Object.keys(SHELF) as Medium[]).sort((a, b) => SHELF[a] - SHELF[b]);
+
 function sourceOf(r: Row) {
   return {
     name: r.externalSource || "Lecta editorial",
     url: null as string | null,
+    // what the source's terms ask us to show next to its data
+    attribution: SOURCE_POLICY[r.externalSource as ExternalSource]?.attribution ?? null,
     note:
       r.metadataStatus === "VERIFIED"
         ? "Metadata verified against the external source."
@@ -65,6 +75,7 @@ function toView(r: Row, tags: WorkTagView[]): WorkView {
     coverTone: r.coverTone,
     metadataStatus: r.metadataStatus,
     source: sourceOf(r),
+    event: r.event,
     tags,
     tagKeys: tags.map((t) => t.key),
   };
@@ -131,10 +142,10 @@ export async function searchWorks(
   }
   if (!q && !params.medium) {
     // catalog order: interleave media so the archive reads like a mixed shelf, not grouped by type
-    const order = ["FILM", "BOOK", "ALBUM", "SERIES"] as const;
-    const buckets = order.map((m) => works.filter((w) => w.medium === m));
+    const buckets = MEDIA_ORDER.map((m) => works.filter((w) => w.medium === m));
+    const longest = Math.max(0, ...buckets.map((b) => b.length));
     const mixed: WorkView[] = [];
-    for (let i = 0; mixed.length < works.length; i++) for (const b of buckets) if (b[i]) mixed.push(b[i]);
+    for (let i = 0; i < longest; i++) for (const b of buckets) if (b[i]) mixed.push(b[i]);
     works = mixed;
   }
   const total = works.length;

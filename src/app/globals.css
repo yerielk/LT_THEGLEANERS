@@ -213,6 +213,15 @@ img { max-width: 100%; }
 .select-toggle:hover { transform: scale(1.06); }
 .select-toggle[aria-pressed="true"] { background: var(--ink); color: var(--wall); }
 .empty { padding: 56px 0 120px; }
+/* works found outside the catalog, under the catalog results */
+section:has(+ .external) > .catalog { padding-bottom: 56px; }
+section:has(+ .external) > .empty { padding-bottom: 24px; }
+.external { padding-bottom: 160px; border-top: 1px solid var(--soft); padding-top: 40px; }
+.external-head { display: grid; gap: 6px; }
+.external-head p { margin: 0; }
+.external-grid { padding-block: 32px 40px; }
+.external .tags a { text-decoration: underline; text-underline-offset: 3px; }
+.external-credit { display: grid; gap: 4px; margin: 0; font-size: 12px; color: var(--grey); }
 
 /* selection tray: a floating bar, like a gallery cart */
 .tray { position: fixed; left: 50%; bottom: 22px; transform: translateX(-50%); z-index: 50; display: flex; align-items: center; gap: 16px; max-width: calc(100vw - 32px); box-sizing: border-box; padding: 10px 10px 10px 18px; background: var(--ink); color: var(--wall); border-radius: 999px; box-shadow: 0 20px 50px -18px rgba(27, 26, 23, .6); view-transition-name: tray; }

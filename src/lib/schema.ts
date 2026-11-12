@@ -70,7 +70,7 @@ export const apiKeys = pgTable("api_keys", {
 }, (t) => [index("api_keys_user_idx").on(t.userId)]);
 
 // ── catalog ───────────────────────────────────────────────────────────────
-export const mediumEnum = pgEnum("medium", ["FILM", "SERIES", "BOOK", "ALBUM"]);
+export const mediumEnum = pgEnum("medium", ["FILM", "SERIES", "BOOK", "ALBUM", "TRACK", "PERFORMANCE", "EXHIBITION"]);
 export const metadataStatusEnum = pgEnum("metadata_status", ["VERIFIED", "CURATED", "INCOMPLETE"]);
 export const tagCategoryEnum = pgEnum("tag_category", ["MOOD", "THEME", "AESTHETIC", "NARRATIVE", "PACE"]);
 export const tagProvenanceEnum = pgEnum("tag_provenance", ["HUMAN_CURATED", "EXTERNAL", "LLM_SUGGESTED"]);
@@ -89,6 +89,12 @@ export const works = pgTable("works", {
   externalSource: text("external_source"),
   externalId: text("external_id"),
   sourceUrl: text("source_url"),
+  // set for works saved from an external catalog (see src/lib/external/types.ts)
+  license: text("license"),
+  metadataFetchedAt: ts("metadata_fetched_at"),
+  /** When the source's terms require the metadata to be refetched. null: we may keep it. */
+  metadataExpiresAt: ts("metadata_expires_at"),
+  event: jsonb("event").$type<{ venue: string | null; startDate: string | null; endDate: string | null; genre: string | null; workTitle: string | null }>(),
   metadataStatus: metadataStatusEnum("metadata_status").notNull(),
   coverTone: text("cover_tone"),
   createdAt: ts("created_at").notNull().defaultNow(),
@@ -96,6 +102,7 @@ export const works = pgTable("works", {
 }, (t) => [
   uniqueIndex("works_external_uq").on(t.externalSource, t.externalId).where(sql`${t.externalId} IS NOT NULL`),
   index("works_medium_idx").on(t.medium),
+  index("works_expires_idx").on(t.metadataExpiresAt),
 ]);
 
 export const workTags = pgTable("work_tags", {

@@ -9,6 +9,7 @@ import { WorkImage } from "@/components/WorkImage";
 import { SelectButton } from "@/components/SelectButton";
 import { SelectionShelf } from "@/components/SelectionShelf";
 import { useSelection } from "@/lib/selection";
+import { ExternalResults } from "./ExternalResults";
 
 const MEDIA = ["ALL", "FILM", "SERIES", "BOOK", "ALBUM"] as const;
 type M = (typeof MEDIA)[number];
@@ -120,6 +121,11 @@ export function DiscoverClient({ initial, initialMedium, initialQ = "", moods, t
           </div>
         )}
       </section>
+      <ExternalResults q={q} medium={medium} onSaved={(w) => {
+        if (works.some((x) => x.id === w.id)) return;
+        setWorks([w, ...works]);
+        setTotal(total + 1);
+      }} />
       <SelectionShelf alwaysVisible />
     </>
   );
