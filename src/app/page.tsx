@@ -6,6 +6,7 @@ import { canUseAgentLab, webActor } from "@/lib/services/web-actor";
 import { MEDIUM_PLURAL } from "@/components/WorkCover";
 import { WorkImage } from "@/components/WorkImage";
 import { HangRow } from "@/components/HangRow";
+import { WorkCarousel } from "@/components/WorkCarousel";
 import { TAGS } from "@/lib/recommendation/tags";
 import { wallFor } from "@/lib/design";
 
@@ -67,17 +68,7 @@ export default async function Home() {
                 <Link className="room-enter" href={`/exhibitions/${pick.id}`} style={{ viewTransitionName: `room-${pick.id}` }}>Enter the room</Link>
               </div>
             </div>
-            <HangRow label={`${pick.title} 작품들`} className="panorama-row">
-              {pick.items.map((it) => (
-                <Link key={it.workId} href={`/works/${it.workId}`} className="panorama-work" aria-label={`${it.work.title}, details`}>
-                  <span className="panorama-frame" style={{ height: HANG_H[it.work.medium], aspectRatio: it.work.artwork ? `${it.work.artwork.width} / ${it.work.artwork.height}` : "2 / 3" }}>
-                    <WorkImage work={it.work} />
-                  </span>
-                  <span className="panorama-label"><span className="l-title">{it.work.title}</span>{it.work.creator}</span>
-                  {it.curatorNote && <span className="panorama-note">“{it.curatorNote}”</span>}
-                </Link>
-              ))}
-            </HangRow>
+            <WorkCarousel items={pick.items} label={`${pick.title}의 작품들`} />
           </section>
         );
       })()}

@@ -3,12 +3,12 @@ import { useRef } from "react";
 import { ScrollArrows } from "./ScrollArrows";
 
 /** The home page's sideways row of works, with a visible way to move along it. */
-export function HangRow({ children, label = "On the wall today", className = "" }: { children: React.ReactNode; label?: string; className?: string }) {
+export function HangRow({ children }: { children: React.ReactNode }) {
   const track = useRef<HTMLDivElement>(null);
   return (
     <>
-      <div ref={track} className={`hang-row ${className}`.trim()} aria-label={label}>{children}</div>
-      <div className="wrap"><ScrollArrows track={track} label={label} /></div>
+      <div ref={track} className="hang-row" aria-label="On the wall today">{children}</div>
+      <div className="wrap"><ScrollArrows track={track} label="On the wall today" /></div>
     </>
   );
 }
