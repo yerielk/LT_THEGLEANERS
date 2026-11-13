@@ -5,6 +5,7 @@ import { Link } from "next-view-transitions";
 import { CurationCover } from "@/components/CurationCover";
 import { WorkImage } from "@/components/WorkImage";
 import type { CoverWork } from "@/components/WorkCover";
+import { CurationWorkPreviews } from "./CurationSearchResults";
 
 type IncludedWork = { workId: string; work: CoverWork & { id: string } };
 type PopularCuration = { id: string; number: number; title: string; description: string | null; ownerName: string; updatedAt: string; items: IncludedWork[] };
@@ -50,6 +51,7 @@ function PopularCurationCard({ item, expanded, hoverSupported, listLayout, onTog
     <CurationCover number={item.number} title={item.title} className="curation-popular-cover" />
     <span className={`curation-popular-caption${listLayout ? " curation-search-copy" : ""}`}>
       <span className="curation-popular-name">{item.title}</span>
+      {listLayout && item.description && <span className="curation-search-description curation-popular-description">{item.description}</span>}
       {item.ownerName !== "unknown" && <span className="curation-popular-owner">Curated by {item.ownerName}</span>}
       <span className="curation-popular-meta">{item.items.length} works{formattedDate ? ` · ${formattedDate}` : ""}</span>
     </span>
@@ -57,14 +59,19 @@ function PopularCurationCard({ item, expanded, hoverSupported, listLayout, onTog
 
   return <article
     ref={cardRef}
-    className={`curation-popular-item${expanded ? " is-expanded" : ""}`}
+    className={`curation-popular-item${expanded ? " is-expanded" : ""}${listLayout ? " curation-search-card is-row-layout" : ""}`}
     onMouseEnter={hoverSupported && item.items.length ? onEnter : undefined}
     onMouseLeave={hoverSupported && item.items.length ? onLeave : undefined}
     onFocus={hoverSupported && item.items.length ? onEnter : undefined}
   >
-    {hoverSupported
+    {hoverSupported || listLayout
       ? <Link className={`curation-popular-face${listLayout ? " curation-search-main" : ""}`} href={`/exhibitions/${item.id}`}>{face}</Link>
       : <button className={`curation-popular-face${listLayout ? " curation-search-main" : ""}`} type="button" aria-expanded={expanded} onClick={onToggle}>{face}</button>}
+    {listLayout && item.items.length > 0 && <CurationWorkPreviews
+      works={item.items}
+      hrefForWork={(workId) => `/works/${workId}`}
+      ariaLabel="Included works"
+    />}
   </article>;
 }
 
@@ -172,11 +179,11 @@ function CurationRow({ title, items, onMore, moreLabel = "더보기", hoverSuppo
                   else cardRefs.current.delete(item.id);
                 }}
               />)}
-              <div
+              {!listLayout && <div
                 className={`curation-popular-details${rowExpandedItem ? ` is-open at-${rowExpandedIndex + 1}` : ""}`}
                 aria-hidden={!rowExpandedItem}
               >
-                <div className={`curation-popular-details-inner${sixColumns && !listLayout ? " is-six" : ""}${listLayout ? " is-expanded-list" : ""}`}>
+                <div className={`curation-popular-details-inner${sixColumns ? " is-six" : ""}`}>
       {rowExpandedItem &&
                     <div
                       className="curation-popular-works"
@@ -192,7 +199,7 @@ function CurationRow({ title, items, onMore, moreLabel = "더보기", hoverSuppo
                       </Link>)}
                     </div>}
                 </div>
-              </div>
+              </div>}
             </div>;
           })}
         </div>

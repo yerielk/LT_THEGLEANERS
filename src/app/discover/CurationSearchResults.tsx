@@ -8,6 +8,22 @@ import { CurationCover } from "@/components/CurationCover";
 type CurationResult = { id: string; number: number; title: string; description: string | null; items?: { workId: string; work: CoverWork & { id: string } }[] };
 type Item = CurationResult & { items: { workId: string; work: CoverWork & { id: string } }[] };
 type Payload = { exhibitions: Item[] };
+type WorkPreviewItem = { workId: string; work: CoverWork & { id: string } };
+
+export function CurationWorkPreviews({ works, hrefForWork, ariaLabel = "Included works" }: {
+  works: WorkPreviewItem[];
+  hrefForWork: (workId: string) => string;
+  ariaLabel?: string;
+}) {
+  const shownWorks = works.slice(0, 4);
+  const remaining = Math.max(0, works.length - shownWorks.length);
+  return <span className="curation-search-works" aria-label={ariaLabel}>
+    {shownWorks.map(({ workId, work }) => <Link className="curation-search-work" href={hrefForWork(workId)} key={workId} aria-label={`${work.title} details`}>
+      <WorkImage work={work} className="curation-search-work-image" />
+    </Link>)}
+    {remaining > 0 && <span className="curation-search-more">+{remaining}</span>}
+  </span>;
+}
 
 function isPayload(value: unknown): value is Payload {
   if (!value || typeof value !== "object" || !Array.isArray((value as { exhibitions?: unknown }).exhibitions)) return false;
@@ -64,8 +80,6 @@ export function CurationResultList({ items, medium, query, showWorks = true }: {
   };
   return <div className="curation-search-list">{items.map((item) => {
     const works = item.items ?? [];
-    const shownWorks = showWorks ? works.slice(0, 4) : [];
-    const remaining = Math.max(0, works.length - shownWorks.length);
     return <article className={`curation-search-card${showWorks ? "" : " curation-search-card-text-only"}`} key={item.id}>
       <Link className="curation-search-main" href={`/exhibitions/${item.id}`}>
         <CurationCover number={item.number} title={item.title} />
@@ -74,12 +88,7 @@ export function CurationResultList({ items, medium, query, showWorks = true }: {
           {item.description && <span className="curation-search-description">{item.description}</span>}
         </span>
       </Link>
-      {showWorks && <span className="curation-search-works" aria-label="Included works">
-        {shownWorks.map(({ workId, work }) => <Link className="curation-search-work" href={workHref(workId)} key={workId} aria-label={`${work.title} details`}>
-          <WorkImage work={work} className="curation-search-work-image" />
-        </Link>)}
-        {remaining > 0 && <span className="curation-search-more">+{remaining}</span>}
-      </span>}
+      {showWorks && <CurationWorkPreviews works={works} hrefForWork={workHref} />}
     </article>;
   })}</div>;
 }
