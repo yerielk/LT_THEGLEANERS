@@ -2,7 +2,8 @@ import { asc, desc, inArray } from "drizzle-orm";
 import { getDb, type Db } from "../db";
 import { works, workTags } from "../schema";
 import { LectaError } from "./errors";
-import { normalize, TAG_BY_KEY } from "../recommendation/tags";
+import { normalize } from "../recommendation/tags";
+import { queryTagWeights } from "../recommendation/search-tags";
 import type { Medium } from "../data/catalog";
 import { ARTWORK } from "../data/artwork";
 import { SOURCE_POLICY, type ExternalSource } from "../external/types";
@@ -114,7 +115,7 @@ export async function getWork(id: string, db: Db = getDb()): Promise<WorkView> {
   return w;
 }
 
-/** Search across title, original title, creator, synopsis and tags (English key or Korean label). */
+/** Search title and creator text together with weighted vocabulary tag similarity. */
 export async function searchWorks(
   params: { q?: string; medium?: Medium; limit?: number },
   db: Db = getDb(),
@@ -123,17 +124,28 @@ export async function searchWorks(
   let works = await allWorks(db);
   if (params.medium) works = works.filter((w) => w.medium === params.medium);
   if (q) {
+    const queryTags = queryTagWeights(params.q ?? "", 0.62);
+    const queryTagTotal = [...queryTags.values()].reduce((sum, weight) => sum + weight, 0);
     const scored = works
       .map((w) => {
         const fields = [w.title, w.originalTitle ?? "", w.creator].map(normalize);
-        const tagText = w.tags.map((t) => `${t.key.replace(/_/g, " ")} ${TAG_BY_KEY[t.key]?.ko ?? ""}`).join(" ").toLowerCase();
-        let s = 0;
-        if (fields[0].includes(q) || fields[1].includes(q)) s += 3;
-        if (fields[2].includes(q)) s += 2;
-        // tags match on word starts so "longing" does not hit "belonging"; Korean labels match as substrings
-        const isHangul = /[가-힣]/.test(q);
-        if (isHangul ? tagText.includes(q) : new RegExp(`(^|\\s)${q.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}`).test(tagText)) s += 1.5;
-        if (normalize(w.synopsis ?? "").includes(q)) s += 1;
+        const titleScore = fields[0] === q || fields[1] === q ? 12
+          : fields[0].includes(q) || fields[1].includes(q) ? 8 : 0;
+        const creatorScore = fields[2] === q ? 10 : fields[2].includes(q) ? 6 : 0;
+        const synopsisScore = normalize(w.synopsis ?? "").includes(q) ? 1.5 : 0;
+
+        const workTags = new Map<string, number>();
+        for (const tag of w.tags) workTags.set(tag.key, Math.max(workTags.get(tag.key) ?? 0, Math.max(0, Math.min(1, tag.weight))));
+        let weightedFit = 0;
+        let bestTagFit = 0;
+        for (const [key, queryWeight] of queryTags) {
+          const match = queryWeight * (workTags.get(key) ?? 0);
+          weightedFit += match;
+          bestTagFit = Math.max(bestTagFit, match);
+        }
+        const averageTagFit = queryTagTotal ? weightedFit / queryTagTotal : 0;
+        const tagScore = (bestTagFit * 0.65 + averageTagFit * 0.35) * 8;
+        const s = Math.max(titleScore, creatorScore, synopsisScore, tagScore >= 1.8 ? tagScore : 0);
         return { w, s };
       })
       .filter((x) => x.s > 0)

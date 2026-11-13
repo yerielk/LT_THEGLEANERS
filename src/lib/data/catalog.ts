@@ -480,5 +480,41 @@ export const SEED_EXHIBITIONS: SeedExhibition[] = [
   },
 ];
 
+/** Additional public exhibitions for the Discover curation recommendation demo. */
+export const CURATION_DEMO_EXHIBITIONS: SeedExhibition[] = [
+  {
+    id: "ex_demo_perfect_days", number: 5, title: "하루의 결을 따라",
+    description: "말보다 오래 남는 장면과 작은 몸짓을 모았습니다.",
+    items: [
+      { workId: "w_film_perfect_days", note: "창밖의 나무와 반복되는 하루를 바라보는 시선." },
+      { workId: "w_film_paterson", note: "평범한 하루에도 시가 숨어 있습니다." },
+    ],
+  },
+  {
+    id: "ex_demo_keyword_solitude", number: 6, title: "혼자 있는 시간의 온도",
+    description: "고요한 저녁, 혼자만의 시간이 천천히 생각을 정리해 주는 순간들.",
+    items: [
+      { workId: "w_film_lost_translation", note: "낯선 도시에서 혼자 보내는 밤." },
+      { workId: "w_album_blue", note: "느린 호흡으로 이어지는 밤의 노래." },
+    ],
+  },
+  {
+    id: "ex_demo_semantic_rituals", number: 7, title: "창가에 머문 오후",
+    description: "익숙한 풍경을 바라보며 계절의 변화를 천천히 받아들이는 이야기.",
+    items: [
+      { workId: "w_book_kitchen", note: "상실 뒤에도 식탁과 불빛은 다시 하루를 맞아 줍니다." },
+      { workId: "w_album_pink_moon", note: "짧은 노래가 방 안의 공기를 바꿉니다." },
+    ],
+  },
+  {
+    id: "ex_demo_unrelated", number: 8, title: "속도를 높이는 밤",
+    description: "빠른 비트와 선명한 에너지로 분위기를 단숨에 바꾸는 작품들.",
+    items: [
+      { workId: "w_album_get_up", note: "경쾌한 리듬이 밤의 속도를 끌어올립니다." },
+      { workId: "w_series_fleabag", note: "재치 있는 말과 거침없는 템포." },
+    ],
+  },
+];
+
 export const EDITORIAL_USER = { id: "u_editorial", handle: "thegleaners", displayName: "THE GLEANERS editorial" };
 export const DEMO_USER = { id: "u_demo", handle: "demo", displayName: "Demo Workspace" };

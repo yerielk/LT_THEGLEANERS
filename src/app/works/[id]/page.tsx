@@ -4,8 +4,9 @@ import { getWork } from "@/lib/services/works";
 import { LectaError } from "@/lib/services/errors";
 import { MEDIUM_KO, MEDIUM_LABEL } from "@/components/WorkCover";
 import { WorkImage } from "@/components/WorkImage";
-import { SelectButton } from "@/components/SelectButton";
 import { SelectionShelf } from "@/components/SelectionShelf";
+import { WorkDetailSelection } from "../WorkDetailSelection";
+import { CurationRecommendations } from "@/app/discover/CurationRecommendations";
 import { tagLabel } from "@/lib/recommendation/tags";
 import { and, asc, eq } from "drizzle-orm";
 import { getDb } from "@/lib/db";
@@ -13,8 +14,11 @@ import { exhibitionItems, exhibitions } from "@/lib/schema";
 
 export const dynamic = "force-dynamic";
 
-export default async function WorkPage({ params }: { params: Promise<{ id: string }> }) {
+type Medium = "CURATION" | "FILM" | "SERIES" | "BOOK" | "ALBUM";
+
+export default async function WorkPage({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<{ q?: string; medium?: string }> }) {
   const { id } = await params;
+  const sp = await searchParams;
   let w;
   try { w = await getWork(id); } catch (e) { if (e instanceof LectaError && e.code === "WORK_NOT_FOUND") notFound(); throw e; }
   const appearsIn = await getDb()
@@ -23,18 +27,27 @@ export default async function WorkPage({ params }: { params: Promise<{ id: strin
     .innerJoin(exhibitions, eq(exhibitions.id, exhibitionItems.exhibitionId))
     .where(and(eq(exhibitionItems.workId, id), eq(exhibitions.visibility, "PUBLIC")))
     .orderBy(asc(exhibitions.number));
+  const query = typeof sp.q === "string" ? sp.q.slice(0, 80) : "";
+  const requestedMedium = sp.medium;
+  const medium: Medium = requestedMedium === "CURATION" || requestedMedium === "FILM" || requestedMedium === "SERIES" || requestedMedium === "BOOK" || requestedMedium === "ALBUM"
+    ? requestedMedium
+    : w.medium === "FILM" || w.medium === "SERIES" || w.medium === "BOOK" || w.medium === "ALBUM" ? w.medium : "CURATION";
+  const discoverParams = new URLSearchParams();
+  if (query) discoverParams.set("q", query);
+  discoverParams.set("medium", medium);
+  const work = { id: w.id, title: w.title, originalTitle: w.originalTitle, creator: w.creator, medium: w.medium, releaseYear: w.releaseYear, coverTone: w.coverTone, artwork: w.artwork };
   return (
     <>
       <div className="wrap work-detail">
         <div className="wd-art" data-medium={w.medium} style={{ maxWidth: w.artwork ? Math.round(w.artwork.width * 1.5) : undefined, justifySelf: "center", width: "100%" }}><WorkImage work={w} vt={`work-${w.id}`} eager /></div>
         <div className="wd-body">
-          <p className="caption"><Link href={`/discover?medium=${w.medium}`} className="linkish">{MEDIUM_LABEL[w.medium]}</Link></p>
+          <p className="caption"><Link href={`/discover?${discoverParams.toString()}`} className="linkish">{MEDIUM_LABEL[w.medium]}</Link></p>
           <h1 className="display">{w.title}</h1>
           {w.originalTitle && <p className="serif" style={{ fontSize: 26, fontStyle: "italic", margin: "0 0 8px", fontFamily: "var(--kserif)" }}>{w.originalTitle}</p>}
           <p style={{ fontSize: 15, margin: "0 0 20px" }}>{w.creator}{w.releaseYear ? `, ${w.releaseYear}` : ""}</p>
           <p className="lede">{w.synopsis}</p>
           <div style={{ display: "flex", gap: 22, flexWrap: "wrap", alignItems: "center", margin: "28px 0 8px" }}>
-            <SelectButton work={{ id: w.id, title: w.title, originalTitle: w.originalTitle, creator: w.creator, medium: w.medium, releaseYear: w.releaseYear, coverTone: w.coverTone, artwork: w.artwork }} className="btn" labels={["Add to selection", "In your selection"]} />
+            <WorkDetailSelection work={work} query={query} medium={medium} />
             <Link className="btn-ghost" href="/exhibitions/new">Start an exhibition</Link>
           </div>
           <dl className="wd-meta">
@@ -46,6 +59,13 @@ export default async function WorkPage({ params }: { params: Promise<{ id: strin
           </dl>
         </div>
       </div>
+      <CurationRecommendations
+        query={query}
+        medium={medium}
+        matchQuery={query.trim() || w.tags.map((tag) => tagLabel(tag.key)).join(" ")}
+        selectedWorkId={w.id}
+        detail
+      />
       <SelectionShelf />
     </>
   );

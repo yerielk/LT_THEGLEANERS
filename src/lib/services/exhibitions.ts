@@ -1,11 +1,12 @@
-import { and, asc, count, desc, eq, max, ne, sql } from "drizzle-orm";
+import { and, asc, count, desc, eq, inArray, max, ne, or, sql } from "drizzle-orm";
 import { getDb, newId, type Db } from "../db";
 import { exhibitionItems, exhibitions, recommendationEvents, tasteSignals, user } from "../schema";
 import { LectaError } from "./errors";
 import type { Actor } from "./actor";
 import { getWorksByIds, type WorkView } from "./works";
 import { createExhibitionSchema, patchExhibitionSchema, addItemSchema, zodMessage, type CreateExhibitionInput } from "../validators";
-import { extractTagsFromText } from "../recommendation/tags";
+import { extractTagsFromText, normalize } from "../recommendation/tags";
+import { queryTagWeights } from "../recommendation/search-tags";
 
 export type Visibility = "DRAFT" | "PRIVATE" | "PUBLIC";
 
@@ -89,6 +90,103 @@ export async function getExhibition(id: string, actor: Actor, db: Db = getDb()):
 export async function listFeatured(actor: Actor, db: Db = getDb()): Promise<ExhibitionView[]> {
   const rows = await db.select().from(exhibitions).where(eq(exhibitions.visibility, "PUBLIC")).orderBy(asc(exhibitions.number));
   return Promise.all(rows.map((r) => load(db, r, actor)));
+}
+
+/** Bulk-loads only exhibitions the actor may read, avoiding one query group per candidate in Discover. */
+export async function listVisibleForRecommendations(actor: Actor, db: Db = getDb()): Promise<ExhibitionView[]> {
+  const rows = await db.select().from(exhibitions).where(actor.userId
+    ? or(eq(exhibitions.visibility, "PUBLIC"), eq(exhibitions.ownerId, actor.userId))
+    : eq(exhibitions.visibility, "PUBLIC")).orderBy(asc(exhibitions.id));
+  const visible = rows.filter((row) => canRead(row, actor));
+  if (!visible.length) return [];
+
+  const ids = visible.map((row) => row.id);
+  const itemRows = await db.select().from(exhibitionItems).where(inArray(exhibitionItems.exhibitionId, ids))
+    .orderBy(asc(exhibitionItems.position), asc(exhibitionItems.id));
+  const itemWorkIds = [...new Set(itemRows.map((item) => item.workId))];
+  const workList = await getWorksByIds(itemWorkIds, db);
+  const worksById = new Map(workList.map((work) => [work.id, work]));
+  const ownerIds = [...new Set(visible.map((row) => row.ownerId))];
+  const owners = await db.select({ id: user.id, name: user.name }).from(user).where(inArray(user.id, ownerIds));
+  const ownerNames = new Map(owners.map((owner) => [owner.id, owner.name]));
+  const itemsByExhibition = new Map<string, typeof itemRows>();
+  for (const item of itemRows) {
+    const list = itemsByExhibition.get(item.exhibitionId) ?? [];
+    list.push(item);
+    itemsByExhibition.set(item.exhibitionId, list);
+  }
+
+  return visible.map((row) => ({
+    id: row.id,
+    number: row.number,
+    title: row.title,
+    description: row.description,
+    visibility: row.visibility,
+    layoutTemplate: row.layoutTemplate,
+    isEditorial: row.isEditorial,
+    ownerId: row.ownerId,
+    ownerName: ownerNames.get(row.ownerId) ?? "unknown",
+    isOwner: actor.userId !== null && actor.userId === row.ownerId,
+    version: row.version,
+    createdAt: row.createdAt.toISOString(),
+    updatedAt: row.updatedAt.toISOString(),
+    items: (itemsByExhibition.get(row.id) ?? []).filter((item) => worksById.has(item.workId)).map((item) => ({
+      workId: item.workId,
+      position: item.position,
+      curatorNote: item.curatorNote,
+      work: worksById.get(item.workId)!,
+    })),
+  }));
+}
+
+function curationTagSearchScore(exhibition: ExhibitionView, queryTags: Map<string, number>, queryWeightTotal: number): { fit: number; coverage: number } {
+  if (!exhibition.items.length || !queryWeightTotal) return { fit: 0, coverage: 0 };
+  const tagMax = new Map<string, number>();
+  const tagWorkCounts = new Map<string, number>();
+  for (const item of exhibition.items) {
+    const workTags = new Map<string, number>();
+    for (const tag of item.work.tags) workTags.set(tag.key, Math.max(workTags.get(tag.key) ?? 0, tag.weight));
+    for (const [key, weight] of workTags) {
+      tagMax.set(key, Math.max(tagMax.get(key) ?? 0, weight));
+      tagWorkCounts.set(key, (tagWorkCounts.get(key) ?? 0) + 1);
+    }
+  }
+
+  let fit = 0;
+  let coverage = 0;
+  for (const [key, queryWeight] of queryTags) {
+    fit += queryWeight * (tagMax.get(key) ?? 0);
+    coverage += queryWeight * ((tagWorkCounts.get(key) ?? 0) / exhibition.items.length);
+  }
+  return { fit: fit / queryWeightTotal, coverage: coverage / queryWeightTotal };
+}
+
+function personalCurationOverlap(workIds: Set<string>, personalWorkIds: Set<string>): number {
+  if (!workIds.size || !personalWorkIds.size) return 0;
+  let intersection = 0;
+  for (const workId of workIds) if (personalWorkIds.has(workId)) intersection++;
+  const union = workIds.size + personalWorkIds.size - intersection;
+  return union ? intersection / union : 0;
+}
+
+/** Rank every readable curation by tag similarity; never drop results by a minimum score. */
+export async function searchVisibleExhibitions(query: string, actor: Actor, db: Db = getDb()): Promise<ExhibitionView[]> {
+  if (!normalize(query).trim()) return [];
+  const queryTags = queryTagWeights(query);
+  const queryWeightTotal = [...queryTags.values()].reduce((sum, weight) => sum + weight, 0);
+  const [exhibitions, personalCurations] = await Promise.all([
+    listVisibleForRecommendations(actor, db),
+    actor.userId ? listMine(actor, db) : Promise.resolve([]),
+  ]);
+  const personalWorkIds = new Set(personalCurations.flatMap((curation) => curation.items.map((item) => item.workId)));
+
+  return exhibitions.map((exhibition) => {
+    const workIds = new Set(exhibition.items.map((item) => item.workId));
+    const { fit, coverage } = curationTagSearchScore(exhibition, queryTags, queryWeightTotal);
+    const overlap = personalCurationOverlap(workIds, personalWorkIds);
+    return { exhibition, score: 0.6 * fit + 0.3 * coverage + 0.1 * overlap };
+  }).sort((a, b) => b.score - a.score || a.exhibition.number - b.exhibition.number || a.exhibition.id.localeCompare(b.exhibition.id))
+    .map(({ exhibition }) => exhibition);
 }
 
 export async function listMine(actor: Actor, db: Db = getDb()): Promise<ExhibitionView[]> {

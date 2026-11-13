@@ -6,6 +6,7 @@ import { MEDIUM_KO } from "./WorkCover";
 import { CopyLink } from "./CopyLink";
 import { RoomWall } from "./RoomWall";
 import { wallFor } from "@/lib/design";
+import { CurationIdentity } from "./CurationCover";
 
 /** An exhibition as a room: a painted entrance wall, then the works hung on one eye line with wall labels. */
 export function ExhibitionRoom({ ex }: { ex: ExhibitionView }) {
@@ -15,13 +16,8 @@ export function ExhibitionRoom({ ex }: { ex: ExhibitionView }) {
     <div className="room" style={{ "--room": wall.hex, "--room-ink": wall.ink } as CSSProperties}>
       <RoomWall>
         <header className="entry-panel" style={{ viewTransitionName: `room-${ex.id}` }}>
-          <span className="room-no">
-            <span className="nobr">Room {String(ex.number).padStart(2, "0")}</span> / <span className="nobr">{ex.isEditorial ? "Editorial sample" : ex.visibility === "PUBLIC" ? "Public" : "Private draft"}</span>
-          </span>
-          <div>
-            <h1 className="room-title">{ex.title}</h1>
-            {ex.description && <p className="standfirst">{ex.description}</p>}
-          </div>
+          <CurationIdentity number={ex.number} title={ex.title} description={ex.description}
+            status={ex.isEditorial ? "Editorial sample" : ex.visibility === "PUBLIC" ? "Public" : "Private draft"} />
           <div>
             <p className="byline">
               <span className="nobr">Curated by {ex.ownerName}</span><br />
