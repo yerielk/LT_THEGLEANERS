@@ -1,0 +1,1301 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Lecta, AFTERIMAGE</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400;1,500&family=DM+Serif+Display&family=Noto+Serif+KR:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/gh/sun-typeface/SUIT@2/fonts/variable/woff2/SUIT-Variable.css" rel="stylesheet">
+<link href="https://hangeul.pstatic.net/hangeul_static/css/maru-buri.css" rel="stylesheet">
+<style>
+:root{
+  --tx:#ECEEF2;--tx2:rgba(236,238,242,.72);--tx3:rgba(236,238,242,.46);
+  --sans:'SUIT Variable','SUIT',-apple-system,'Apple SD Gothic Neo','Noto Sans KR',system-ui,sans-serif;
+  --serif:'Cormorant Garamond','MaruBuri','Noto Serif KR',serif;
+  --kr:'MaruBuri','Noto Serif KR','Cormorant Garamond',serif;
+  --brand:'DM Serif Display',serif;
+  --ease:cubic-bezier(.2,.7,.2,1);
+  --pad:clamp(20px,4.2vw,72px);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth;-webkit-text-size-adjust:100%}
+body{background-color:var(--xdeep);color:var(--tx);font-family:var(--sans);-webkit-font-smoothing:antialiased;overflow-x:hidden;word-break:keep-all;overflow-wrap:break-word;transition:background-color 1.4s ease}
+a{color:inherit;text-decoration:none}
+ol,ul{list-style:none}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
+.hk{font-style:normal!important}
+
+
+/* header */
+.top{position:fixed;top:0;left:0;right:0;z-index:40;display:flex;justify-content:space-between;align-items:baseline;padding:24px var(--pad);mix-blend-mode:difference;color:#fff;pointer-events:none}
+.top a,.top button{pointer-events:auto}
+.brand{font-family:var(--brand);font-size:21px;letter-spacing:.005em}
+.topr{display:flex;gap:26px;align-items:baseline;font:500 12px/1 var(--sans);font-variant-numeric:tabular-nums}
+.topr button{font:500 12px/1 var(--sans);text-decoration:underline;text-underline-offset:5px;text-decoration-thickness:1px}
+
+/* shared */
+.sc,.open,.after{position:relative;z-index:1}
+.eb{font:500 13px/1 var(--sans);color:var(--tx3);font-variant-numeric:tabular-nums}
+.ti{font-family:var(--serif);font-style:italic;font-weight:300;line-height:.98;letter-spacing:-.015em;text-wrap:balance;overflow-wrap:anywhere;--tb:clamp(52px,7vw,116px)}
+.ti.t1{font-size:var(--tb)}.ti.t2{font-size:calc(var(--tb)*.82)}.ti.t3{font-size:calc(var(--tb)*.66)}.ti.t4{font-size:calc(var(--tb)*.52)}.ti.t5{font-size:calc(var(--tb)*.42)}
+.cr{margin-top:16px;font:400 15px/1.45 var(--sans);color:var(--tx2);overflow-wrap:anywhere}
+.mt{margin-top:6px;font:400 13px/1.4 var(--sans);color:var(--tx3)}
+.bd{margin-top:30px;font-family:var(--kr);font-size:clamp(15px,1.2vw,17px);line-height:1.95;color:var(--tx2)}
+.bd p+p{margin-top:1em}
+.bd.line{font-size:clamp(20px,1.9vw,27px);line-height:1.6;color:var(--tx)}
+.bd.clamp p{display:-webkit-box;-webkit-line-clamp:7;-webkit-box-orient:vertical;overflow:hidden}
+.bd.clamp p+p,.bd.clamp .pq{display:none}
+.pq{font-family:var(--serif);font-style:italic;font-weight:300;font-size:clamp(24px,2.4vw,36px);line-height:1.2;margin:.9em 0;color:var(--glow);text-wrap:balance}
+.pq.kr{font-style:normal;font-family:var(--kr);font-size:clamp(18px,1.7vw,24px);line-height:1.6}
+.rd{margin-top:18px;font:500 13px/1 var(--sans);text-decoration:underline;text-underline-offset:6px;text-decoration-thickness:1px;color:var(--tx)}
+.sc .cv{box-shadow:0 0 0 1px rgba(255,255,255,.05),0 44px 110px -34px rgba(0,0,0,.62);cursor:pointer;transition:box-shadow .6s var(--ease),transform .25s ease-out;will-change:transform}
+.sc .cv:hover{box-shadow:0 0 0 1px rgba(255,255,255,.1),0 54px 130px -26px rgba(0,0,0,.62)}
+.par{will-change:transform}
+
+/* opening */
+.open{min-height:100svh;display:grid;grid-template-columns:repeat(12,minmax(0,1fr));column-gap:24px;align-items:end;padding:120px var(--pad) clamp(30px,5vw,64px);overflow:hidden}
+.o-main{grid-column:1/9;position:relative;z-index:2;padding-bottom:2svh}
+.o-eb{font:500 13px/1.4 var(--sans);color:var(--tx3);margin-bottom:34px}
+.o-title{font-family:var(--serif);font-style:italic;font-weight:300;line-height:.9;letter-spacing:-.025em;text-wrap:balance;overflow-wrap:anywhere}
+.o-title.t1{font-size:clamp(88px,14vw,230px)}.o-title.t2{font-size:clamp(72px,10.6vw,176px)}.o-title.t3{font-size:clamp(54px,7.6vw,128px)}.o-title.t4{font-size:clamp(42px,5.8vw,96px)}.o-title.t5{font-size:clamp(32px,4.4vw,72px)}
+.o-sub{margin-top:30px;max-width:30em;font-family:var(--kr);font-size:clamp(15px,1.3vw,18px);line-height:1.85;color:var(--tx2)}
+.o-foot{margin-top:44px;display:flex;gap:30px;font:400 13px/1 var(--sans);color:var(--tx3)}
+.o-foot a{color:var(--tx);text-decoration:underline;text-underline-offset:6px;text-decoration-thickness:1px}
+.o-cv{grid-column:9/13;justify-self:end;align-self:center;position:relative;z-index:2}
+.o-cv .cv{--ch:min(58svh,580px);--cw:100%;box-shadow:0 0 0 1px rgba(255,255,255,.06),0 50px 120px -30px rgba(0,0,0,.62)}
+
+/* portal: cover centred in its own light, caption beneath */
+.sc-portal{min-height:100svh;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:clamp(30px,5svh,56px);padding:14svh var(--pad) 10svh;overflow:hidden}
+.sc-portal .pcv{position:relative;z-index:2}
+.sc-portal .cv{--ch:min(58svh,560px);--cw:min(80vw,100%)}
+.sc-portal .pcap{position:relative;z-index:2;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:24px clamp(32px,6vw,96px);width:min(1060px,100%);align-items:end}
+.sc-portal .pcap.solo{grid-template-columns:1fr;justify-items:center;text-align:center}
+.sc-portal .ti{--tb:clamp(44px,5.4vw,84px)}
+.sc-portal .bd{margin-top:0}
+
+/* side: cover on one side, text on the other */
+.sc-side{min-height:100svh;display:grid;grid-template-columns:repeat(12,minmax(0,1fr));column-gap:24px;align-items:center;padding:14svh var(--pad);overflow:hidden}
+.sc-side .sd-cv{grid-column:2/7;justify-self:center;position:relative;z-index:2}
+.sc-side .sd-cv .cv{--ch:min(64svh,620px);--cw:100%}
+.sc-side .sd-tx{grid-column:8/12;position:relative;z-index:2}
+.sc-side.r .sd-cv{grid-column:7/12;grid-row:1}.sc-side.r .sd-tx{grid-column:2/6;grid-row:1}
+.sc-side .sc-side .eb{display:block;margin-bottom:26px}
+
+/* immerse: the user's own photo fills the screen */
+.sc-immerse{min-height:100svh;overflow:hidden;display:grid;grid-template-columns:repeat(12,minmax(0,1fr));column-gap:24px;align-items:end;padding:120px var(--pad) clamp(30px,5vw,64px)}
+.sc-immerse .ph-bg{position:absolute;inset:0;z-index:0}
+.sc-immerse .ph-bg img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.sc-immerse .ph-bg img.sc-immerse .ph-bg::after{content:"";position:absolute;inset:0;background:rgba(6,7,9,.4)}
+.sc-immerse .im-tx{grid-column:1/9;position:relative;z-index:2}
+.sc-immerse .im-cv{grid-column:10/13;justify-self:end;position:relative;z-index:2}
+.sc-immerse .im-cv .cv{--ch:min(44svh,420px);--cw:100%}
+.sc-immerse .ti{--tb:clamp(58px,8.6vw,142px)}
+.sc-immerse .eb{display:block;margin-bottom:26px;color:rgba(255,255,255,.7)}
+
+/* type: a quote as the whole screen */
+.sc-type{min-height:100svh;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:clamp(26px,5svh,52px);text-align:center;padding:15svh var(--pad) 12svh;overflow:hidden}
+.sc-type>*:not(.wash){position:relative;z-index:2}
+.sc-type .tcv .cv{--ch:min(24svh,230px);--cw:100%}
+.sc-type .qt{font-family:var(--serif);font-style:italic;font-weight:300;line-height:1.1;letter-spacing:-.015em;max-width:15em;text-wrap:balance;overflow-wrap:anywhere}
+.sc-type .qt.kr{font-style:normal;font-family:var(--kr);line-height:1.42;letter-spacing:-.01em;font-weight:400}
+.sc-type .q1{font-size:clamp(66px,11vw,184px)}.sc-type .q2{font-size:clamp(52px,8.2vw,136px)}.sc-type .q3{font-size:clamp(40px,5.8vw,92px)}.sc-type .q4{font-size:clamp(30px,4.4vw,70px)}
+.sc-type .qt.kr.q1{font-size:clamp(52px,8vw,128px)}.sc-type .qt.kr.q2{font-size:clamp(42px,6.2vw,100px)}.sc-type .qt.kr.q3{font-size:clamp(30px,4.4vw,70px)}.sc-type .qt.kr.q4{font-size:clamp(24px,3.4vw,54px)}
+.sc-type .tcap .ti{font-size:clamp(22px,2vw,30px);--tb:0;line-height:1.1}
+.sc-type .tcap .cr{margin-top:8px}
+.sc-type .tbody{max-width:34rem;font-family:var(--kr);font-size:15px;line-height:1.9;color:var(--tx2)}
+
+/* after: every cover again on one line */
+.after{padding:20svh var(--pad) 8svh}
+.after h3{font:500 13px/1 var(--sans);color:var(--tx3);margin-bottom:56px}
+.arow{display:grid;grid-template-columns:repeat(var(--cols),minmax(0,1fr));gap:clamp(36px,6vh,72px) clamp(20px,2.4vw,40px);align-items:center}
+.arow li{transition:opacity .4s}
+.arow a{display:flex;flex-direction:column;align-items:flex-start}
+.arow .cv{--cw:min(100%,260px);box-shadow:0 0 0 1px rgba(255,255,255,.05),0 30px 70px -28px rgba(0,0,0,.62);transition:transform .5s var(--ease),box-shadow .5s}
+.arow li:hover .cv{transform:translateY(-8px);box-shadow:0 0 0 1px rgba(255,255,255,.1),0 40px 90px -22px rgba(0,0,0,.62)}
+.arow:hover li:not(:hover){opacity:.45}
+.arow .at{margin-top:16px;font:italic 300 clamp(17px,1.6vw,23px)/1.15 var(--serif);overflow-wrap:anywhere}
+.arow .ac{margin-top:5px;font:400 12px/1.3 var(--sans);color:var(--tx3)}
+.colors{margin-top:90px;font:400 13px/1.7 var(--sans);color:var(--tx3);max-width:44rem}
+.colors b{color:var(--tx2);font-weight:500}
+.foot{margin-top:70px;display:flex;justify-content:space-between;align-items:baseline;font:400 12px/1 var(--sans);color:var(--tx3)}
+.foot .brand{color:var(--tx)}
+
+/* reader */
+.reader{position:fixed;inset:0;z-index:70;display:grid;grid-template-columns:minmax(0,5fr) minmax(0,6fr);background:rgba(7,8,10,.96);opacity:0;visibility:hidden;transition:opacity .45s,visibility .45s}
+.reader.on{opacity:1;visibility:visible}
+.reader .rl{display:flex;align-items:center;justify-content:center;padding:6vh 3vw}
+.reader .rl .cv{--ch:76svh;--cw:100%;box-shadow:0 0 0 1px rgba(255,255,255,.06),0 50px 120px -30px rgba(0,0,0,.62);transform:translateY(16px) scale(.96);transition:transform .7s var(--ease)}
+.reader.on .rl .cv{transform:none}
+.reader .rr{overflow:auto;padding:12vh clamp(24px,5vw,88px) 12vh 2vw;scrollbar-width:thin}
+.reader .rr .ti{--tb:clamp(40px,4.6vw,72px)}
+.reader .rr .bd{font-size:clamp(16px,1.25vw,18px);line-height:2;margin-top:34px;color:var(--tx2)}
+.reader .rr .bd.line{font-size:clamp(20px,1.9vw,27px)}
+.reader .rnav{margin-top:56px;display:flex;gap:28px;font:500 13px/1 var(--sans)}
+.reader .rnav button{text-decoration:underline;text-underline-offset:6px;text-decoration-thickness:1px;opacity:.9}
+.reader .rx{position:absolute;top:24px;right:var(--pad);font:500 12px/1 var(--sans);text-decoration:underline;text-underline-offset:5px;text-decoration-thickness:1px}
+
+@media (max-width:860px){
+  .open{display:flex;flex-direction:column;align-items:flex-start;justify-content:flex-end;gap:40px;padding-top:100px}
+    .o-cv{align-self:flex-end;order:-1}.o-cv .cv{--ch:min(34svh,300px);--cw:60vw}
+  .sc-portal .pcap{grid-template-columns:1fr}
+  .sc-side{display:flex;flex-direction:column;gap:40px;padding:14svh var(--pad) 10svh}.sc-side .sd-cv .cv{--ch:min(50svh,440px)}
+  .sc-immerse{display:flex;flex-direction:column;justify-content:flex-end;align-items:flex-start;gap:34px}.sc-immerse .im-cv{align-self:flex-end;order:-1}.sc-immerse .im-cv .cv{--ch:min(28svh,240px);--cw:46vw}.sc-immerse .im-tx{padding-top:24svh}
+  .arow{--cols:2!important}
+  .reader{display:block;overflow:auto}.reader .rl{padding:84px 24px 10px}.reader .rl .cv{--ch:42svh}.reader .rr{overflow:visible;padding:30px 24px 80px}
+}
+@media (prefers-reduced-motion:reduce){.sc .cv,.arow .cv,.reader,.reader .rl .cv{transition:none!important}}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<script>
+/* ==========================================================================
+   Lecta Palette Engine
+   cover pixels -> swatches -> per-work theme -> curation theme
+
+   Design rules (all enforced in code, not by convention):
+   1. Colors come from the works. Nothing about hue is preset.
+   2. Whatever the input, surfaces stay inside a quality envelope:
+      - field   (dark/mid surface that carries white text) : contrast >= 4.8 vs white
+      - tint    (pale surface)                             : never cream, beige, peach or yellow
+      - paper   (page background)                          : near white, barely tinted, never warm
+      - deep    (dark page background)                     : low lightness, low chroma
+   3. Monochrome or colorless input falls back to a cool graphite theme.
+   4. No cover at all falls back to a seeded color from a curated hue list,
+      so a work without an image still gets a stable, good looking color.
+   5. Only a tiny array [{hex, weight}] needs to be stored per work.
+      Themes are rebuilt from it with no image (server side extraction works).
+   ========================================================================== */
+(function (root) {
+  'use strict';
+
+  var clamp = function (v, a, b) { return Math.min(b, Math.max(a, v)); };
+
+  /* ---------- color math ---------- */
+  function rgbToHsl(r, g, b) {
+    r /= 255; g /= 255; b /= 255;
+    var max = Math.max(r, g, b), min = Math.min(r, g, b), l = (max + min) / 2, h = 0, s = 0, d = max - min;
+    if (d) {
+      s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+      if (max === r) h = (g - b) / d + (g < b ? 6 : 0);
+      else if (max === g) h = (b - r) / d + 2;
+      else h = (r - g) / d + 4;
+      h *= 60;
+    }
+    return [h, s, l];
+  }
+  function hslToRgb(h, s, l) {
+    h = (((h % 360) + 360) % 360) / 360;
+    var r, g, b;
+    if (s === 0) { r = g = b = l; }
+    else {
+      var q = l < 0.5 ? l * (1 + s) : l + s - l * s, p = 2 * l - q;
+      var f = function (t) {
+        if (t < 0) t += 1; if (t > 1) t -= 1;
+        if (t < 1 / 6) return p + (q - p) * 6 * t;
+        if (t < 1 / 2) return q;
+        if (t < 2 / 3) return p + (q - p) * (2 / 3 - t) * 6;
+        return p;
+      };
+      r = f(h + 1 / 3); g = f(h); b = f(h - 1 / 3);
+    }
+    return [Math.round(r * 255), Math.round(g * 255), Math.round(b * 255)];
+  }
+  function toHex(rgb) {
+    return '#' + rgb.map(function (v) {
+      var s = clamp(Math.round(v), 0, 255).toString(16);
+      return s.length < 2 ? '0' + s : s;
+    }).join('');
+  }
+  function hexToRgb(hex) {
+    var h = String(hex).replace('#', '');
+    if (h.length === 3) h = h.replace(/(.)/g, '$1$1');
+    var n = parseInt(h, 16);
+    return [(n >> 16) & 255, (n >> 8) & 255, n & 255];
+  }
+  function lin(c) { c /= 255; return c <= 0.04045 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4); }
+  function luminance(rgb) { return 0.2126 * lin(rgb[0]) + 0.7152 * lin(rgb[1]) + 0.0722 * lin(rgb[2]); }
+  function contrast(a, b) {
+    var la = luminance(a), lb = luminance(b);
+    return (Math.max(la, lb) + 0.05) / (Math.min(la, lb) + 0.05);
+  }
+  function rgbToLab(rgb) {
+    var r = lin(rgb[0]), g = lin(rgb[1]), b = lin(rgb[2]);
+    var x = (r * 0.4124564 + g * 0.3575761 + b * 0.1804375) / 0.95047;
+    var y = (r * 0.2126729 + g * 0.7151522 + b * 0.0721750);
+    var z = (r * 0.0193339 + g * 0.1191920 + b * 0.9503041) / 1.08883;
+    var f = function (t) { return t > 0.008856 ? Math.cbrt(t) : 7.787 * t + 16 / 116; };
+    var fx = f(x), fy = f(y), fz = f(z);
+    return [116 * fy - 16, 500 * (fx - fy), 200 * (fy - fz)];
+  }
+  function deltaE(a, b) {
+    var dl = a[0] - b[0], da = a[1] - b[1], db = a[2] - b[2];
+    return Math.sqrt(dl * dl + da * da + db * db);
+  }
+
+  function makeSwatch(rgb, weight) {
+    var hs = rgbToHsl(rgb[0], rgb[1], rgb[2]);
+    var lab = rgbToLab(rgb);
+    return {
+      rgb: rgb, hex: toHex(rgb), h: hs[0], s: hs[1], l: hs[2], lab: lab,
+      chroma: Math.sqrt(lab[1] * lab[1] + lab[2] * lab[2]), weight: weight
+    };
+  }
+
+  /* ---------- extraction ---------- */
+  function medianCut(px, k) {
+    var boxes = [px];
+    function ranges(b) {
+      var mn = [255, 255, 255], mx = [0, 0, 0];
+      for (var i = 0; i < b.length; i++) {
+        for (var c = 0; c < 3; c++) {
+          if (b[i][c] < mn[c]) mn[c] = b[i][c];
+          if (b[i][c] > mx[c]) mx[c] = b[i][c];
+        }
+      }
+      return [mx[0] - mn[0], mx[1] - mn[1], mx[2] - mn[2]];
+    }
+    while (boxes.length < k) {
+      var bi = -1, best = 0;
+      for (var i = 0; i < boxes.length; i++) {
+        var bx = boxes[i];
+        if (bx.length < 2) continue;
+        var rg = ranges(bx);
+        var sc = Math.max(rg[0], rg[1], rg[2]) * Math.sqrt(bx.length);
+        if (sc > best) { best = sc; bi = i; }
+      }
+      if (bi < 0) break;
+      var b = boxes[bi], r2 = ranges(b);
+      var ch = r2[0] >= r2[1] && r2[0] >= r2[2] ? 0 : (r2[1] >= r2[2] ? 1 : 2);
+      b.sort(function (p, q) { return p[ch] - q[ch]; });
+      var mid = b.length >> 1;
+      boxes.splice(bi, 1, b.slice(0, mid), b.slice(mid));
+    }
+    return boxes.map(function (b) {
+      var s = [0, 0, 0];
+      for (var i = 0; i < b.length; i++) { s[0] += b[i][0]; s[1] += b[i][1]; s[2] += b[i][2]; }
+      return { rgb: [s[0] / b.length, s[1] / b.length, s[2] / b.length].map(Math.round), n: b.length };
+    });
+  }
+
+  function swatchesFromPixels(data) {
+    var px = [];
+    for (var i = 0; i < data.length; i += 4) {
+      if (data[i + 3] < 128) continue;
+      px.push([data[i], data[i + 1], data[i + 2]]);
+    }
+    if (px.length < 8) return [];
+    var total = px.length;
+    var sw = medianCut(px, 10)
+      .map(function (b) { return makeSwatch(b.rgb, b.n / total); })
+      .sort(function (a, b) { return b.weight - a.weight; });
+    var out = [];
+    sw.forEach(function (s) {
+      var idx = -1;
+      for (var i = 0; i < out.length; i++) { if (deltaE(out[i].lab, s.lab) < 14) { idx = i; break; } }
+      if (idx < 0) { out.push(s); return; }
+      var m = out[idx], w = m.weight + s.weight;
+      var rgb = [0, 1, 2].map(function (c) { return Math.round((m.rgb[c] * m.weight + s.rgb[c] * s.weight) / w); });
+      out[idx] = makeSwatch(rgb, w);
+    });
+    return out.sort(function (a, b) { return b.weight - a.weight; });
+  }
+
+  function samplePixels(img, maxSide) {
+    try {
+      var w = img.naturalWidth || img.width, h = img.naturalHeight || img.height;
+      if (!w || !h) return null;
+      var sc = Math.min(1, maxSide / Math.max(w, h));
+      var cw = Math.max(1, Math.round(w * sc)), ch = Math.max(1, Math.round(h * sc));
+      var c = document.createElement('canvas'); c.width = cw; c.height = ch;
+      var ctx = c.getContext('2d', { willReadFrequently: true });
+      /* ignore a 4% border: posters and books often have blank margins */
+      ctx.drawImage(img, w * 0.04, h * 0.04, w * 0.92, h * 0.92, 0, 0, cw, ch);
+      return ctx.getImageData(0, 0, cw, ch).data;
+    } catch (e) { return null; } /* tainted canvas (no CORS): extract server side instead */
+  }
+
+  function extract(img) {
+    var d = samplePixels(img, 72);
+    return d ? swatchesFromPixels(d) : [];
+  }
+
+  /* compact storable form: [{hex, weight}] */
+  function pack(swatches) {
+    return swatches.slice(0, 6).map(function (s) { return { hex: s.hex, weight: Math.round(s.weight * 1000) / 1000 }; });
+  }
+  function hydrate(stored) {
+    return (stored || []).map(function (s) { return makeSwatch(hexToRgb(s.hex), s.weight); });
+  }
+
+  /* ---------- names ---------- */
+  /* Placeholder table. Replace with the repo's room color table if there is one. */
+  var NAMES = [
+    ['Etruscan Red', '#B5584C'], ['Vermilion', '#B8412C'], ['Garnet', '#7A2434'], ['Rosewood', '#8C4A4F'],
+    ['Mulberry', '#6E2E4A'], ['Plum', '#5A3358'], ['Burnt Sienna', '#A4552F'], ['Terracotta', '#B0614A'],
+    ['Umber', '#5E4332'], ['Rust', '#9A4B2A'], ['Cinnamon', '#8A5A3C'], ['Old Gold', '#8A6D2A'],
+    ['Olive', '#6B6B34'], ['Moss', '#55663A'], ['Bronze', '#7A5C2E'], ['Fern', '#4F7A54'],
+    ['Pine', '#2F5D4B'], ['Bottle Green', '#1F4A3D'], ['Sage', '#70876F'], ['Verdigris', '#3D7F78'],
+    ['Teal', '#1F6F78'], ['Lagoon', '#2D7B8F'], ['Petrol', '#1E4F5E'], ['Cobalt', '#2F4FA8'],
+    ['Ultramarine', '#3A3FA0'], ['Prussian Blue', '#1F3C5C'], ['Steel Blue', '#4A6D8F'], ['Cornflower', '#6A85C2'],
+    ['Slate Blue', '#55608A'], ['Midnight', '#1B2440'], ['Violet', '#5F3FA0'], ['Aubergine', '#3F2A4A'],
+    ['Heather', '#7A6A94'], ['Orchid', '#8A4F8F'], ['Graphite', '#3A3D44'], ['Charcoal', '#2A2C31'],
+    ['Pewter', '#6B7078'], ['Ash', '#8A8E94']
+  ].map(function (n) { var rgb = hexToRgb(n[1]); return { name: n[0], lab: rgbToLab(rgb) }; });
+
+  function nameOf(rgb) {
+    var lab = rgbToLab(rgb), best = null, bd = 1e9;
+    for (var i = 0; i < NAMES.length; i++) {
+      var d = deltaE(lab, NAMES[i].lab);
+      if (d < bd) { bd = d; best = NAMES[i].name; }
+    }
+    return best;
+  }
+
+  /* ---------- seeded fallback (no cover) ---------- */
+  var SEED_BASES = [[352, 0.48, 0.36], [8, 0.5, 0.38], [200, 0.5, 0.34], [222, 0.5, 0.38], [262, 0.4, 0.4], [168, 0.4, 0.3], [330, 0.4, 0.38], [188, 0.5, 0.32]];
+  function hashStr(s) { var h = 2166136261; s = String(s); for (var i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); } return h >>> 0; }
+
+  /* ---------- per work theme ---------- */
+  var WARM_PALE = [13, 95];   /* hue band where a pale surface reads as cream, beige, peach or yellow */
+  var YELLOWISH = [28, 88];   /* hue band where a dark surface drifts toward mustard */
+
+  function tones(h, s, l, mono) {
+    if (mono) { h = 218; s = 0.06; }
+    var yellowish = !mono && h >= YELLOWISH[0] && h <= YELLOWISH[1];
+    var warmPale = !mono && h >= WARM_PALE[0] && h <= WARM_PALE[1];
+
+    /* field: surface that carries white text */
+    var fs = mono ? 0.07 : clamp(s, 0.30, 0.64);
+    var fl = mono ? 0.24 : (yellowish ? clamp(l, 0.16, 0.25) : clamp(l, 0.28, 0.42));
+    if (yellowish) fs = Math.min(fs, 0.34);
+    var field = hslToRgb(h, fs, fl), guard = 0;
+    while (contrast(field, [255, 255, 255]) < 4.8 && guard++ < 40) { fl -= 0.012; field = hslToRgb(h, fs, fl); }
+
+    /* tint, paper: pale surfaces. warm hues fall back to a cool neutral. */
+    var cool = mono || warmPale;
+    var th = cool ? 216 : h;
+    var tint = hslToRgb(th, cool ? 0.12 : clamp(s * 0.55, 0.16, 0.34), 0.925);
+    var paper = hslToRgb(th, cool ? 0.08 : 0.10, 0.968);
+    var ink = hslToRgb(th, 0.28, 0.11);
+
+    /* dark mode */
+    var deep = hslToRgb(h, mono ? 0.06 : clamp(s * 0.4, 0.10, 0.26), 0.075);
+    var soft = hslToRgb(h, mono ? 0.05 : clamp(s * 0.7, 0.22, 0.5), 0.17);
+    var glow = hslToRgb(h, mono ? 0.12 : clamp(s, 0.5, 0.82), mono ? 0.78 : (yellowish ? 0.62 : 0.7));
+
+    var onField = hslToRgb(h, 0.2, 0.975);
+    if (contrast(field, onField) < 4.5) onField = [255, 255, 255];
+
+    return {
+      field: toHex(field), tint: toHex(tint), paper: toHex(paper), ink: toHex(ink),
+      deep: toHex(deep), soft: toHex(soft), glow: toHex(glow), onField: toHex(onField),
+      fieldRgb: field, fieldLab: rgbToLab(field), hue: h
+    };
+  }
+
+  function buildWorkTheme(swatches, seed) {
+    var sw = (swatches || []).filter(function (s) { return s.lab[0] > 14 && s.lab[0] < 93; });
+    var base = null, fromSeed = false;
+    if (sw.length) {
+      sw.forEach(function (s) { s.score = s.chroma * (0.35 + Math.sqrt(s.weight)); });
+      sw.sort(function (a, b) { return b.score - a.score; });
+      base = sw[0];
+    } else if (!swatches || !swatches.length) {
+      var sb = SEED_BASES[hashStr(seed || 'x') % SEED_BASES.length];
+      base = { h: sb[0], s: sb[1], l: sb[2], chroma: 40, hex: toHex(hslToRgb(sb[0], sb[1], sb[2])) };
+      fromSeed = true;
+    }
+    var mono = !base || base.chroma < 10;
+    var t = tones(base ? base.h : 218, base ? base.s : 0.05, base ? base.l : 0.3, mono);
+
+    /* how light the cover is overall: decides whether a mat should be dark or pale behind it */
+    var coverL = 0.5;
+    if (swatches && swatches.length) {
+      coverL = swatches.reduce(function (a, s) { return a + (s.lab[0] / 100) * s.weight; }, 0);
+    }
+    t.name = nameOf(t.fieldRgb);
+    t.mono = mono;
+    t.fromSeed = fromSeed;
+    t.coverL = coverL;
+    t.swatches = pack(swatches || []);
+    return t;
+  }
+
+  /* ---------- curation theme ---------- */
+  /* items: [{id, theme}], heroId, accentIndex (optional user choice among chips) */
+  function buildCurationTheme(items, heroId, accentIndex) {
+    var chips = [];
+    items.forEach(function (it) {
+      var t = it.theme;
+      if (!t || t.mono) return;
+      for (var i = 0; i < chips.length; i++) if (deltaE(chips[i].lab, t.fieldLab) < 16) return;
+      chips.push({ hex: t.field, name: t.name, lab: t.fieldLab, theme: t });
+    });
+    var hero = null;
+    for (var i = 0; i < items.length; i++) if (items[i].id === heroId) hero = items[i];
+    hero = hero || items[0];
+    var primary = hero && hero.theme;
+    if (primary && primary.mono && chips.length) primary = chips[0].theme;
+    if (typeof accentIndex === 'number' && chips[accentIndex]) primary = chips[accentIndex].theme;
+    if (!primary) primary = buildWorkTheme([], 'empty');
+    if (!chips.length) chips.push({ hex: primary.field, name: primary.name, lab: primary.fieldLab, theme: primary });
+    var idx = 0;
+    chips.forEach(function (c, k) { if (c.theme === primary) idx = k; });
+    return {
+      primary: primary,
+      chips: chips.map(function (c) { return { hex: c.hex, name: c.name }; }),
+      accentIndex: idx
+    };
+  }
+
+  /* css custom properties for one theme */
+  function cssVars(t) {
+    return '--field:' + t.field + ';--tint:' + t.tint + ';--paper:' + t.paper + ';--ink:' + t.ink +
+      ';--deep:' + t.deep + ';--soft:' + t.soft + ';--glow:' + t.glow + ';--on-field:' + t.onField + ';';
+  }
+
+  root.LectaPalette = {
+    extract: extract, fromPixels: swatchesFromPixels, pack: pack, hydrate: hydrate,
+    buildWorkTheme: buildWorkTheme, buildCurationTheme: buildCurationTheme,
+    cssVars: cssVars, nameOf: nameOf, contrast: contrast, hexToRgb: hexToRgb, toHex: toHex,
+    hsl: function (h, s, l) { return toHex(hslToRgb(h, s, l)); }, deltaE: deltaE, rgbToLab: rgbToLab
+  };
+})(typeof window !== 'undefined' ? window : globalThis);
+
+/* ==========================================================================
+   Sample data for the template prototypes.
+   Covers are procedurally drawn placeholders (original artwork, not real covers).
+   In the product these are replaced by the real cover URL from the work record.
+   ========================================================================== */
+(function (root) {
+  'use strict';
+
+  function escX(s) { return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
+  function svgUri(svg) { return 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg); }
+  function fit(len, w, max, min, sp) { return Math.max(min, Math.min(max, w / (Math.max(1, len) * (0.64 + (sp || 0))))); }
+  function wrapLines(t, n) {
+    var words = String(t).split(/\s+/), lines = [], cur = '';
+    words.forEach(function (w) {
+      if ((cur + ' ' + w).trim().length > n && cur) { lines.push(cur); cur = w; } else { cur = (cur + ' ' + w).trim(); }
+    });
+    if (cur) lines.push(cur);
+    if (lines.length > 4) { lines = lines.slice(0, 4); lines[3] += '…'; }
+    return lines;
+  }
+  function head(w, h) { return '<svg xmlns="http://www.w3.org/2000/svg" width="' + w + '" height="' + h + '" viewBox="0 0 ' + w + ' ' + h + '">'; }
+  function lg(id, a, b, vertical) {
+    return '<linearGradient id="' + id + '" x1="0" y1="0" x2="' + (vertical === false ? 1 : 0) + '" y2="' + (vertical === false ? 0 : 1) + '"><stop offset="0" stop-color="' + a + '"/><stop offset="1" stop-color="' + b + '"/></linearGradient>';
+  }
+
+  var ART = {
+    /* film, dusk sea, two figures. 2:3 */
+    sea: function (c, t) {
+      var s = escX(String(t).toUpperCase()), fs = fit(s.length, 340, 34, 7, 0.28);
+      return head(400, 600) + '<defs>' + lg('a', c[0], c[1]) + lg('b', c[2], c[3]) + '</defs>' +
+        '<rect width="400" height="600" fill="url(#a)"/><circle cx="270" cy="338" r="74" fill="' + c[4] + '" opacity=".6"/>' +
+        '<rect y="372" width="400" height="228" fill="url(#b)"/>' +
+        '<rect y="384" width="400" height="2" fill="' + c[4] + '" opacity=".25"/><rect y="404" width="400" height="2" fill="' + c[4] + '" opacity=".15"/>' +
+        '<g fill="' + c[3] + '"><circle cx="152" cy="446" r="17"/><rect x="130" y="460" width="44" height="76" rx="22"/><circle cx="214" cy="480" r="12"/><rect x="198" y="490" width="32" height="46" rx="16"/></g>' +
+        '<text x="200" y="568" text-anchor="middle" font-family="Helvetica,Arial,sans-serif" font-weight="700" font-size="' + fs + '" letter-spacing="' + (fs * 0.28) + '" fill="#fff" opacity=".92">' + s + '</text></svg>';
+    },
+    /* film or series, night hills and a moon. 2:3 */
+    night: function (c, t) {
+      var s = escX(String(t).toUpperCase()), fs = fit(s.length, 340, 30, 7, 0.3);
+      return head(400, 600) + '<defs>' + lg('a', c[0], c[2]) + '</defs>' +
+        '<rect width="400" height="600" fill="url(#a)"/><circle cx="286" cy="150" r="48" fill="' + c[4] + '" opacity=".88"/>' +
+        '<path d="M0 410 C80 350 170 372 250 402 S360 392 400 372 V600 H0Z" fill="' + c[1] + '" opacity=".92"/>' +
+        '<path d="M0 500 C100 452 230 484 400 442 V600 H0Z" fill="' + c[2] + '"/>' +
+        '<rect x="96" y="470" width="46" height="34" fill="' + c[2] + '"/><rect x="108" y="482" width="9" height="12" fill="' + c[4] + '"/><rect x="124" y="482" width="9" height="12" fill="' + c[3] + '"/>' +
+        '<text x="200" y="566" text-anchor="middle" font-family="Helvetica,Arial,sans-serif" font-weight="600" font-size="' + fs + '" letter-spacing="' + (fs * 0.3) + '" fill="#fff" opacity=".88">' + s + '</text></svg>';
+    },
+    /* album, orbs. 1:1 */
+    orb: function (c, t) {
+      var s = escX(String(t).toUpperCase()), fs = fit(s.length, 300, 20, 11);
+      return head(400, 400) + '<rect width="400" height="400" fill="' + c[0] + '"/>' +
+        '<circle cx="196" cy="214" r="150" fill="' + c[1] + '"/><circle cx="268" cy="150" r="92" fill="' + c[3] + '" opacity=".92"/>' +
+        '<circle cx="132" cy="262" r="46" fill="' + c[2] + '"/><path d="M60 330 A150 150 0 0 0 340 330" fill="none" stroke="' + c[4] + '" stroke-width="3" opacity=".9"/>' +
+        '<text x="28" y="372" font-family="Georgia,serif" font-style="italic" font-size="' + fs + '" letter-spacing="2" fill="' + c[4] + '">' + s + '</text></svg>';
+    },
+    /* album, blocks. 1:1 */
+    blocks: function (c, t) {
+      var s = escX(String(t).toUpperCase()), fs = fit(s.length, 300, 18, 11);
+      return head(400, 400) + '<rect width="400" height="400" fill="' + c[0] + '"/>' +
+        '<rect width="200" height="260" fill="' + c[1] + '"/><rect x="200" width="200" height="160" fill="' + c[2] + '"/>' +
+        '<rect x="200" y="160" width="200" height="240" fill="' + c[3] + '"/><rect y="260" width="200" height="140" fill="' + c[4] + '"/>' +
+        '<circle cx="200" cy="200" r="64" fill="' + c[0] + '"/>' +
+        '<text x="22" y="378" font-family="Helvetica,Arial,sans-serif" font-weight="700" font-size="' + fs + '" letter-spacing="3" fill="' + c[0] + '">' + s + '</text></svg>';
+    },
+    /* book, framed typographic cover. 5:8 */
+    type: function (c, t, a) {
+      var lines = wrapLines(t, 11), longest = lines.reduce(function (m, l) { return Math.max(m, l.length); }, 1);
+      var fs = fit(longest, 300, 46, 20), y0 = 250 - (lines.length - 1) * fs * 0.6;
+      var tx = lines.map(function (l, i) { return '<text x="200" y="' + (y0 + i * fs * 1.2) + '" text-anchor="middle" font-family="Georgia,serif" font-weight="700" font-size="' + fs + '" fill="' + c[2] + '">' + escX(l) + '</text>'; }).join('');
+      return head(400, 640) + '<rect width="400" height="640" fill="' + c[0] + '"/>' +
+        '<rect x="24" y="24" width="352" height="592" fill="none" stroke="' + c[1] + '" stroke-width="2"/>' +
+        '<rect x="34" y="34" width="332" height="572" fill="none" stroke="' + c[1] + '" stroke-width="1" opacity=".6"/>' + tx +
+        '<circle cx="200" cy="470" r="14" fill="' + c[1] + '"/>' +
+        '<text x="200" y="582" text-anchor="middle" font-family="Helvetica,Arial,sans-serif" font-size="13" letter-spacing="4" fill="' + c[2] + '">' + escX(String(a || '').toUpperCase()) + '</text></svg>';
+    },
+    /* book, color band with a disc. ~2:3 */
+    band: function (c, t, a) {
+      var lines = wrapLines(t, 12), longest = lines.reduce(function (m, l) { return Math.max(m, l.length); }, 1);
+      var fs = fit(longest, 300, 38, 18);
+      var tx = lines.map(function (l, i) { return '<text x="36" y="' + (468 + i * fs * 1.2) + '" font-family="Georgia,serif" font-weight="700" font-size="' + fs + '" fill="' + c[3] + '">' + escX(l) + '</text>'; }).join('');
+      return head(400, 620) + '<rect width="400" height="620" fill="' + c[2] + '"/><rect width="400" height="380" fill="' + c[0] + '"/>' +
+        '<circle cx="270" cy="360" r="112" fill="' + c[1] + '"/>' + tx +
+        '<text x="36" y="596" font-family="Helvetica,Arial,sans-serif" font-size="12" letter-spacing="3" fill="' + c[3] + '" opacity=".8">' + escX(String(a || '').toUpperCase()) + '</text></svg>';
+    },
+    /* series still. 3:4 */
+    still: function (c, t) {
+      var lines = wrapLines(String(t).toUpperCase(), 10), longest = lines.reduce(function (m, l) { return Math.max(m, l.length); }, 1);
+      var fs = fit(longest, 300, 46, 18);
+      var tx = lines.map(function (l, i) { return '<text x="30" y="' + (440 + i * fs * 1.05) + '" font-family="Helvetica,Arial,sans-serif" font-weight="800" font-size="' + fs + '" fill="' + c[2] + '">' + escX(l) + '</text>'; }).join('');
+      return head(390, 520) + '<defs>' + lg('a', c[0], c[1], false) + '</defs><rect width="390" height="520" fill="url(#a)"/>' +
+        '<rect x="96" y="60" width="200" height="270" rx="100" fill="' + c[3] + '" opacity=".4"/><circle cx="196" cy="168" r="38" fill="' + c[2] + '" opacity=".9"/>' + tx + '</svg>';
+    },
+    /* landscape cover. 16:10 */
+    wide: function (c, t) {
+      var s = escX(String(t).toUpperCase()), fs = fit(s.length, 560 - 4 * s.length, 34, 8);
+      return head(640, 400) + '<defs>' + lg('a', c[0], c[1], false) + '</defs><rect width="640" height="400" fill="url(#a)"/>' +
+        '<circle cx="470" cy="170" r="84" fill="' + c[3] + '" opacity=".85"/><rect y="250" width="640" height="150" fill="' + c[2] + '" opacity=".85"/>' +
+        '<text x="36" y="364" font-family="Helvetica,Arial,sans-serif" font-weight="800" font-size="' + fs + '" letter-spacing="4" fill="#fff">' + s + '</text></svg>';
+    },
+    /* extremely tall cover. ~0.43 */
+    tall: function (c, t) {
+      var s = escX(String(t).toUpperCase());
+      return head(300, 700) + '<rect width="300" height="700" fill="' + c[0] + '"/><rect x="0" y="0" width="100" height="700" fill="' + c[1] + '"/><rect x="200" y="0" width="100" height="700" fill="' + c[2] + '"/>' +
+        '<text x="150" y="640" text-anchor="middle" font-family="Helvetica,Arial,sans-serif" font-weight="700" font-size="' + fit(s.length, 270, 20, 7, 0.3) + '" letter-spacing="' + (fit(s.length, 270, 20, 7, 0.3) * 0.3) + '" fill="#fff">' + s + '</text></svg>';
+    },
+    /* decorative photo, user supplied image stand in. 16:10 */
+    photo: function (c) {
+      return head(1600, 1000) + '<defs>' + lg('a', c[0], c[1]) + lg('b', c[3], c[0]) +
+        '<radialGradient id="r" cx=".68" cy=".52" r=".34"><stop offset="0" stop-color="' + c[2] + '" stop-opacity=".95"/><stop offset="1" stop-color="' + c[2] + '" stop-opacity="0"/></radialGradient></defs>' +
+        '<rect width="1600" height="1000" fill="url(#a)"/><rect width="1600" height="1000" fill="url(#r)"/>' +
+        '<rect y="560" width="1600" height="440" fill="url(#b)"/><rect y="590" width="1600" height="3" fill="' + c[2] + '" opacity=".25"/><rect y="640" width="1600" height="3" fill="' + c[2] + '" opacity=".12"/></svg>';
+    }
+  };
+
+  var LONG = '문장 하나가 오래 남는 이유는 대개 그 문장이 쓰인 방식 때문이 아니라, 그것을 읽던 때의 내가 어디에 있었는지 때문이다. 같은 작품을 다른 시간에 다시 보면 다른 장면이 먼저 떠오른다. ';
+  function long(n) { var s = ''; for (var i = 0; i < n; i++) s += LONG; return s.trim(); }
+
+  function W(id, medium, title, creator, year, kind, colors, note, extra) {
+    var o = { id: id, medium: medium, title: title, creator: creator, year: year, art: { kind: kind, colors: colors }, note: note || '' };
+    if (extra) for (var k in extra) o[k] = extra[k];
+    return o;
+  }
+
+  var SETS = {
+    A: {
+      label: 'A  이야기가 끝난 뒤 (붉은 계열 포함 8편)',
+      ex: {
+        title: 'After the Last Scene',
+        subtitle: '기억과, 잃은 사람과, 이야기가 끝난 뒤에 남는 것에 대한 여덟 편',
+        curator: '예은',
+        intro: '한 장면이 끝나도 우리는 그 방에 한참 서 있습니다. 이 큐레이션은 떠난 사람과 떠난 시간을 오래 바라보게 만든 작품들을 모았습니다. 순서대로 걸어도 되고, 마음 가는 방부터 들어가도 됩니다.',
+        heroId: 'a3',
+        items: [
+          W('a1', 'film', 'Aftersun', 'Charlotte Wells', 2022, 'sea', ['#2F5D8A', '#E0875A', '#1F3F63', '#0F2540', '#F2B27A'],
+            '영화가 끝나도 끝나지 않는 장면이 있다. 이 영화에서 나는 아버지의 뒷모습을 오래 보았다.\n\n> 기억은 사진보다 느리게 도착한다.\n\n그날의 햇빛과 호텔 수영장, 캠코더 속의 얼굴이 한꺼번에 떠오르는 순간까지, 영화는 아무것도 설명하지 않고 기다려 준다. 그 기다림이 이 전시의 첫 장면이다.',
+            { featured: true, scenes: [{ kind: 'photo', colors: ['#233B63', '#E58B5E', '#F6C58F', '#10233F'], caption: '수영장 장면' }, { kind: 'photo', colors: ['#1B2F4F', '#C97A55', '#E8B98A', '#0B1A30'], caption: '캠코더 속 마지막 날' }] }),
+          W('a2', 'album', 'Carrie & Lowell', 'Sufjan Stevens', 2015, 'blocks', ['#3E5A74', '#8FA3A6', '#2B3948', '#C7D2D0', '#1B2430'],
+            '기타 한 대와 낮은 목소리만으로, 떠난 사람에게 말을 거는 방법을 알려 주는 앨범. 듣고 나면 방 안의 공기가 조금 달라져 있다. 가사를 몰라도 슬픔의 온도는 정확히 전해진다.'),
+          W('a3', 'book', 'The Years', 'Annie Ernaux', 2008, 'type', ['#9E2B25', '#E6E2DC', '#F4F0EA', '#6E1A17'],
+            '한 사람의 기억이 한 세대의 기록이 되는 방식을, 나는 이 책에서 처음 배웠다.'),
+          W('a4', 'album', 'Pink Moon', 'Nick Drake', 1972, 'orb', ['#173F3A', '#E8873A', '#0B1F1D', '#5FA39A', '#F2C36B'], ''),
+          W('a5', 'film', 'Past Lives', 'Celine Song', 2023, 'night', ['#2B2350', '#8A5CA8', '#141029', '#E6A0B8', '#F5D0A0'],
+            '스쳐 지나간 사람을 다시 만난다는 건, 그 사람을 만나는 일이기보다 그때의 나를 다시 만나는 일에 가깝다. 영화는 두 사람이 서로를 바라보는 몇 장면에 대부분의 시간을 쓰고, 나머지는 말하지 않는다. 말하지 않는 것이 이 영화의 가장 큰 문장이다.\n\n나영이 어릴 적 살던 동네의 골목을 떠올리는 장면에서 오래 멈춰 있었다. 이민이라는 사건이 한 사람의 이름을 둘로 나누고, 그 둘이 서로를 모른 채 한 몸에 산다는 것. 그 둘을 다 이해해 주는 사람이 이 세상에 한 명이라도 있다면 얼마나 다행일까. 영화는 그 사람이 누구인지 끝까지 정하지 않는다.\n\n> 우리가 스친 건 아주 짧은 시간이었지만, 그 시간은 아직 어딘가에 남아 있다.\n\n마지막 택시 장면은 몇 번을 다시 봐도 같은 자리에서 숨이 막힌다. 이별은 대부분 큰 소리를 내지 않고, 그래서 더 오래 남는다. 엔딩 크레딧이 올라가는 동안 극장 안의 사람들이 아무도 일어나지 않았다. 그 침묵이 이 영화에 대한 가장 정확한 감상문이었다고 생각한다. 이 큐레이션의 방들 중 가장 조용한 방을 이 영화에게 주고 싶었다.\n\n개봉하고 한참 뒤에야 이 영화를 봤다. 그사이 나는 이 영화에 대한 말을 너무 많이 들어서 오히려 조심스러웠는데, 막상 보고 나니 말들이 전부 영화 바깥에 있었다. 영화 안에는 두 사람과 침묵이 있을 뿐이었다.'),
+          W('a6', 'book', '작별하지 않는다', '한강', 2021, 'type', ['#DCE5EB', '#7E96A8', '#22313F', '#9FB4C2'],
+            '눈이 내리는 장면을 읽을 때마다 책장 넘기는 속도가 느려졌다. 이 소설은 애도가 끝나지 않는 사람이 어떻게 계속 걸어가는지를 보여 준다. 읽는 동안 추운 방에서 촛불 하나를 사이에 두고 누군가와 마주 앉아 있는 기분이었다. 슬픔을 설명하지 않고 풍경으로 건네는 문장들 덕분에, 이 책은 읽는 사람의 기억까지 같이 불러낸다.'),
+          W('a7', 'album', 'Blonde', 'Frank Ocean', 2016, 'blocks', ['#1B1B1D', '#E0485A', '#F0B0B8', '#3A3A40', '#7A2B3A'],
+            '이별한 뒤에 듣는 Frank Ocean은 다르다. 노래가 끝나도 그 공기가 방 안에 남아 있다. 가장 사적인 소리가 가장 멀리 간다는 걸 이 앨범으로 알았다.'),
+          W('a8', 'series', 'Fleabag', 'Phoebe Waller-Bridge', 2016, 'still', ['#C9304A', '#1A1216', '#F2B8C0', '#7A1A2A'],
+            '웃다가 갑자기 아픈 드라마. 카메라를 향해 던지는 농담이 사실은 가장 솔직한 고백이라는 걸 마지막 화에서야 알게 된다.\n\n> 웃기다가, 갑자기 아프다.')
+        ]
+      }
+    },
+    B: {
+      label: 'B  푸른 시간 (차가운 계열 7편)',
+      ex: {
+        title: 'Blue Hour',
+        subtitle: '해가 지고 밤이 오기 전, 모든 것이 푸르게 가라앉는 시간에 보고 읽고 들은 것',
+        curator: '민재',
+        intro: '',
+        heroId: 'b5',
+        items: [
+          W('b1', 'film', 'Lost in Translation', 'Sofia Coppola', 2003, 'night', ['#1B2A4A', '#3B5C99', '#0D1526', '#7FA6D9', '#C9DDF5'],
+            '말이 통하지 않는 도시에서 말이 통하는 단 한 사람을 만나는 이야기. 새벽의 호텔 로비와 네온이 번진 택시 창이 오래 남았다. 마지막 귓속말은 끝내 들리지 않아서 더 좋다.'),
+          W('b2', 'album', 'Blue', 'Joni Mitchell', 1971, 'orb', ['#16355E', '#2F6CB5', '#0C1E3A', '#8DB6E8', '#D4E6FA'],
+            '가장 낮은 온도로 가장 깊이 찌르는 노래들.'),
+          W('b3', 'book', 'Norwegian Wood', 'Haruki Murakami', 1987, 'type', ['#1F4E52', '#7FB5B0', '#E8F1EF', '#12302F'],
+            '스무 살 무렵의 쓸쓸함을 이렇게 정확하게 적은 책은 드물다. 읽는 내내 비가 내렸고, 책을 덮고 나서도 한동안 우산을 펴지 않았다.\n\n> 죽음은 삶의 반대편이 아니라 그 일부로서 존재한다.\n\n그 문장을 몇 번이나 소리 내어 읽었다.', { featured: false }),
+          W('b4', 'album', 'For Emma, Forever Ago', 'Bon Iver', 2007, 'blocks', ['#34506B', '#9CB4C8', '#5B7893', '#DCE7F0', '#1F3246'], ''),
+          W('b5', 'film', 'Chungking Express', 'Wong Kar-wai', 1994, 'night', ['#0F3B45', '#1F7A7A', '#06191F', '#F06A8A', '#9FE0D8'],
+            '유통기한이 있는 사랑에 대한 영화. 두 번째 이야기에서 흘러나오는 노래를 지금도 같은 속도로 따라 걷는다. 도시의 새벽이 이렇게 다정할 수 있다는 걸 이 영화가 알려 줬다.',
+            { featured: true, photo: { kind: 'photo', colors: ['#0B2E38', '#1E7B80', '#F06A8A', '#041216'] } }),
+          W('b6', 'book', 'Never Let Me Go', 'Kazuo Ishiguro', 2005, 'band', ['#3B4A68', '#A9B8D6', '#232C42', '#EEF2FA'],
+            '아주 조용한 목소리로 아주 잔인한 이야기를 하는 소설. 읽는 사람이 먼저 알아채게 만든다는 점에서 가장 정직하다.'),
+          W('b7', 'series', 'Normal People', 'Lenny Abrahamson', 2020, 'still', ['#2A4B8D', '#0E1B3A', '#CFE0FA', '#6F8FD0'],
+            '대사보다 침묵이 많은 연애 드라마. 같은 방에 있는 두 사람 사이의 거리를 이렇게 오래 찍어도 지루하지 않다.')
+        ]
+      }
+    },
+    C: {
+      label: 'C  흑백 (색이 없는 6편, 단색 대응 확인)',
+      ex: {
+        title: 'Grayscale',
+        subtitle: '색이 없어서 더 선명하게 남은 것들',
+        curator: '지안',
+        intro: '컬러를 빼고 나면 구도와 빛과 침묵이 남습니다. 오래 기억에 남은 흑백의 작품들입니다.',
+        heroId: 'c1',
+        items: [
+          W('c1', 'film', 'Ida', 'Paweł Pawlikowski', 2013, 'night', ['#222222', '#555555', '#0E0E0E', '#BDBDBD', '#EDEDED'],
+            '화면의 아래쪽 절반을 비워 두는 구도가 이야기의 무게를 대신 말해 준다. 흑백이 아니었다면 이렇게 조용할 수 없었을 것이다.\n\n> 비어 있는 곳이 가장 많은 것을 말한다.', { featured: true, photo: { kind: 'photo', colors: ['#2B2B2B', '#8A8A8A', '#E4E4E4', '#0F0F0F'] } }),
+          W('c2', 'album', 'Kind of Blue', 'Miles Davis', 1959, 'orb', ['#1C1C1C', '#4A4A4A', '#8E8E8E', '#D0D0D0', '#F2F2F2'], '말 없이 오래 듣는 법을 알려 준 앨범.'),
+          W('c3', 'book', 'The Stranger', 'Albert Camus', 1942, 'type', ['#D7D7D7', '#6C6C6C', '#1B1B1B', '#9A9A9A'],
+            '감정을 설명하지 않는 문장이 감정을 가장 크게 만든다는 걸 처음 알았다. 읽고 나서 햇빛이 조금 무서워졌다.'),
+          W('c4', 'album', 'Unknown Pleasures', 'Joy Division', 1979, 'blocks', ['#101010', '#2C2C2C', '#5E5E5E', '#9C9C9C', '#F0F0F0'], ''),
+          W('c5', 'film', 'Stalker', 'Andrei Tarkovsky', 1979, 'sea', ['#303030', '#7A7A7A', '#1E1E1E', '#0C0C0C', '#CFCFCF'],
+            '세 시간 동안 물과 풀과 사람의 뒷모습만 본다. 그런데도 지나가는 시간이 아깝지 않고, 끝나면 오래 말을 잃는다.'),
+          W('c6', 'book', "Giovanni's Room", 'James Baldwin', 1956, 'band', ['#2E2E2E', '#8C8C8C', '#141414', '#E6E6E6'],
+            '한 번의 선택이 한 사람의 방을 닫아 버린다. 문장이 아름다워서 더 아프다.')
+        ]
+      }
+    },
+    D: {
+      label: 'D  스트레스 테스트 (긴 제목, 빈 값, 노란 표지, 특수문자 12편)',
+      ex: {
+        title: 'A Collection of Things I Could Not Stop Thinking About for an Entire Year',
+        subtitle: '',
+        curator: '',
+        intro: '',
+        heroId: 'd4',
+        items: [
+          W('d1', 'film', 'The Unbearable Lightness of Being and Other Very Long Titles That Test Wrapping', 'Sample Creator With A Very Long Credit Name', 1988, 'type', ['#E9D8A6', '#BB9457', '#3A2E1C', '#8A6D2A'],
+            long(5)),
+          W('d2', 'book', '아주아주 긴 한국어 제목이 줄바꿈과 균형을 어떻게 처리하는지 확인하기 위한 작품명', '이름이 아주 긴 작가 이름입니다', '', 'band', ['#D9A21B', '#111111', '#F2C94C', '#111111'], ''),
+          W('d3', 'album', 'No Cover Available', 'Unknown', 2011, 'orb', ['#000000', '#000000', '#000000', '#000000', '#000000'], '표지 이미지가 없는 작품도 같은 품질로 보여야 합니다.', { noCover: true }),
+          W('d4', 'film', 'Landscape Cover Test', 'Wide Format', 2019, 'wide', ['#17324D', '#3E7CB1', '#0B1A2A', '#F2A65A'], '가로로 긴 표지는 잘리지 않고 그대로 놓여야 합니다. 비율이 달라도 같은 크기의 판 위에서 균형이 맞는지 확인합니다.', { featured: true }),
+          W('d5', 'book', 'Very Tall Cover', 'Tall Format', 2020, 'tall', ['#2B2B3B', '#C74B50', '#E8E8F0'], '세로로 아주 긴 표지. 화면 높이를 넘지 않는지 확인합니다. 한 문단이 조금 길어졌을 때 본문과 표지가 어떻게 어울리는지도 같이 봅니다. 문장은 몇 줄 더 이어질 수 있습니다.'),
+          W('d6', 'film', '<img src=x onerror=alert(1)> & "quotes"', '', 2000, 'sea', ['#444444', '#aaaaaa', '#222222', '#111111', '#eeeeee'], '**굵게**와 *기울임*과 <script>alert(1)<\/script> 같은 문자열이 그대로 글자로 보여야 합니다.'),
+          W('d7', 'album', '🌙 Moon', 'Artist', 2023, 'orb', ['#1B1340', '#6A4CFF', '#2A1F66', '#C9B8FF', '#FFFFFF'], '한 줄짜리 이유가 한 장을 혼자 채울 수 있는지 확인합니다.'),
+          W('d8', 'series', 'Neon', 'Saturated', 2024, 'still', ['#00F5D4', '#F15BB5', '#111111', '#FEE440'],
+            '> Only a quote and nothing else.'),
+          W('d9', 'film', 'Featured With Photo', 'Photographer', 2021, 'sea', ['#2D5F7C', '#F0A875', '#1B3D52', '#0E2433', '#FFD9B0'], '직접 올린 사진이 있으면 화면을 가득 채웁니다.',
+            { featured: true, photo: { kind: 'photo', colors: ['#2D5F7C', '#F0A875', '#FFD9B0', '#0E2433'] } }),
+          W('d10', 'book', 'Short', 'A', 1999, 'type', ['#294D3A', '#98C1A6', '#F2F7F3', '#183024'], '짧다.'),
+          W('d11', 'series', 'Eleven', 'Creator Eleven', 2022, 'night', ['#4A1F3D', '#9C3F7C', '#240F1E', '#F5A3CF', '#FFD6EA'], long(2) + '\n\n> 중간에 끼어 있는 인용문도 같은 규칙으로 처리됩니다.\n\n' + long(1)),
+          W('d12', 'album', 'Twelve', 'Creator Twelve', 2018, 'blocks', ['#0F2F2B', '#2A9D8F', '#E9C46A', '#F4A261', '#264653'], '')
+        ]
+      }
+    }
+  };
+
+  root.LectaSamples = { SETS: SETS, ART: ART, svgUri: svgUri, long: long };
+})(window);
+
+/* ==========================================================================
+   Lecta template core
+   - blog style input parsing (paragraphs, "> quote", **bold**, *italic*)
+   - content buckets and the spread planner (same data, rule based layouts)
+   - load covers, extract palettes, build themes
+   - scenes: stills the author inserts. No scene means the cover is shown instead
+   - embed channel: the curation editor feeds data in with postMessage
+   - preview controls (prototype only, removed on merge)
+   ========================================================================== */
+(function (root) {
+  'use strict';
+  var P = root.LectaPalette, S = root.LectaSamples;
+  var L = root.Lecta = {};
+  var clamp = function (v, a, b) { return Math.min(b, Math.max(a, v)); };
+
+  L.reduced = !!(root.matchMedia && root.matchMedia('(prefers-reduced-motion: reduce)').matches);
+  var MEDIA = { film: 'Film', series: 'Series', book: 'Book', album: 'Album' };
+  L.mediumLabel = function (it) { return MEDIA[it.medium] || 'Film'; };
+  L.pad = function (n) { return (n < 10 ? '0' : '') + n; };
+
+  /* ---------- text ---------- */
+  L.esc = function (s) {
+    return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+  };
+  /* escape first, then allow only **bold**, *italic* and line breaks */
+  L.rich = function (s) {
+    var e = L.esc(s);
+    e = e.replace(/\*\*([^*\n]+)\*\*/g, '<strong>$1</strong>').replace(/\*([^*\n]+)\*/g, '<em>$1</em>');
+    return e.replace(/\n/g, '<br>');
+  };
+  L.parseNote = function (raw) {
+    var paras = [], quotes = [], quoteAt = 0, seenQuote = false;
+    String(raw || '').replace(/\r/g, '').split(/\n{2,}/).forEach(function (b) {
+      b = b.trim();
+      if (!b) return;
+      if (b.charAt(0) === '>') {
+        var q = b.replace(/^>\s*/gm, '').trim();
+        if (q) { quotes.push(q); if (!seenQuote) { quoteAt = paras.length; seenQuote = true; } }
+      } else { paras.push(b); }
+    });
+    return { paras: paras, quotes: quotes, quoteAt: quoteAt };
+  };
+  /* length bucket decides which layouts are allowed */
+  L.bucket = function (len, n) {
+    if (!len) return 'none';
+    if (len <= 90 && n <= 1) return 'line';
+    if (len <= 260 && n <= 2) return 'short';
+    if (len <= 600 && n <= 4) return 'medium';
+    return 'long';
+  };
+  /* visual length: Hangul and CJK count wider */
+  L.vlen = function (s) {
+    var n = 0; s = String(s);
+    for (var i = 0; i < s.length; i++) { var c = s.charCodeAt(i); n += (c >= 0x1100 && c <= 0xD7FF) || (c >= 0x3000 && c <= 0x9FFF) ? 1.7 : 1; }
+    return n;
+  };
+  /* title size class: every template maps t1..t5 to its own type scale */
+  L.tcls = function (s) {
+    var v = L.vlen(s);
+    return v <= 10 ? 't1' : v <= 20 ? 't2' : v <= 34 ? 't3' : v <= 56 ? 't4' : 't5';
+  };
+  L.hk = function (s) { return /[\u1100-\u11FF\u3130-\u318F\uAC00-\uD7AF]/.test(s) ? 'hk' : ''; };
+  L.metaLine = function (it) { return [L.mediumLabel(it), it.year].filter(Boolean).join(', '); };
+  L.credit = function (it) { return [it.creator, it.year].filter(Boolean).join(', '); };
+
+  /* paragraphs and the explicit quote, in the author's order */
+  L.bodyHTML = function (it, o) {
+    o = o || {};
+    var out = '', q = it.quote;
+    it.paras.forEach(function (p, i) {
+      if (q && !o.noQuote && i === it.quoteAt) out += '<blockquote class="pq ' + (L.hk(q) ? 'kr' : '') + '">' + L.rich(q) + '</blockquote>';
+      out += '<p>' + L.rich(p) + '</p>';
+    });
+    if (q && !o.noQuote && it.quoteAt >= it.paras.length) out += '<blockquote class="pq ' + (L.hk(q) ? 'kr' : '') + '">' + L.rich(q) + '</blockquote>';
+    return out;
+  };
+
+  /* ---------- item model ---------- */
+  /* the one-line reason and the long note are read as one text, reason first */
+  function sceneOf(x) {
+    if (!x) return null;
+    if (typeof x === 'string') x = { src: x };
+    var src = x.src || (x.kind ? S.svgUri(S.ART.photo(x.colors)) : null);
+    return src ? { src: src, caption: String(x.caption || '').trim(), ar: x.ar || null } : null;
+  }
+  L.normalizeItem = function (raw, i) {
+    var reason = String(raw.reason || '').trim();
+    var text = [reason, raw.note].filter(function (v) { return v && String(v).trim(); }).join('\n\n');
+    var pn = L.parseNote(text), len = pn.paras.join('').length;
+    var coverSrc = raw.cover && raw.cover.src ? raw.cover.src : null;
+    if (!coverSrc && raw.art && !raw.noCover) coverSrc = S.svgUri(S.ART[raw.art.kind](raw.art.colors, raw.title, raw.creator));
+    var scenes = (raw.scenes || []).map(sceneOf).filter(Boolean);
+    var legacy = sceneOf(raw.photo); if (legacy && !scenes.length) scenes = [legacy];
+    return {
+      id: String(raw.id || ('w' + i)),
+      medium: MEDIA[raw.medium] ? raw.medium : 'film',
+      title: String(raw.title || '').trim() || 'Untitled',
+      creator: String(raw.creator || '').trim(),
+      year: raw.year ? String(raw.year) : '',
+      reason: reason,
+      paras: pn.paras, quote: pn.quotes[0] || '', quoteAt: pn.quoteAt,
+      noteLen: len, bucket: L.bucket(len, pn.paras.length),
+      featured: !!raw.featured,
+      layout: raw.layout && raw.layout !== 'auto' ? String(raw.layout) : '',
+      cover: { src: coverSrc, ar: 0.667, placeholder: !coverSrc },
+      scenes: scenes,
+      photo: scenes[0] || null,
+      palette: raw.palette || null
+    };
+  };
+
+  L.loadImage = function (src, timeout) {
+    return new Promise(function (res) {
+      if (!src) return res(null);
+      var img = new Image(), done = false;
+      var fin = function (v) { if (done) return; done = true; clearTimeout(t); res(v); };
+      var t = setTimeout(function () { fin(null); }, timeout || 6000);
+      img.onload = function () { fin(img); };
+      img.onerror = function () { fin(null); };
+      if (src.indexOf('data:') !== 0) img.crossOrigin = 'anonymous';
+      img.src = src;
+    });
+  };
+
+  /* images -> swatches -> themes. A stored palette skips the image work entirely. */
+  L.prepareItem = function (it) {
+    var sceneJobs = it.scenes.map(function (sc) {
+      return L.loadImage(sc.src).then(function (img) {
+        if (img) sc.ar = clamp(img.naturalWidth / img.naturalHeight, 0.4, 2.6);
+        sc.img = img; return img ? sc : null;
+      });
+    });
+    return Promise.all([L.loadImage(it.cover.src), Promise.all(sceneJobs)]).then(function (r) {
+      var img = r[0], sw = [];
+      it.scenes = r[1].filter(Boolean); it.photo = it.scenes[0] || null;
+      if (it.palette && it.palette.length) sw = P.hydrate(it.palette);
+      if (img) {
+        it.cover.ar = clamp(img.naturalWidth / img.naturalHeight, 0.45, 2.2);
+        if (!sw.length) sw = P.extract(img);
+      } else { it.cover.src = null; }
+      if (!sw.length && it.photo && it.photo.img) sw = P.extract(it.photo.img);
+      it.cover.placeholder = !it.cover.src;
+      it.theme = P.buildWorkTheme(sw, it.id + it.title);
+      it.palette = P.pack(sw);
+      it.scenes.forEach(function (sc) { delete sc.img; });
+      return it;
+    });
+  };
+
+  /* ---------- spread planner ----------
+     types: { name: { fits:[buckets], weight:'dense|mid|sparse', needs:fn(item), feature:bool, spaced:n } }
+     A type may carry kind: 'page' | 'inset' | 'full' | 'quote' | 'plate'. An item whose author picked a layout
+     (item.layout) gets the first type of that kind, as long as the item can fill it. Otherwise the rules decide.
+     Rules: never the same type twice, never two dense in a row, never three sparse in a row.
+     Returns [{type, variant, bucket}] where variant counts earlier uses of that type. */
+  L.plan = function (items, types) {
+    var names = Object.keys(types), out = [], counts = {}, hist = [];
+    items.forEach(function (it, i) {
+      if (it.layout) {
+        var want = names.filter(function (n) { var t = types[n]; return t.kind === it.layout && (!t.needs || t.needs(it)); })[0];
+        if (want) { counts[want] = (counts[want] || 0) + 1; hist.push(want); out.push({ type: want, variant: counts[want] - 1, bucket: it.bucket, chosen: true }); return; }
+      }
+      var c = names.filter(function (n) {
+        var t = types[n];
+        return t.fits.indexOf(it.bucket) > -1 && (!t.needs || t.needs(it));
+      });
+      if (!c.length) c = [names[0]];
+      var feat = c.filter(function (n) { return types[n].feature; });
+      if ((it.featured || it.photo) && feat.length) c = feat;
+      var order = c.map(function (_, j) { return c[(j + i) % c.length]; });
+      /* a type flagged prefer wins when the item qualifies (an explicit quote earns its own page) */
+      var pref = order.filter(function (n) { return types[n].prefer; });
+      if (pref.length) order = pref.concat(order.filter(function (n) { return !types[n].prefer; }));
+      var last = hist[hist.length - 1];
+      var ok = function (n) {
+        var t = types[n];
+        if (n === last) return false;
+        if (t.weight === 'dense' && hist.length && types[last].weight === 'dense') return false;
+        if (t.weight === 'sparse' && hist.length > 1 && types[last].weight === 'sparse' && types[hist[hist.length - 2]].weight === 'sparse') return false;
+        if (t.spaced && hist.slice(-t.spaced).indexOf(n) > -1) return false;
+        return true;
+      };
+      var pick = null;
+      for (var k = 0; k < order.length; k++) { if (ok(order[k])) { pick = order[k]; break; } }
+      if (!pick) pick = order.filter(function (n) { return n !== last; })[0] || order[0];
+      counts[pick] = (counts[pick] || 0) + 1;
+      hist.push(pick);
+      out.push({ type: pick, variant: counts[pick] - 1, bucket: it.bucket });
+    });
+    L.kinds = names.map(function (n) { return types[n].kind; }).filter(function (k, i, a) { return k && a.indexOf(k) === i; });
+    L.planned = out.map(function (o, i) { return { id: items[i].id, type: o.type, kind: types[o.type].kind || '', chosen: !!o.chosen }; });
+    return out;
+  };
+
+  /* ---------- html helpers ---------- */
+  L.themeStyle = function (it) { return P.cssVars(it.theme); };
+  /* cover frame always has the cover's own aspect, so object-fit:contain never letterboxes */
+  L.cover = function (it, o) {
+    o = o || {};
+    var st = '--ar:' + it.cover.ar.toFixed(4) + ';' + (o.ch ? '--ch:' + o.ch + ';' : '') + (o.cw ? '--cw:' + o.cw + ';' : '') + (o.style || '');
+    if (it.cover.src) {
+      return '<figure class="cv ' + (o.cls || '') + '" style="' + st + '"><img src="' + L.esc(it.cover.src) + '" alt="' + L.esc(it.title) + (it.creator ? ', ' + L.esc(it.creator) : '') + '" decoding="async" draggable="false"></figure>';
+    }
+    return '<div class="cv ph ' + (o.cls || '') + '" style="' + st + '" role="img" aria-label="' + L.esc(it.title) + '"><span class="ph-m">' + L.esc(L.mediumLabel(it)) + '</span><span class="ph-t">' + L.esc(it.title) + '</span></div>';
+  };
+
+  /* the visual of a work: the author's first scene, or the cover when there is none */
+  L.visual = function (it, o) {
+    var sc = it.scenes && it.scenes[0];
+    if (!sc) return L.cover(it, o);
+    return L.figure(sc, it.title, o);
+  };
+  L.figure = function (sc, alt, o) {
+    o = o || {};
+    var st = '--ar:' + (sc.ar || 1.5).toFixed(4) + ';' + (o.ch ? '--ch:' + o.ch + ';' : '') + (o.cw ? '--cw:' + o.cw + ';' : '') + (o.style || '');
+    return '<figure class="cv ' + (o.cls || '') + '" style="' + st + '"><img src="' + L.esc(sc.src) + '" alt="' + L.esc(sc.caption || alt || '') + '" decoding="async" draggable="false"></figure>';
+  };
+  /* every image the work brings to a page: its scenes, or the cover alone */
+  L.media = function (it) {
+    return it.scenes && it.scenes.length ? it.scenes : [{ src: it.cover.src, ar: it.cover.ar, caption: '', isCover: true }];
+  };
+
+  /* ---------- lifecycle ---------- */
+  var cleanups = [];
+  L.onCleanup = function (fn) { cleanups.push(fn); };
+  L.cleanup = function () { var c = cleanups; cleanups = []; c.forEach(function (f) { try { f(); } catch (e) { } }); };
+
+  L.reveal = function (rootEl) {
+    var els = [].slice.call(rootEl.querySelectorAll('[data-r]'));
+    els.forEach(function (e) { if (e.dataset.d) e.style.setProperty('--d', e.dataset.d); });
+    if (L.reduced || !('IntersectionObserver' in root)) { els.forEach(function (e) { e.classList.add('in'); }); return; }
+    var io = new IntersectionObserver(function (es) {
+      es.forEach(function (e) { if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); } });
+    }, { threshold: 0.12, rootMargin: '0px 0px -6% 0px' });
+    els.forEach(function (e) { io.observe(e); });
+    L.onCleanup(function () { io.disconnect(); });
+  };
+
+  /* calls fn(el) for the element crossing the band defined by margin */
+  L.spy = function (els, fn, margin) {
+    if (!('IntersectionObserver' in root) || !els.length) return;
+    var io = new IntersectionObserver(function (es) {
+      es.forEach(function (e) { if (e.isIntersecting) fn(e.target); });
+    }, { rootMargin: margin || '-45% 0px -45% 0px', threshold: 0 });
+    els.forEach(function (e) { io.observe(e); });
+    L.onCleanup(function () { io.disconnect(); });
+  };
+
+  L.onScroll = function (fn) {
+    var tick = false;
+    var h = function () { if (tick) return; tick = true; requestAnimationFrame(function () { tick = false; fn(); }); };
+    root.addEventListener('scroll', h, { passive: true });
+    root.addEventListener('resize', h);
+    L.onCleanup(function () { root.removeEventListener('scroll', h); root.removeEventListener('resize', h); });
+    fn();
+  };
+
+  /* ---------- state, prepare, boot ---------- */
+  var state = (function () {
+    var q = new URLSearchParams(root.location.search);
+    var s = { set: q.get('set') || 'A', n: q.get('n') || 'all', notes: q.get('notes') || 'asis', labels: q.get('labels') === '1', accent: q.has('accent') ? parseInt(q.get('accent'), 10) : null };
+    if (!S.SETS[s.set]) s.set = 'A';
+    return s;
+  })();
+  function writeState() {
+    try {
+      var q = new URLSearchParams();
+      q.set('set', state.set); q.set('n', state.n); q.set('notes', state.notes);
+      if (state.labels) q.set('labels', '1');
+      if (state.accent != null) q.set('accent', state.accent);
+      root.history.replaceState(null, '', '?' + q.toString());
+    } catch (e) { }
+  }
+
+  /* data pushed in by the curation editor: { title, subtitle, curator, intro, heroId, accentIndex, items } */
+  var external = null;
+  L.embedded = /(^|[?&])embed=1/.test(root.location.search);
+  L.feed = L.embedded || /(^|[?&])feed=1/.test(root.location.search);
+  L.setData = function (d) { external = d; if (L.rerun) L.rerun(); };
+
+  L.prepare = function () {
+    var ex0 = external || S.SETS[state.set].ex;
+    var raws = (ex0.items || []).slice();
+    if (!external && state.n !== 'all') raws = raws.slice(0, parseInt(state.n, 10) || raws.length);
+    var items = raws.map(function (r, i) {
+      var rr = {}; for (var k in r) rr[k] = r[k];
+      if (!external && state.notes === 'none') { rr.note = ''; rr.reason = ''; }
+      else if (!external && state.notes === 'long') rr.note = S.long(4) + '\n\n' + S.long(3);
+      return L.normalizeItem(rr, i);
+    });
+    return Promise.all(items.map(L.prepareItem)).then(function () {
+      var heroId = items.some(function (i) { return i.id === ex0.heroId; }) ? ex0.heroId : (items[0] && items[0].id);
+      var theme = P.buildCurationTheme(items, heroId, external && external.accentIndex != null ? external.accentIndex : state.accent);
+      var hero = items.filter(function (i) { return i.id === heroId; })[0] || items[0];
+      return {
+        title: String(ex0.title || '').trim() || 'Untitled', subtitle: ex0.subtitle || '', curator: ex0.curator || '',
+        intro: ex0.intro ? String(ex0.intro).split(/\n{2,}/) : [],
+        items: items, heroId: heroId, hero: hero, theme: theme
+      };
+    });
+  };
+
+  L.boot = function (opts) {
+    var app = document.getElementById('app'), seq = 0, first = true;
+    function run() {
+      var my = ++seq, keep = root.pageYOffset;
+      app.classList.add('is-loading');
+      L.prepare().then(function (ex) {
+        if (my !== seq) return;
+        L.cleanup();
+        app.innerHTML = '';
+        var t = ex.theme.primary;
+        var r = document.documentElement.style;
+        r.setProperty('--paper', t.paper); r.setProperty('--ink', t.ink);
+        r.setProperty('--xfield', t.field); r.setProperty('--xdeep', t.deep);
+        r.setProperty('--xglow', t.glow); r.setProperty('--xsoft', t.soft); r.setProperty('--xtint', t.tint);
+        opts.render(ex, app);
+        document.body.classList.toggle('show-labels', !!state.labels);
+        if (!L.feed) preview(ex);
+        L.last = ex;
+        L.reveal(app);
+        /* an embedded preview keeps its scroll position while the author types */
+        if (external && !first) root.scrollTo({ top: keep, behavior: 'instant' }); else root.scrollTo({ top: 0, behavior: 'instant' });
+        first = false;
+        /* the editor asks to land on a work after a structural change (layout, scenes, order) */
+        if (external && external.focus != null) {
+          if (external.focus < 0) root.scrollTo({ top: 0, behavior: 'instant' });
+          else { var fe = app.querySelector('[data-i="' + external.focus + '"]'); if (fe) fe.scrollIntoView({ block: 'start', behavior: 'instant' }); }
+          lastView = external.focus;
+        }
+        requestAnimationFrame(function () { app.classList.remove('is-loading'); });
+        var tgt = root.opener || (root.parent !== root ? root.parent : null);
+        if (L.feed && tgt) {
+          tgt.postMessage({ type: 'lecta:state', chips: ex.theme.chips, accentIndex: ex.theme.accentIndex, plan: L.planned || [], kinds: L.kinds || [], palettes: ex.items.map(function (i) { return { id: i.id, palette: i.palette, ar: i.cover.ar }; }) }, '*');
+        }
+      });
+    }
+    L.rerun = run;
+    /* the editor follows the reader: report which page sits in the middle of the viewport */
+    var lastView = null, viewTick = 0;
+    function reportView() {
+      viewTick = 0;
+      var tgt = root.parent !== root ? root.parent : null; if (!tgt) return;
+      var mid = root.innerHeight * 0.45, idx = -1;
+      [].forEach.call(app.querySelectorAll('[data-i]'), function (el) { var r = el.getBoundingClientRect(); if (r.top <= mid && r.height) { var n = +el.getAttribute('data-i'); if (!isNaN(n) && n > idx) idx = n; } });
+      if (idx !== lastView) { lastView = idx; tgt.postMessage({ type: 'lecta:view', index: idx }, '*'); }
+    }
+    if (L.embedded) root.addEventListener('scroll', function () { if (!viewTick) viewTick = requestAnimationFrame(reportView); }, { passive: true });
+    if (L.feed) {
+      if (L.embedded) document.documentElement.classList.add('embed');
+      root.addEventListener('message', function (e) {
+        var d = e.data || {};
+        if (d.type === 'lecta:curation') { external = d.data; run(); }
+        else if (d.type === 'lecta:goto') {
+          lastView = d.index;
+          if (d.index < 0) root.scrollTo({ top: 0, behavior: 'instant' });
+          else { var el = document.querySelector('[data-i="' + d.index + '"]') || document.getElementById('s-' + d.index); if (el) el.scrollIntoView({ behavior: 'instant', block: 'start' }); }
+        }
+      });
+      var t0 = root.opener || (root.parent !== root ? root.parent : null);
+      if (t0) t0.postMessage({ type: 'lecta:ready' }, '*');
+    } else { run(); }
+  };
+
+  /* ---------- preview controls (prototype only) ---------- */
+  function preview(ex) {
+    var el = document.getElementById('pv');
+    if (!el) {
+      el = document.createElement('div'); el.id = 'pv';
+      var opt = function (v, t, cur) { return '<option value="' + v + '"' + (String(cur) === String(v) ? ' selected' : '') + '>' + t + '</option>'; };
+      el.innerHTML =
+        '<button class="pv-b" type="button" aria-expanded="false">Preview</button>' +
+        '<div class="pv-p" hidden>' +
+        '<label>Sample<select data-k="set">' + Object.keys(S.SETS).map(function (k) { return opt(k, S.SETS[k].label, state.set); }).join('') + '</select></label>' +
+        '<label>Works<select data-k="n">' + ['all', '1', '3', '6'].map(function (v) { return opt(v, v === 'all' ? 'All' : v, state.n); }).join('') + '</select></label>' +
+        '<label>Notes<select data-k="notes">' + opt('asis', 'As written', state.notes) + opt('none', 'No notes', state.notes) + opt('long', 'Very long notes', state.notes) + '</select></label>' +
+        '<label class="pv-c"><input type="checkbox" data-k="labels"' + (state.labels ? ' checked' : '') + '>Show layout labels</label>' +
+        '<div class="pv-t">Main color (extracted from the works)</div><div class="pv-chips"></div>' +
+        '<button class="pv-copy" type="button">Copy palette JSON</button></div>';
+      document.body.appendChild(el);
+      var btn = el.querySelector('.pv-b'), panel = el.querySelector('.pv-p');
+      btn.addEventListener('click', function () {
+        var open = panel.hasAttribute('hidden');
+        if (open) panel.removeAttribute('hidden'); else panel.setAttribute('hidden', '');
+        btn.setAttribute('aria-expanded', String(open));
+      });
+      el.addEventListener('change', function (e) {
+        var k = e.target.getAttribute('data-k'); if (!k) return;
+        if (k === 'labels') { state.labels = e.target.checked; document.body.classList.toggle('show-labels', state.labels); writeState(); return; }
+        state[k] = e.target.value;
+        if (k === 'set') state.accent = null;
+        writeState(); L.rerun();
+      });
+      el.querySelector('.pv-chips').addEventListener('click', function (e) {
+        var b = e.target.closest('button[data-i]'); if (!b) return;
+        state.accent = parseInt(b.getAttribute('data-i'), 10); writeState(); L.rerun();
+      });
+      el.querySelector('.pv-copy').addEventListener('click', function (e) {
+        var data = JSON.stringify(L.last.items.map(function (i) { return { id: i.id, palette: i.palette }; }), null, 1);
+        var b = e.target;
+        (navigator.clipboard ? navigator.clipboard.writeText(data) : Promise.reject()).then(function () { b.textContent = 'Copied'; }, function () { b.textContent = 'Copy blocked in this view'; });
+        setTimeout(function () { b.textContent = 'Copy palette JSON'; }, 1600);
+      });
+    }
+    el.querySelector('.pv-chips').innerHTML = ex.theme.chips.map(function (c, i) {
+      return '<button type="button" data-i="' + i + '" class="' + (i === ex.theme.accentIndex ? 'on' : '') + '" title="' + L.esc(c.name) + '"><i style="background:' + c.hex + '"></i>' + L.esc(c.name) + '</button>';
+    }).join('');
+  }
+
+  /* ---------- shared css ---------- */
+  var css = [
+    ':root{--field:#394150;--on-field:#fff;--tint:#EAEBEE;--paper:#F6F7F9;--ink:#14171C;--deep:#101216;--soft:#1c2029;--glow:#9db0d0}',
+    '.cv{display:block;margin:0;position:relative;aspect-ratio:var(--ar);width:min(var(--cw,100%),calc(var(--ch,60vh) * var(--ar)));flex:none}',
+    '.cv img{display:block;width:100%;height:100%;object-fit:contain;user-select:none}',
+    '.cv.ph{display:flex;flex-direction:column;justify-content:flex-end;gap:.5em;padding:9%;background:var(--field);color:var(--on-field);overflow:hidden;container-type:inline-size}',
+    '.cv.ph .ph-m{font:600 clamp(6px,5cqw,10px)/1 var(--sans,system-ui);letter-spacing:.16em;text-transform:uppercase;opacity:.7}',
+    '.cv.ph .ph-t{font:400 clamp(9px,13cqw,30px)/1.12 var(--serif,Georgia,serif);display:-webkit-box;-webkit-line-clamp:5;-webkit-box-orient:vertical;overflow:hidden;overflow-wrap:anywhere}',
+    '[data-r]{opacity:0;transition:opacity .9s cubic-bezier(.2,.7,.2,1) var(--d,0ms),transform 1s cubic-bezier(.2,.7,.2,1) var(--d,0ms)}',
+    '[data-r=up]{transform:translateY(34px)}[data-r=left]{transform:translateX(-46px)}[data-r=right]{transform:translateX(46px)}[data-r=scale]{transform:scale(.94)}',
+    '[data-r].in{opacity:1;transform:none}',
+    '#app{transition:opacity .5s ease}#app.is-loading{opacity:0}',
+    'body.show-labels [data-spread]{position:relative}',
+    'body.show-labels [data-spread]::after{content:attr(data-spread);position:absolute;top:8px;left:8px;z-index:60;font:600 10px/1 ui-monospace,Menlo,monospace;background:#111;color:#7CFFB2;padding:4px 6px;border-radius:3px;pointer-events:none}',
+    '@media (prefers-reduced-motion:reduce){[data-r]{opacity:1!important;transform:none!important;transition:none!important}}',
+    '#pv{position:fixed;right:14px;bottom:14px;z-index:99999;font:12px/1.35 system-ui,-apple-system,sans-serif;color:#eee}',
+    '#pv .pv-b{display:block;margin-left:auto;background:rgba(18,20,24,.82);color:#fff;border:0;border-radius:99px;padding:7px 13px;font:600 11px/1 system-ui;letter-spacing:.04em;cursor:pointer;backdrop-filter:blur(10px)}',
+    '#pv .pv-p{width:268px;margin-top:8px;padding:14px;border-radius:14px;background:rgba(18,20,24,.92);backdrop-filter:blur(14px);box-shadow:0 18px 40px rgba(0,0,0,.35)}',
+    '#pv label{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:9px;color:#b9bec7}',
+    '#pv select{max-width:170px;background:#242830;color:#eee;border:0;border-radius:6px;padding:5px 6px;font:inherit}',
+    '#pv .pv-c{justify-content:flex-start}#pv .pv-t{margin:12px 0 6px;color:#b9bec7}',
+    '#pv .pv-chips{display:flex;flex-direction:column;gap:3px;max-height:150px;overflow:auto}',
+    '#pv .pv-chips button{display:flex;align-items:center;gap:8px;background:transparent;color:#d9dce2;border:0;border-radius:6px;padding:4px 6px;text-align:left;font:inherit;cursor:pointer}',
+    '#pv .pv-chips button.on{background:#2c313b;color:#fff}#pv .pv-chips i{width:14px;height:14px;border-radius:50%;flex:none}',
+    '#pv .pv-copy{margin-top:10px;width:100%;background:#2c313b;color:#fff;border:0;border-radius:8px;padding:8px;font:inherit;cursor:pointer}'
+  ].join('\n');
+  var st = document.createElement('style'); st.id = 'lecta-core'; st.textContent = css; document.head.appendChild(st);
+})(window);
+
+</script>
+<script>
+(function () {
+  'use strict';
+  var L = Lecta, P = LectaPalette, E = L.esc, pad = L.pad;
+
+  var TYPES = {
+    portal:  { kind: 'plate', fits: ['none', 'line', 'short', 'medium'], weight: 'sparse' },
+    side:    { kind: 'inset', fits: ['line', 'short', 'medium', 'long'], weight: 'mid' },
+    immerse: { kind: 'full', fits: ['none', 'line', 'short'], weight: 'sparse', feature: true, needs: function (it) { return it.featured || !!it.photo; } },
+    type:    { kind: 'quote', fits: ['none', 'line', 'short'], weight: 'mid', spaced: 2, prefer: true, needs: function (it) { return !!it.quote && it.quote.length <= 140; } }
+  };
+
+  function R(html, kind, delay) { return '<div data-r="' + kind + '"' + (delay ? ' data-d="' + delay + 'ms"' : '') + '>' + html + '</div>'; }
+  function title(it) { return '<h2 class="ti ' + L.tcls(it.title) + ' ' + L.hk(it.title) + '">' + E(it.title) + '</h2>'; }
+  function credit(it) { return (it.creator ? '<p class="cr">' + E(it.creator) + '</p>' : '') + '<p class="mt">' + E(L.metaLine(it)) + '</p>'; }
+  function eb(it, i) { return '<span class="eb">' + pad(i + 1) + ' / ' + E(it.theme.name) + '</span>'; }
+  function hasBody(it) { return it.paras.length > 0 || !!it.quote; }
+  /* long text stays in a fixed box, the whole text opens in the reader */
+  function body(it, i) {
+    if (!hasBody(it)) return '';
+    var clamp = it.noteLen > 300 || it.paras.length > 2;
+    return '<div class="bd ' + it.bucket + (clamp ? ' clamp' : '') + '">' + L.bodyHTML(it) + '</div>' + (clamp ? '<button class="rd" type="button" data-read="' + i + '">Read</button>' : '');
+  }
+  function sec(it, i, pl, cls) {
+    return '<section class="sc sc-' + pl.type + (cls || '') + '" id="s-' + i + '" data-i="' + i + '" data-spread="' + pl.type + ' / ' + pl.bucket + '" style="' + L.themeStyle(it) + '">';
+  }
+  function wash() { return ''; }
+  function cv(it, i) { return '<div data-open="' + i + '">' + L.visual(it, {}) + '</div>'; }
+
+  var SCENE = {
+    portal: function (it, i, pl) {
+      var b = hasBody(it);
+      return sec(it, i, pl) + wash(it) +
+        '<div class="pcv" data-r="scale"><div class="par" data-par="0.05">' + cv(it, i) + '</div></div>' +
+        '<div class="pcap' + (b ? '' : ' solo') + '"><div data-r="up" data-d="100ms">' + eb(it, i) + '<div style="height:20px"></div>' + title(it) + credit(it) + '</div>' +
+        (b ? '<div data-r="up" data-d="200ms">' + body(it, i) + '</div>' : '') + '</div></section>';
+    },
+    side: function (it, i, pl) {
+      var r = pl.variant % 2 === 1;
+      return sec(it, i, pl, r ? ' r' : '') + wash(it) +
+        '<div class="sd-cv" data-r="' + (r ? 'right' : 'left') + '"><div class="par" data-par="0.04">' + cv(it, i) + '</div></div>' +
+        '<div class="sd-tx" data-r="' + (r ? 'left' : 'right') + '" data-d="120ms">' + eb(it, i) + title(it) + credit(it) + body(it, i) + '</div></section>';
+    },
+    immerse: function (it, i, pl) {
+      var bg = it.photo ? '<img src="' + E(it.photo.src) + '" alt="" aria-hidden="true">' : '';
+      return sec(it, i, pl) + '<div class="ph-bg">' + bg + '</div>' +
+        '<div class="im-tx">' + R(eb(it, i), 'up') + R(title(it) + credit(it), 'up', 80) + (hasBody(it) ? R(body(it, i), 'up', 160) : '') + '</div>' +
+        '<div class="im-cv" data-r="up" data-d="200ms"><div class="par" data-par="0.07"><div data-open="' + i + '">' + L.cover(it, {}) + '</div></div></div></section>';
+    },
+    type: function (it, i, pl) {
+      var q = it.quote, n = q.length, qc = n <= 24 ? 'q1' : n <= 48 ? 'q2' : n <= 90 ? 'q3' : 'q4', kr = L.hk(q) ? ' kr' : '';
+      return sec(it, i, pl) + wash(it) +
+        '<div class="tcv" data-r="scale"><div class="par" data-par="0.04">' + cv(it, i) + '</div></div>' +
+        '<blockquote class="qt ' + qc + kr + '" data-r="up" data-d="100ms">' + L.rich(q) + '</blockquote>' +
+        '<div class="tcap" data-r="up" data-d="180ms">' + title(it) + credit(it) + '</div>' +
+        (it.paras.length ? '<div class="tbody" data-r="up" data-d="240ms">' + it.paras.map(function (p) { return '<p>' + L.rich(p) + '</p>'; }).join('') + '</div>' : '') + '</section>';
+    }
+  };
+
+  function openingHTML(ex) {
+    var tp = ex.theme.primary, hero = ex.hero, names = ex.theme.chips.slice(0, 4).map(function (c) { return c.name; }).join(', ');
+    return '<section class="open" id="top" data-spread="opening" style="' + P.cssVars(tp) + '">' +
+      '<div class="o-main"><p class="o-eb" data-r="up">Afterimage' + (names ? ' / ' + E(names) : '') + '</p>' +
+      '<h1 class="o-title ' + L.tcls(ex.title) + ' ' + L.hk(ex.title) + '" data-r="up" data-d="100ms">' + E(ex.title) + '</h1>' +
+      (ex.subtitle ? '<p class="o-sub" data-r="up" data-d="220ms">' + L.rich(ex.subtitle) + '</p>' : '') +
+      '<div class="o-foot" data-r="up" data-d="340ms"><span>' + (ex.curator ? 'Curated by ' + E(ex.curator) + ', ' : '') + ex.items.length + (ex.items.length === 1 ? ' work' : ' works') + '</span>' + (ex.items.length ? '<a href="#s-0">Enter</a>' : '') + '</div></div>' +
+      '<div class="o-cv" data-r="scale" data-d="200ms"><div class="par" data-par="0.05"><div data-open="' + hero.index + '">' + L.cover(hero, {}) + '</div></div></div></section>';
+  }
+
+  function afterHTML(ex) {
+    var items = ex.items, n = items.length, tp = ex.theme.primary;
+    var cols = n <= 5 ? Math.max(1, n) : n <= 12 ? 4 : 6, rows = Math.ceil(n / cols);
+    var lis = items.map(function (it, i) {
+      return '<li data-r="up" data-d="' + Math.min(i, 10) * 60 + 'ms" style="' + L.themeStyle(it) + '"><a href="#s-' + i + '">' + L.cover(it, { ch: Math.max(15, Math.floor(50 / rows)) + 'svh' }) +
+        '<span class="at ' + L.hk(it.title) + '">' + E(it.title) + '</span>' + (it.creator ? '<span class="ac">' + E(it.creator) + '</span>' : '') + '</a></li>';
+    }).join('');
+    var names = ex.theme.chips.map(function (c) { return E(c.name); }).join(', ');
+    return '<section class="after" id="after" data-spread="index" style="' + P.cssVars(tp) + '"><h3 data-r="up">Afterwards</h3><ol class="arow" style="--cols:' + cols + '">' + lis + '</ol>' +
+      '<p class="colors" data-r="up">Colors in this curation, taken from the covers: <b>' + names + '</b></p>' +
+      '<div class="foot"><a class="brand" href="#top">Lecta</a><span>Made with Lecta</span></div></section>';
+  }
+
+  Lecta.boot({
+    render: function (ex, app) {
+      var items = ex.items, plan = L.plan(items, TYPES);
+      items.forEach(function (it, i) { it.index = i; });
+      var heroIdx = items.indexOf(ex.hero);
+      var html = '<header class="top"><a class="brand" href="#top">Lecta</a><div class="topr"><span id="cnt"></span><button type="button" data-index>Index</button></div></header>' +
+        openingHTML(ex) + items.map(function (it, i) { return SCENE[plan[i].type](it, i, plan[i]); }).join('') + afterHTML(ex) +
+        '<div class="reader" id="reader" aria-hidden="true"></div>';
+      app.innerHTML = html;
+      document.body.style.backgroundColor = ex.theme.primary.deep;
+
+      /* the page color follows the scene in view, flat */
+      function ambient(t) { document.body.style.backgroundColor = t.deep; }
+      ambient(ex.theme.primary);
+      var cnt = document.getElementById('cnt');
+      cnt.textContent = '';
+      L.spy([].slice.call(app.querySelectorAll('.sc')), function (el) {
+        var i = +el.getAttribute('data-i'); ambient(items[i].theme); cnt.textContent = pad(i + 1) + ' / ' + pad(items.length);
+      }, '-42% 0px -42% 0px');
+      L.spy([].slice.call(app.querySelectorAll('.open,.after')), function () { ambient(ex.theme.primary); cnt.textContent = ''; }, '-42% 0px -42% 0px');
+
+      /* parallax */
+      var pars = [].slice.call(app.querySelectorAll('[data-par]'));
+      if (!L.reduced && pars.length) {
+        L.onScroll(function () {
+          var vh = window.innerHeight;
+          pars.forEach(function (p) {
+            var r = p.getBoundingClientRect();
+            if (r.bottom < -120 || r.top > vh + 120) return;
+            var d = (r.top + r.height / 2 - vh / 2) / vh;
+            p.style.transform = 'translate3d(0,' + (-d * parseFloat(p.dataset.par) * vh).toFixed(1) + 'px,0)';
+          });
+        });
+      }
+
+      /* tilt on pointer devices */
+      if (!L.reduced && window.matchMedia('(hover:hover)').matches) {
+        app.addEventListener('pointermove', function (e) {
+          var c = e.target.closest && e.target.closest('.sc .cv, .open .cv'); if (!c) return;
+          var r = c.getBoundingClientRect(), x = (e.clientX - r.left) / r.width - 0.5, y = (e.clientY - r.top) / r.height - 0.5;
+          c.style.transform = 'perspective(900px) rotateY(' + (x * 9).toFixed(2) + 'deg) rotateX(' + (-y * 9).toFixed(2) + 'deg)';
+        });
+        app.addEventListener('pointerout', function (e) { var c = e.target.closest && e.target.closest('.cv'); if (c) c.style.transform = ''; });
+      }
+
+      /* reader: full text for any work, arrows and escape */
+      var reader = document.getElementById('reader'), cur = -1;
+      function show(i) {
+        i = (i + items.length) % items.length; cur = i;
+        var it = items[i];
+        reader.setAttribute('style', L.themeStyle(it));
+        reader.innerHTML = '<div class="rl">' + L.cover(it, {}) + '</div><div class="rr">' + eb(it, i) + '<div style="height:24px"></div>' + title(it) + credit(it) +
+          (hasBody(it) ? '<div class="bd ' + it.bucket + '">' + L.bodyHTML(it) + '</div>' : '') +
+          '<div class="rnav"><button type="button" data-prev>Previous</button><button type="button" data-next>Next</button></div></div><button class="rx" type="button" data-close>Close</button>';
+        reader.classList.add('on'); reader.setAttribute('aria-hidden', 'false');
+        document.documentElement.style.overflow = 'hidden';
+      }
+      function close() { reader.classList.remove('on'); reader.setAttribute('aria-hidden', 'true'); document.documentElement.style.overflow = ''; cur = -1; }
+      app.addEventListener('click', function (e) {
+        var o = e.target.closest('[data-open]'), r = e.target.closest('[data-read]');
+        if (r) { show(+r.getAttribute('data-read')); return; }
+        if (o && !e.target.closest('a')) { show(+o.getAttribute('data-open')); return; }
+        if (e.target.closest('[data-close]')) { close(); return; }
+        if (e.target.closest('[data-prev]')) { show(cur - 1); return; }
+        if (e.target.closest('[data-next]')) { show(cur + 1); return; }
+        if (e.target.closest('[data-index]')) { document.getElementById('after').scrollIntoView({ behavior: L.reduced ? 'auto' : 'smooth' }); }
+      });
+      reader.addEventListener('click', function (e) { if (e.target === reader) close(); });
+      function onKey(e) {
+        if (cur < 0) return;
+        if (e.key === 'Escape') close();
+        else if (e.key === 'ArrowRight') show(cur + 1);
+        else if (e.key === 'ArrowLeft') show(cur - 1);
+      }
+      document.addEventListener('keydown', onKey);
+      L.onCleanup(function () { document.removeEventListener('keydown', onKey); document.documentElement.style.overflow = ''; });
+    }
+  });
+})();
+</script>
+</body>
+</html>

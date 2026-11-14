@@ -1,0 +1,22 @@
+/* node qa/sequence-check.cjs : pure reorder and draft helpers */
+const assert = require('assert'), S = require('../lecta-sequence.js');
+const L = ['A', 'B', 'C'].map((id) => ({ id }));
+const ids = (l) => l.map((x) => x.id).join('');
+assert.strictEqual(ids(S.move(L, 2, 0)), 'CAB');
+assert.strictEqual(ids(L), 'ABC', 'move does not mutate');
+assert.strictEqual(S.dropIndex(0, 2), 0); assert.strictEqual(S.dropIndex(3, 0), 2);
+assert.ok(S.isNoopGap(1, 1) && S.isNoopGap(2, 1) && !S.isNoopGap(0, 1));
+assert.strictEqual(S.step(3, 0, 'up'), null); assert.strictEqual(S.step(3, 0, 'bottom'), 2); assert.strictEqual(S.step(3, 2, 'top'), 0);
+assert.strictEqual(ids(S.applyOrder(S.move(L, 0, 2), ['A', 'B', 'C'])), 'ABC');
+let n = 0; const got = S.ensureIds([{ id: 'x' }, { id: 'x' }, {}, { id: ' y ' }], () => 'g' + (++n));
+assert.deepStrictEqual(got, ['x', 'g1', 'g2', 'y']);
+const mem = (o) => ({ getItem: (k) => (k in o ? o[k] : null) });
+assert.strictEqual(S.readDraft(mem({ [S.KEY_V2]: JSON.stringify({ items: [{ id: 'a' }] }) })).from, 'v2');
+const v3 = S.readDraft(mem({ [S.KEY_V3]: JSON.stringify(S.wrapDraft({ items: [] }, 2)), [S.KEY_V2]: '{"items":[]}' }));
+assert.strictEqual(v3.from, 'v3'); assert.strictEqual(v3.dropped, 2);
+assert.strictEqual(S.readDraft(mem({ [S.KEY_V3]: 'not json' })), null);
+assert.strictEqual(S.textStats('', '').bucket, 'none');
+assert.strictEqual(S.textStats('한 줄', '').bucket, 'line');
+assert.strictEqual(S.textStats('이유', 'x'.repeat(700)).bucket, 'long');
+assert.strictEqual(S.textStats('', '본문\n\n> 인용\n\n둘').paras, 3);
+console.log('sequence-check: all assertions passed');
