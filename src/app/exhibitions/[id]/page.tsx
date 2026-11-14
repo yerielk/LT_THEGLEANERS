@@ -26,7 +26,7 @@ export default async function ExhibitionPage({ params, searchParams }: { params:
         <div className="wrap" style={{ paddingBlock: "64px 120px" }}>
           <h1 className="display">Private draft.</h1>
           <p className="lede">이 전시는 비공개 초안이라 만든 사람만 볼 수 있어요.</p>
-          <Link className="btn btn-ghost" href="/discover">Browse works</Link>
+          <Link className="btn btn-ghost" href="/discover">작품 검색</Link>
         </div>
       );
     }

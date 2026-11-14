@@ -1,11 +1,12 @@
 import { Link } from "next-view-transitions";
 import type { CSSProperties } from "react";
-import { listFeatured } from "@/lib/services/exhibitions";
+import { homePicks } from "@/lib/services/home";
 import { allWorks } from "@/lib/services/works";
 import { canUseAgentLab, webActor } from "@/lib/services/web-actor";
 import { MEDIUM_PLURAL } from "@/components/WorkCover";
 import { WorkImage } from "@/components/WorkImage";
 import { HangRow } from "@/components/HangRow";
+import { WorkCarousel } from "@/components/WorkCarousel";
 import { TAGS } from "@/lib/recommendation/tags";
 import { wallFor } from "@/lib/design";
 
@@ -17,7 +18,7 @@ const HANG_H: Record<string, number> = { FILM: 340, BOOK: 290, ALBUM: 220, SERIE
 
 export default async function Home() {
   const actor = await webActor();
-  const [featured, works] = await Promise.all([listFeatured(actor), allWorks()]);
+  const [{ pick, popular }, works] = await Promise.all([homePicks(actor), allWorks()]);
   const byId = new Map(works.map((w) => [w.id, w]));
   const counts = (["FILM", "SERIES", "BOOK", "ALBUM"] as const).map((m) => ({ m, n: works.filter((w) => w.medium === m).length }));
   const moodCount = (k: string) => works.filter((w) => w.tagKeys.includes(k)).length;
@@ -52,36 +53,51 @@ export default async function Home() {
         </HangRow>
       </section>
 
-      <section className="rooms wrap" aria-labelledby="rooms-title">
-        <div className="rooms-head">
-          <h2 id="rooms-title" className="h2">Four rooms</h2>
-          <p className="muted" style={{ margin: 0, maxWidth: "30em", fontSize: 14.5 }}>THE GLEANERS가 먼저 꾸린 네 개의 방. 각 방의 벽 색은 와다 산조의 『배색 사전』에서 골랐어요.</p>
-        </div>
-        {featured.map((ex, i) => {
-          const wall = wallFor(ex.number);
-          const style = { "--room": wall.hex, "--room-ink": wall.ink } as CSSProperties;
-          return (
-            <div key={ex.id} className={`room-row${i % 2 ? " flip" : ""}`} style={style}>
-              <Link href={`/exhibitions/${ex.id}`} className="room-panel" style={{ viewTransitionName: `room-${ex.id}` }}>
-                <span className="room-no">Room {String(ex.number).padStart(2, "0")} / {wall.name}</span>
-                <span>
-                  <h3 className="room-title">{ex.title}</h3>
-                  <p className="room-desc">{ex.description}</p>
-                </span>
-                <span className="room-enter">Enter the room</span>
-              </Link>
-              <div className="room-wall">
-                {ex.items.slice(0, 4).map((it) => (
-                  <Link key={it.workId} href={`/works/${it.workId}`} aria-label={`${it.work.title}, details`} style={{ alignSelf: "center" }}>
-                    <WorkImage work={it.work} />
-                    <span className="label" style={{ display: "block" }}><span className="l-title" style={{ fontSize: 17 }}>{it.work.title}</span>{it.work.creator}</span>
-                  </Link>
-                ))}
+      {pick && (() => {
+        const wall = wallFor(pick.number);
+        return (
+          <section className="panorama" aria-labelledby="pick-title" style={{ "--room": wall.hex, "--room-ink": wall.ink } as CSSProperties}>
+            <div className="wrap panorama-head">
+              <div>
+                <p className="panorama-kicker">오늘의 추천 큐레이션 / Room {String(pick.number).padStart(2, "0")} / {wall.name}</p>
+                <h2 id="pick-title" className="room-title">{pick.title}</h2>
+              </div>
+              <div className="panorama-sub">
+                {pick.description && <p className="room-desc" style={{ margin: 0 }}>{pick.description}</p>}
+                <p className="panorama-meta">Curated by {pick.ownerName} / {pick.items.length} works</p>
+                <Link className="room-enter" href={`/exhibitions/${pick.id}`} style={{ viewTransitionName: `room-${pick.id}` }}>Enter the room</Link>
               </div>
             </div>
-          );
-        })}
-      </section>
+            <WorkCarousel items={pick.items} label={`${pick.title}의 작품들`} />
+          </section>
+        );
+      })()}
+
+      {popular.length > 0 && (
+        <section className="popular wrap" aria-labelledby="popular-title">
+          <div className="rooms-head">
+            <h2 id="popular-title" className="h2">인기 큐레이션</h2>
+            <Link className="btn-ghost" href="/curations">큐레이션 모두 보기</Link>
+          </div>
+          <div className="popular-grid">
+            {popular.map((ex) => {
+              const wall = wallFor(ex.number);
+              return (
+                <Link key={ex.id} href={`/exhibitions/${ex.id}`} className="popular-card" style={{ "--room": wall.hex, "--room-ink": wall.ink } as CSSProperties}>
+                  <span className="popular-panel">
+                    <span className="room-no">Room {String(ex.number).padStart(2, "0")}</span>
+                    <span className="popular-title">{ex.title}</span>
+                  </span>
+                  <span className="popular-strip" aria-hidden>
+                    {ex.items.slice(0, 4).map((i) => <span key={i.workId} style={{ aspectRatio: i.work.artwork ? `${i.work.artwork.width} / ${i.work.artwork.height}` : "2 / 3" }}><WorkImage work={i.work} /></span>)}
+                  </span>
+                  <span className="caption">Curated by {ex.ownerName} / {ex.items.length} works</span>
+                </Link>
+              );
+            })}
+          </div>
+        </section>
+      )}
 
       <section className="moods-band wrap">
         <div className="rooms-head" style={{ marginBottom: 0 }}>
