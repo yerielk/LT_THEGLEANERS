@@ -1,0 +1,84 @@
+import { createRequire } from 'node:module';
+import assert from 'node:assert/strict';
+const require = createRequire(import.meta.url);
+const { chromium } = require('playwright');
+const sharp = require('sharp');
+const browser = await chromium.launch({headless:true});
+const page = await browser.newPage({viewport:{width:1440,height:1000}});
+const errors=[];
+page.on('pageerror',e=>errors.push(e.message));
+await page.route('**/api/external/search?**',route=>route.fulfill({json:{works:[],failedSources:[]}}));
+const base=process.env.LECTA_E2E_URL || 'http://localhost:3000';
+assert.ok(['localhost','127.0.0.1'].includes(new URL(base).hostname), 'Use a disposable local/demo test server');
+try {
+ await page.goto(base+'/exhibitions/new');
+ await page.waitForSelector('.curation-editor-frame');
+ const editor=await (await page.$('.curation-editor-frame')).contentFrame();
+ await editor.waitForFunction(()=>document.body.style.visibility!=='hidden' && !!window.LectaEditor);
+ await editor.locator('[data-g=title]').fill('템플릿 통합 검증');
+ await editor.locator('[data-g=intro]').fill('하나의 기록으로 세 가지 템플릿을 씁니다.\n\n두 번째 문단');
+ await editor.locator('[data-act=add]').click();
+ await editor.locator('#q').fill('Aftersun');
+ await editor.locator('#res [data-pick]').first().click();
+ await editor.locator('#w-reason').fill('마지막 장면의 여운');
+ const note='이 장면을 오래 기억한다. '.repeat(180)+'\n\n> 기억은 느리게 도착한다\n> 여운이 남는다\n\n**굵은 글**과 *기울인 글*';
+ await editor.locator('#w-note').fill(note);
+ assert.equal(await editor.locator('[data-f=title]').getAttribute('readonly')!==null,true);
+ await editor.locator('[data-act=add]').click();
+ await editor.locator('#q').fill('Stoner');
+ await editor.locator('#res [data-pick]').first().click();
+ await editor.locator('#w-reason').fill('다시 읽고 싶은 책');
+ await editor.locator('[data-act=save]').click();
+ await page.waitForURL(/\/exhibitions\/ex_/);
+ const id=page.url().split('/')[4];
+ console.log('created',id);
+ async function saved(test) {for(let i=0;i<80;i++){let r=await page.request.get(base+'/api/curations/'+id);let j=await r.json();if(test(j))return j;await page.waitForTimeout(250);}throw new Error('Save did not reach DB');}
+ await saved(r=>r.document.items.length===2 && r.document.items[0].note===note);
+ // Actual keyboard reorder, with stable catalog identities.
+ await editor.locator('[data-act=mode][data-v=design]').first().click();
+ let data=await editor.evaluate(()=>window.LectaEditor.getData());
+ const second=data.items[1].id;
+ await editor.locator('.row[data-id="'+second+'"] .grip').focus();
+ await page.keyboard.press('Alt+ArrowUp');
+ await saved(r=>r.document.items[0].id===second);
+ await editor.locator('.row[data-id="w_film_aftersun"] .pick').click();
+ const png=await sharp({create:{width:300,height:500,channels:4,background:'#234c87'}}).png().toBuffer();
+ await editor.locator('[data-scenes]').setInputFiles({name:'scene.png',mimeType:'image/png',buffer:png});
+ await saved(r=>r.document.items.find(w=>w.id==='w_film_aftersun').scenes.length===1);
+ await editor.locator('.row.cover .pick').click();
+ for(const template of ['the-edit','afterimage','the-spread']){
+  await editor.locator('[data-act=tpl][data-v="'+template+'"]').click();
+  await saved(r=>r.document.template===template);
+  const preview=await (await editor.$('#frame')).contentFrame();
+  await preview.waitForFunction(()=>window.Lecta && window.Lecta.last && window.Lecta.last.items.length===2);
+  assert.deepEqual(await preview.evaluate(()=>window.Lecta.last.items.map(w=>w.id)),[second,'w_film_aftersun']);
+ }
+ await editor.locator('[data-act=mode][data-v=write]').first().click();
+ await page.screenshot({path:'/tmp/lecta-template-editor-desktop.png'});
+ // Reload from the server, rather than the prototype localStorage.
+ await page.reload();
+ const reopened=await (await page.waitForSelector('.curation-editor-frame')).contentFrame();
+ await reopened.waitForFunction(()=>window.LectaEditor && window.LectaEditor.getData().items.length===2 && document.body.style.visibility!=='hidden');
+ const restored=await reopened.evaluate(()=>window.LectaEditor.getData());
+ assert.deepEqual(restored.items.map(w=>w.id),[second,'w_film_aftersun']);
+ assert.equal(restored.items[1].note,note);
+ assert.match(restored.items[1].scenes[0].src,/^\/api\/curation-assets\//);
+ assert.equal(await reopened.evaluate(()=>localStorage.getItem('lecta.curation.draft.v3')),null);
+ await page.goto(base+'/exhibitions/'+id);
+ const reader=await (await page.waitForSelector('.curation-reader-frame')).contentFrame();
+ await reader.waitForFunction(()=>window.Lecta && window.Lecta.last && window.Lecta.last.items.length===2);
+ await reader.waitForFunction(()=>!document.getElementById('app').classList.contains('is-loading'));
+ await reader.locator('.o-t').waitFor({state:'visible'});
+ await page.waitForTimeout(1200);
+ await page.screenshot({path:'/tmp/lecta-template-reader-desktop.png'});
+ await page.goto(base+'/me');
+ assert.ok(await page.locator('a').filter({hasText:'템플릿 통합 검증'}).count());
+ await page.setViewportSize({width:390,height:844});
+ await page.goto(base+'/exhibitions/'+id+'/edit');
+ const mobile=await (await page.waitForSelector('.curation-editor-frame')).contentFrame();
+ await mobile.waitForFunction(()=>window.LectaEditor && window.LectaEditor.getData().items.length===2 && document.body.style.visibility!=='hidden');
+ assert.ok(await mobile.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));
+ await page.screenshot({path:'/tmp/lecta-template-editor-mobile.png'});
+ console.log(JSON.stringify({ok:true,id,checks:'new → catalog search → long writing → keyboard reorder → image upload → three templates → DB reopen → reader → My rooms → 390px',errors}));
+ assert.deepEqual(errors,[]);
+} finally {await browser.close();}

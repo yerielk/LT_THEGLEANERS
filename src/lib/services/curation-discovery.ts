@@ -1,4 +1,4 @@
-import { and, desc, eq, isNotNull } from "drizzle-orm";
+import { and, desc, eq, inArray, isNotNull } from "drizzle-orm";
 import { getDb, type Db } from "../db";
 import { tasteSignals } from "../schema";
 import { getWorksByIds, type WorkView } from "./works";
@@ -58,7 +58,7 @@ export async function getCurationDiscovery(actor: Actor, db: Db = getDb()) {
 
   const archivedWorkIds = actor.userId
     ? await db.select({ workId: tasteSignals.workId }).from(tasteSignals)
-      .where(and(eq(tasteSignals.userId, actor.userId), eq(tasteSignals.signalType, "SAVED"), isNotNull(tasteSignals.workId)))
+      .where(and(eq(tasteSignals.userId, actor.userId), inArray(tasteSignals.signalType, ["SAVED", "LIKED", "CURATED", "RECOMMENDATION_ADDED"]), isNotNull(tasteSignals.workId)))
       .orderBy(desc(tasteSignals.createdAt)).limit(200)
     : [];
   const savedIds = [...new Set(archivedWorkIds.map((row) => row.workId).filter((id): id is string => !!id))];

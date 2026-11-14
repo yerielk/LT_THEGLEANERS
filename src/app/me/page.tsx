@@ -4,11 +4,11 @@ import { Link } from "next-view-transitions";
 import { listMine } from "@/lib/services/exhibitions";
 import { webActor } from "@/lib/services/web-actor";
 import { CurationWorkShelf } from "@/components/CurationWorkShelf";
+import { curationDisplayTitle } from "@/components/CurationCover";
 import { EmptyState } from "@/components/States";
+import { AuthButton } from "@/components/AuthButton";
 import { ApiKeys } from "@/components/ApiKeys";
 import { wallFor } from "@/lib/design";
-import { ExhibitionEditor } from "@/components/ExhibitionEditor";
-import { curationDisplayTitle } from "@/components/CurationCover";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = { title: "My rooms" };
@@ -18,19 +18,18 @@ export default async function MePage() {
   const mine = await listMine(actor);
   return (
     <div className="wrap" style={{ paddingBottom: 120 }}>
-      <header className="page-head me-page-head">
+      <header className="page-head intro-stack">
         <h1 className="display">My rooms.</h1>
         <p className="muted">
           {actor.kind === "user" ? `${actor.label}님의 전시예요.` : actor.kind === "demo" ? `${actor.label} — 로그인하지 않으면 모든 저장이 하나의 데모 사용자에게 기록돼요.` : "로그인하면 내 전시와 MCP 키를 관리할 수 있어요."}
         </p>
+        {actor.kind !== "user" && <AuthButton user={null} />}
+        {actor.userId && <Link className="btn-ghost" href="/welcome?next=/me">Choose your favorites again</Link>}
       </header>
-      <section className="me-create-room" aria-labelledby="create-room-title">
-        <h2 id="create-room-title" className="h3" style={{ marginBottom: 12 }}>Create a room</h2>
-        <ExhibitionEditor mode="new" canWrite={!!actor.userId} embedded />
-      </section>
       {mine.length === 0 ? (
-        <EmptyState title="아직 만든 전시가 없어요." body="Browse works에서 작품을 골라 첫 전시를 만들어 보세요. 에이전트가 MCP로 만든 초안도 여기에 나타나요." action={{ href: "/discover", label: "Choose works" }} />
+        <EmptyState title="아직 만든 큐레이션이 없어요." body="템플릿을 고르고 작품과 감상을 담아 보세요. 에이전트가 MCP로 만든 초안도 여기에서 편집할 수 있어요." action={{ href: "/exhibitions/new", label: "Create a curation" }} />
       ) : (
+        <>
         <div className="me-list">
           {mine.map((ex) => {
             const wall = wallFor(ex.number);
@@ -52,6 +51,8 @@ export default async function MePage() {
             );
           })}
         </div>
+        <Link className="btn" href="/exhibitions/new" style={{ marginTop: 32 }}>Create a curation</Link>
+        </>
       )}
       {actor.userId && <ApiKeys />}
     </div>

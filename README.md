@@ -61,6 +61,10 @@ npm run test:e2e      # browser walkthrough of UAT-01/02 at 1440px and 390px (ne
 npm run agent:demo    # real LLM agent over MCP — only with ANTHROPIC_API_KEY or OPENAI_API_KEY in .env
 ```
 
+## Curation templates and editor
+
+My rooms now opens the v5 editor with THE SPREAD, THE EDIT and AFTERIMAGE. It searches the real catalog, saves account-owned drafts and scene uploads to PostgreSQL, and restores the same document across templates. Run `npm run db:setup` for the new migration before starting. See [docs/curation-editor.md](docs/curation-editor.md) for the integration, limits and verification.
+
 ## How it is built
 
 ```text
@@ -136,18 +140,9 @@ score = 0.35*S + 0.25*W + 0.20*C + 0.10*D + 0.10*N   (weights renormalised when 
 - `confidenceLabel` is `editorially_matched` when a recommendation has at least two grounded reasons and a score of 0.4 or higher. Otherwise it is `exploratory`.
 - The output is deterministic, with ties broken by `workId`. No LLM or API key is involved.
 
-### Curation recommendations in Discover
+### Curation recommendations
 
-Discover also recommends exhibitions while a visitor searches for a work or has works on the selection shelf. Results are grouped in this order: selected work included, keyword match, then embedding cosine similarity. The API only loads public exhibitions and exhibitions owned by the current user. With no embedding service configured or when it is unavailable, direct and keyword results continue to work.
-
-Meaning based ranking is optional and uses a local Ollama server. Pull an embedding model such as `nomic-embed-text`, then set these server only variables:
-
-```bash
-LECTA_EMBEDDING_URL=http://127.0.0.1:11434
-LECTA_EMBEDDING_MODEL=nomic-embed-text
-```
-
-The adapter calls Ollama's `/api/embed`, batches the query and exhibition text, and keeps a bounded 500-text in-memory embedding cache. It does not persist vectors to the database; a process restart rebuilds the cache. Requests time out after five seconds and fall back to direct and keyword matches. Keep the endpoint local or on a trusted private network because exhibition text is sent to it.
+Browse work can suggest curations containing the selected works. The Curation page searches and explores editorial curations, using onboarding/curation taste signals for suggestions. The seed includes 300 synthetic demo curations built from real catalog work IDs. Optional embeddings use the full `LECTA_EMBEDDING_URL` endpoint and `LECTA_EMBEDDING_MODEL`; tag ranking remains available when that service is absent or fails. See [docs/curation-recommendations.md](docs/curation-recommendations.md) for the actual ranking, seed policy and validation.
 
 ## MCP server
 

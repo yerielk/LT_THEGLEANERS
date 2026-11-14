@@ -57,6 +57,7 @@ async function requestEmbeddings(url: string, model: string, input: string[]): P
       method: "POST",
       headers: { "content-type": "application/json" },
       body: JSON.stringify({ model, input }),
+      signal: AbortSignal.timeout(5000),
     });
     if (!response.ok) return null;
     const payload: unknown = await response.json();

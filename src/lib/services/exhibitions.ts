@@ -7,6 +7,7 @@ import { getWorksByIds, type WorkView } from "./works";
 import { createExhibitionSchema, patchExhibitionSchema, addItemSchema, zodMessage, type CreateExhibitionInput } from "../validators";
 import { extractTagsFromText, normalize } from "../recommendation/tags";
 import { queryTagWeights } from "../recommendation/search-tags";
+import type { CurationDocument } from "../curation/document";
 
 export type Visibility = "DRAFT" | "PRIVATE" | "PUBLIC";
 
@@ -24,6 +25,7 @@ export interface ExhibitionView {
   description: string | null;
   visibility: Visibility;
   layoutTemplate: string;
+  curationData: CurationDocument | null;
   isEditorial: boolean;
   ownerId: string;
   ownerName: string;
@@ -58,6 +60,7 @@ async function load(db: Db, row: Row, actor: Actor): Promise<ExhibitionView> {
     description: row.description,
     visibility: row.visibility,
     layoutTemplate: row.layoutTemplate,
+    curationData: row.curationData,
     isEditorial: row.isEditorial,
     ownerId: row.ownerId,
     ownerName: owner?.name ?? "unknown",
@@ -89,7 +92,7 @@ export async function getExhibition(id: string, actor: Actor, db: Db = getDb()):
 
 export async function listFeatured(actor: Actor, db: Db = getDb()): Promise<ExhibitionView[]> {
   const rows = await db.select().from(exhibitions).where(eq(exhibitions.visibility, "PUBLIC")).orderBy(asc(exhibitions.number));
-  return Promise.all(rows.map((r) => load(db, r, actor)));
+  return loadMany(db, rows, actor);
 }
 
 /** Bulk-loads only exhibitions the actor may read, avoiding one query group per candidate in Discover. */
@@ -97,7 +100,11 @@ export async function listVisibleForRecommendations(actor: Actor, db: Db = getDb
   const rows = await db.select().from(exhibitions).where(actor.userId
     ? or(eq(exhibitions.visibility, "PUBLIC"), eq(exhibitions.ownerId, actor.userId))
     : eq(exhibitions.visibility, "PUBLIC")).orderBy(asc(exhibitions.id));
-  const visible = rows.filter((row) => canRead(row, actor));
+  return loadMany(db, rows.filter((row) => canRead(row, actor)), actor);
+}
+
+async function loadMany(db: Db, rows: Row[], actor: Actor): Promise<ExhibitionView[]> {
+  const visible = rows;
   if (!visible.length) return [];
 
   const ids = visible.map((row) => row.id);
@@ -123,6 +130,7 @@ export async function listVisibleForRecommendations(actor: Actor, db: Db = getDb
     description: row.description,
     visibility: row.visibility,
     layoutTemplate: row.layoutTemplate,
+    curationData: row.curationData,
     isEditorial: row.isEditorial,
     ownerId: row.ownerId,
     ownerName: ownerNames.get(row.ownerId) ?? "unknown",
@@ -169,10 +177,11 @@ function personalCurationOverlap(workIds: Set<string>, personalWorkIds: Set<stri
   return union ? intersection / union : 0;
 }
 
-/** Rank every readable curation by tag similarity; never drop results by a minimum score. */
+/** Rank readable curations by tag similarity and literal editorial/work matches. */
 export async function searchVisibleExhibitions(query: string, actor: Actor, db: Db = getDb()): Promise<ExhibitionView[]> {
   if (!normalize(query).trim()) return [];
-  const queryTags = queryTagWeights(query);
+  const normalizedQuery = normalize(query).trim();
+  const queryTags = queryTagWeights(query, 0.62);
   const queryWeightTotal = [...queryTags.values()].reduce((sum, weight) => sum + weight, 0);
   const [exhibitions, personalCurations] = await Promise.all([
     listVisibleForRecommendations(actor, db),
@@ -184,15 +193,19 @@ export async function searchVisibleExhibitions(query: string, actor: Actor, db: 
     const workIds = new Set(exhibition.items.map((item) => item.workId));
     const { fit, coverage } = curationTagSearchScore(exhibition, queryTags, queryWeightTotal);
     const overlap = personalCurationOverlap(workIds, personalWorkIds);
-    return { exhibition, score: 0.6 * fit + 0.3 * coverage + 0.1 * overlap };
-  }).sort((a, b) => b.score - a.score || a.exhibition.number - b.exhibition.number || a.exhibition.id.localeCompare(b.exhibition.id))
+    const matches = (text: string | null | undefined) => !!text && normalize(text).includes(normalizedQuery);
+    const textFit = matches(exhibition.title) ? 1
+      : exhibition.items.some((item) => [item.work.title, item.work.originalTitle, item.work.creator].some(matches)) ? 0.7
+      : matches(exhibition.description) || exhibition.items.some((item) => matches(item.curatorNote)) ? 0.4 : 0;
+    return { exhibition, relevant: fit > 0 || textFit > 0, score: 0.6 * fit + 0.3 * coverage + 0.1 * overlap + 0.25 * textFit };
+  }).filter((candidate) => candidate.relevant).sort((a, b) => b.score - a.score || a.exhibition.number - b.exhibition.number || a.exhibition.id.localeCompare(b.exhibition.id))
     .map(({ exhibition }) => exhibition);
 }
 
 export async function listMine(actor: Actor, db: Db = getDb()): Promise<ExhibitionView[]> {
   if (!actor.userId) return [];
   const rows = await db.select().from(exhibitions).where(eq(exhibitions.ownerId, actor.userId)).orderBy(desc(exhibitions.createdAt), asc(exhibitions.id));
-  return Promise.all(rows.map((r) => load(db, r, actor)));
+  return loadMany(db, rows, actor);
 }
 
 function requireWriter(actor: Actor): string {
@@ -206,7 +219,7 @@ async function assertWorksExist(db: Db, ids: string[]) {
   if (missing.length) throw new LectaError("WORK_NOT_FOUND", `Unknown work id(s): ${missing.join(", ")}`, false, { missing });
 }
 
-async function recordCurationSignals(db: Db, userId: string, exhibitionId: string, notes: { workId: string; note: string | null }[], origin: "USER_EXPLICIT" | "MODEL_SUGGESTED") {
+export async function recordCurationSignals(db: Db, userId: string, exhibitionId: string, notes: { workId: string; note: string | null }[], origin: "USER_EXPLICIT" | "MODEL_SUGGESTED") {
   if (!notes.length) return;
   await db.insert(tasteSignals).values(
     notes.map((n) => {
@@ -275,6 +288,7 @@ export async function updateExhibition(id: string, input: unknown, actor: Actor,
     await tx.update(exhibitions).set({
       title: p.title ?? row.title,
       description: p.description !== undefined ? p.description || null : row.description,
+      curationData: row.curationData && p.description !== undefined ? { ...row.curationData, intro: p.description } : row.curationData,
       version: sql`${exhibitions.version} + 1`,
       updatedAt: new Date(),
     }).where(eq(exhibitions.id, id));
@@ -297,7 +311,8 @@ export async function addItem(id: string, input: unknown, actor: Actor, db: Db =
   const [dup] = await db.select({ id: exhibitionItems.id }).from(exhibitionItems).where(and(eq(exhibitionItems.exhibitionId, id), eq(exhibitionItems.workId, workId)));
   if (dup) throw new LectaError("CONFLICT", "This work is already in the exhibition.");
   const [{ n }] = await db.select({ n: count() }).from(exhibitionItems).where(eq(exhibitionItems.exhibitionId, id));
-  if (n >= 16) throw new LectaError("VALIDATION_ERROR", "An exhibition can hold at most 16 works.");
+  const capacity = row.curationData ? 64 : 16;
+  if (n >= capacity) throw new LectaError("VALIDATION_ERROR", `A curation can hold at most ${capacity} works.`);
   await db.transaction(async (tx) => {
     const [{ p }] = await tx.select({ p: max(exhibitionItems.position) }).from(exhibitionItems).where(eq(exhibitionItems.exhibitionId, id));
     await tx.insert(exhibitionItems).values({ id: newId("exi"), exhibitionId: id, workId, position: (p ?? -1) + 1, curatorNote: curatorNote || null });
