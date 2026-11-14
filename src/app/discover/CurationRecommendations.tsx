@@ -52,7 +52,7 @@ export function CurationRecommendations({ query, medium, gridRow, onVisibilityCh
   }, [detail, selectedWorkId]);
 
   useEffect(() => {
-    const canRequest = ready && !!matchQuery.trim() && !!ids;
+    const canRequest = ready && !!ids;
     const previous = snapshotRef.current;
     const sameContext = previous.context === context;
     const additive = canRequest && sameContext && previous.selectedIds.length > 0
@@ -75,7 +75,8 @@ export function CurationRecommendations({ query, medium, gridRow, onVisibilityCh
 
     const controller = new AbortController();
     const timer = setTimeout(async () => {
-      const params = new URLSearchParams({ q: matchQuery.trim() });
+      const params = new URLSearchParams();
+      if (matchQuery.trim()) params.set("q", matchQuery.trim());
       ids.split(",").forEach((id) => params.append("workId", id));
       try {
         const response = await fetch(`/api/curation-recommendations?${params}`, { signal: controller.signal });
@@ -95,7 +96,7 @@ export function CurationRecommendations({ query, medium, gridRow, onVisibilityCh
         if ((error as Error).name !== "AbortError" && !controller.signal.aborted) {
           setErrorMessage(error instanceof Error ? error.message : "큐레이션 추천 요청에 실패했어요.");
           setState("error");
-          onVisibilityChange?.(retained.length > 0, context, retained.length ? selectedIds : []);
+          onVisibilityChange?.(true, context, selectedIds);
         }
       }
     }, 250);
@@ -106,7 +107,7 @@ export function CurationRecommendations({ query, medium, gridRow, onVisibilityCh
 
   const visibleResults = snapshot.context === context ? snapshot.results : [];
   const snapshotMatchesSelection = snapshot.selectedIds.join(",") === selectedIds.join(",");
-  const visible = ready && !!matchQuery.trim() && !!ids && snapshotMatchesSelection && visibleResults.length > 0;
+  const visible = ready && !!ids && snapshotMatchesSelection && visibleResults.length > 0;
   useLayoutEffect(() => {
     if (!detail || !visible || scrollRequest <= completedScrollRequest.current) return;
     completedScrollRequest.current = scrollRequest;
@@ -122,7 +123,7 @@ export function CurationRecommendations({ query, medium, gridRow, onVisibilityCh
     });
     return () => window.cancelAnimationFrame(frame);
   }, [detail, scrollRequest, visible]);
-  if (!visible && !(state === "error" && ready && matchQuery.trim() && ids)) return null;
+  if (!visible && !(state === "error" && ready && ids)) return null;
   const newIds = new Set(snapshot.context === context ? snapshot.newIds : []);
   return <section ref={detail ? (element) => { sectionRef.current = element; } : undefined} className={`${detail ? "wrap " : ""}curation-inline${detail ? " curation-inline-detail" : ""}`} style={gridRow ? { gridRow } : undefined} aria-label="관련 큐레이션" aria-live="polite">
     {visible ? <>

@@ -18,6 +18,13 @@ describe("curation recommendations", () => {
     expect(new Set(result.recommendations.map((r) => r.id)).size).toBe(result.recommendations.length);
   });
 
+  it("uses selected work tags when the query is empty or has no known mood tag", async () => {
+    for (const q of ["", "unmapped free text"]) {
+      const result = await recommendCurations({ q, workIds: ["w_film_aftersun"] }, anon, db);
+      expect(result.recommendations.some((item) => item.id === "ex_after_the_last_scene" && item.match === "included_work")).toBe(true);
+    }
+  });
+
   it("prioritizes curations containing more selected works when their tags fit the query", async () => {
     const result = await recommendCurations({ q: "dreamy", workIds: ["w_film_lost_translation", "w_album_teen_dream"] }, anon, db);
     expect(result.recommendations[0]).toMatchObject({ id: "ex_soft_focus", match: "included_work" });
@@ -72,9 +79,10 @@ describe("curation recommendations", () => {
     expect(ownerResults.embeddingAvailable).toBe(false);
   });
 
-  it("returns an empty result for empty input without errors", async () => {
+  it("requires a selected work and can recommend without a query", async () => {
     expect((await recommendCurations({}, anon, db)).recommendations).toEqual([]);
     expect((await recommendCurations({ q: "memory" }, anon, db)).recommendations).toEqual([]);
-    expect((await recommendCurations({ workIds: ["w_film_aftersun"] }, anon, db)).recommendations).toEqual([]);
+    expect((await recommendCurations({ workIds: ["w_film_aftersun"] }, anon, db)).recommendations)
+      .toContainEqual(expect.objectContaining({ id: "ex_after_the_last_scene", match: "included_work" }));
   });
 });

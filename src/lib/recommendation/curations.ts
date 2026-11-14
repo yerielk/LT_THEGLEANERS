@@ -94,8 +94,8 @@ function reasonsFor(keys: string[], matchedWorks: number) {
 export async function recommendCurations(input: { q?: string; workIds?: string[]; limit?: number }, actor: Actor, db: Db = getDb()) {
   const q = (input.q ?? "").trim().slice(0, 80);
   const workIds = [...new Set((input.workIds ?? []).slice(0, 8))];
-  const queryTagKeys = [...new Set(extractTagsFromText(q).map((match) => match.key))];
-  if (!q || !queryTagKeys.length || !workIds.length) return { recommendations: [], embeddingAvailable: false };
+  const searchTagKeys = [...new Set(extractTagsFromText(q).map((match) => match.key))];
+  if (!workIds.length) return { recommendations: [], embeddingAvailable: false };
 
   const [selectedWorks, catalog, views, personalCurations] = await Promise.all([
     getWorksByIds(workIds, db),
@@ -105,6 +105,11 @@ export async function recommendCurations(input: { q?: string; workIds?: string[]
   ]);
   const selected = new Set(selectedWorks.map((work) => work.id));
   if (!selected.size) return { recommendations: [], embeddingAvailable: false };
+  // If free text has no controlled tag match, use the selected works' existing tags.
+  const queryTagKeys = searchTagKeys.length
+    ? searchTagKeys
+    : [...new Set(selectedWorks.flatMap((work) => [...tagWeights(work).keys()]))];
+  if (!queryTagKeys.length) return { recommendations: [], embeddingAvailable: false };
 
   const documentFrequency = new Map<string, number>();
   for (const work of catalog) {
@@ -154,8 +159,9 @@ export async function recommendCurations(input: { q?: string; workIds?: string[]
   let embeddingAvailable = false;
   let rankedCandidates = candidates;
   if (embeddingUrl && embeddingModel && candidates.length) {
+    const embeddingQuery = q || queryTagKeys.map((key) => TAG_BY_KEY[key]?.ko ?? key).join(" ");
     const embeddings = await requestEmbeddings(embeddingUrl, embeddingModel, [
-      q,
+      embeddingQuery,
       ...candidates.map(({ curation }) => embeddingText(curation)),
     ]);
     if (embeddings) {

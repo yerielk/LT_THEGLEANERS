@@ -81,7 +81,7 @@
 .curation-discovery-expanded { display: grid; gap: 14px; padding-top: 28px; padding-bottom: 80px; }
 .curation-search-card-text-only { grid-template-columns: minmax(0, 1fr); }
 .curation-inline-caption { color: var(--grey); font-family: var(--display); font-size: 1.05rem; line-height: 1.25; }
-.curation-inline-list { display: flex; align-items: start; gap: 16px; min-width: 0; overflow-x: auto; overscroll-behavior-inline: contain; padding: 4px 2px 8px; scrollbar-width: thin; }
+.curation-inline-list { display: flex; align-items: start; gap: 32px; min-width: 0; overflow-x: auto; overscroll-behavior-inline: contain; padding: 4px 2px 8px; scrollbar-width: thin; }
 .curation-inline-item { display: block; flex: 0 0 96px; min-width: 0; color: inherit; text-decoration: none; scroll-snap-align: start; }
 .curation-inline-item[data-entering="true"] { animation: curation-item-in .28s var(--ease) both; }
 @keyframes curation-item-in { from { opacity: 0; transform: translateY(7px) scale(.98); } to { opacity: 1; transform: translateY(0) scale(1); } }

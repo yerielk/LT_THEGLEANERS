@@ -105,13 +105,23 @@ export async function seedDatabase(db: Db) {
       if (!item.works.every(matchesReference)) return false;
       const existing = existingManifestById.get(item.id);
       if (existing && (existing.ownerId !== EDITORIAL_USER.id || !existing.isEditorial || existing.visibility !== "PUBLIC" ||
-        existing.title !== item.title || existing.description !== item.description)) return false;
+        existing.description !== item.description)) return false;
       const linked = itemsByCuration.get(item.id) ?? new Set<string>();
       if ([...linked].some((workId) => !item.works.some((work) => work.id === workId))) return false;
       const slug = item.id.replace(/^ex_/, "").replace(/_/g, "-");
       const occupyingId = slugOwner.get(slug);
       return !occupyingId || occupyingId === item.id;
     });
+
+    // Existing editorial rows may reference works outside this local seed catalog.
+    // Their title can still be reconciled independently without touching links or copy.
+    for (const item of manifest.curations) {
+      const existing = existingManifestById.get(item.id);
+      if (existing && existing.ownerId === EDITORIAL_USER.id && existing.isEditorial &&
+        existing.visibility === "PUBLIC" && existing.title !== item.title) {
+        await tx.update(exhibitions).set({ title: item.title }).where(eq(exhibitions.id, item.id));
+      }
+    }
 
     if (safeCurations.length) {
       const [{ currentMax }] = await tx.select({ currentMax: max(exhibitions.number) }).from(exhibitions);
@@ -123,6 +133,8 @@ export async function seedDatabase(db: Db) {
             title: item.title, description: item.description, visibility: "PUBLIC", isEditorial: true,
             number: nextNumber++, version: 1,
           }).onConflictDoNothing({ target: exhibitions.id });
+        } else if (existingManifestById.get(item.id)?.title !== item.title) {
+          await tx.update(exhibitions).set({ title: item.title }).where(eq(exhibitions.id, item.id));
         }
         const linked = itemsByCuration.get(item.id) ?? new Set<string>();
         const missing = item.works.filter((work) => !linked.has(work.id));

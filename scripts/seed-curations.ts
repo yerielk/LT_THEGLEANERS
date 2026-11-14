@@ -124,7 +124,7 @@ try {
       const expected = new Set(item.works.map((work) => work.id));
       const hasForeignItem = [...itemSet].some((id) => !expected.has(id));
       const identityConflict = existing && (existing.ownerId !== "u_editorial" || !existing.isEditorial ||
-        existing.visibility !== "PUBLIC" || existing.title !== item.title || existing.description !== item.description);
+        existing.visibility !== "PUBLIC" || existing.description !== item.description);
       const slugConflict = occupiedSlug && occupiedSlug !== item.id;
       if (invalidWork || identityConflict || hasForeignItem || slugConflict || (!owner && manifest.curations.length)) {
         failures.push(`curation skipped: ${item.id}${invalidWork ? " (unmatched work)" : identityConflict ? " (existing row differs or is not editorial)" : hasForeignItem ? " (unexpected existing work link)" : slugConflict ? " (slug already in use)" : " (owner missing)"}`);
@@ -156,6 +156,13 @@ try {
     if (mode === "apply") {
       const [{ currentMax }] = await tx.select({ currentMax: max(exhibitions.number) }).from(exhibitions);
       let nextNumber = (currentMax ?? 0) + 1;
+      for (const item of manifest.curations) {
+        const existing = existingById.get(item.id);
+        if (existing && existing.ownerId === "u_editorial" && existing.isEditorial &&
+          existing.visibility === "PUBLIC" && existing.title !== item.title) {
+          await tx.update(exhibitions).set({ title: item.title }).where(eq(exhibitions.id, item.id));
+        }
+      }
       for (const item of usableCurations) {
         const existing = existingById.get(item.id);
         if (!existing) {

@@ -30,7 +30,9 @@ export function DiscoverClient({ initial, initialMedium, initialQ = "", tagLabel
   const [medium, setMedium] = useState<Filter>(initialMedium);
   const [works, setWorks] = useState<WorkView[]>(initial);
   const [total, setTotal] = useState(initial.length);
-  const [state, setState] = useState<"idle" | "loading" | "error">("idle");
+  const [state, setState] = useState<"idle" | "loading" | "error">(
+    initial.length === 0 && initialMedium !== "CURATION" ? "loading" : "idle",
+  );
   const [retry, setRetry] = useState(0);
   const [catalogColumns, setCatalogColumns] = useState(5);
   const [recommendationVisibility, setRecommendationVisibility] = useState<{ context: string; visible: boolean }>({ context: "", visible: false });
@@ -44,8 +46,8 @@ export function DiscoverClient({ initial, initialMedium, initialQ = "", tagLabel
     setRecommendationVisibility({ context, visible });
   }, []);
   const pick = (next: () => void) => { animate.current = true; next(); };
-  const changeQuery = (next: string) => { recommendationSelection.changeContext(next, medium); setQ(next); };
-  const changeMedium = (next: Filter) => { recommendationSelection.changeContext(q, next); setMedium(next); };
+  const changeQuery = (next: string) => { recommendationSelection.changeContext(next, medium); setState("loading"); setQ(next); };
+  const changeMedium = (next: Filter) => { recommendationSelection.changeContext(q, next); setState("loading"); setMedium(next); };
 
   useEffect(() => {
     const catalog = catalogRef.current;
@@ -105,8 +107,10 @@ export function DiscoverClient({ initial, initialMedium, initialQ = "", tagLabel
   const anchorIndex = works.findIndex((work) => work.id === lastSelectedId);
   const recommendationContext = JSON.stringify([medium, q.trim()]);
   const showRecommendations = recommendationVisibility.visible && recommendationVisibility.context === recommendationContext
-    && recommendationSelection.items.length > 0 && !!q.trim() && anchorIndex >= 0;
-  const recommendationGridRow = showRecommendations ? Math.floor(anchorIndex / catalogColumns) + 2 : undefined;
+    && recommendationSelection.items.length > 0;
+  const recommendationGridRow = showRecommendations
+    ? anchorIndex >= 0 ? Math.floor(anchorIndex / catalogColumns) + 2 : Math.ceil(works.length / catalogColumns) + 1
+    : undefined;
   const detailHref = (id: string) => {
     const params = new URLSearchParams();
     if (q.trim()) params.set("q", q.trim());
@@ -145,18 +149,18 @@ export function DiscoverClient({ initial, initialMedium, initialQ = "", tagLabel
               <button className="text-btn" onClick={() => setRetry((n) => n + 1)}>Retry</button>
             </p>
           </div>
-        ) : works.length === 0 ? (
+        ) : works.length === 0 && !!q.trim() && state === "idle" ? (
           <div className="empty">
             <p className="h3">“{q}”에 맞는 작품이 아직 없어요.</p>
             <p className="muted">다른 제목이나 창작자, 혹은 ‘기억’, ‘solitude’ 같은 분위기 단어로 찾아보세요.</p>
             <button className="btn" onClick={() => pick(() => changeQuery(""))}>Reset search</button>
           </div>
-        ) : (
+        ) : works.length === 0 ? null : (
           <div className="catalog" ref={catalogRef} style={{ opacity: state === "loading" ? 0.6 : 1, transition: "opacity .25s" }}>
             {works.map((w, index) => {
               const originalRow = Math.floor(index / catalogColumns) + 1;
               const insertionAfterRow = anchorIndex < 0 ? -1 : Math.floor(anchorIndex / catalogColumns) + 1;
-              const gridRow = showRecommendations && originalRow > insertionAfterRow ? originalRow + 1 : originalRow;
+              const gridRow = showRecommendations && anchorIndex >= 0 && originalRow > insertionAfterRow ? originalRow + 1 : originalRow;
               return <article key={w.id} className="tile" data-medium={w.medium} data-selected={has(w.id)} style={{ gridColumn: (index % catalogColumns) + 1, gridRow }}>
                   <Link href={detailHref(w.id)} aria-label={`${w.title}, details`} style={{ display: "block" }}>
                     <WorkImage work={w} vt={`work-${w.id}`} />
