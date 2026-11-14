@@ -1,0 +1,602 @@
+{
+  "pass": 119,
+  "total": 119,
+  "results": [
+    {
+      "name": "1.0 sample has 3 works",
+      "ok": true,
+      "detail": "Aftersun | Come Away With Me | The Years"
+    },
+    {
+      "name": "1.1 rail order after drag C to top",
+      "ok": true,
+      "detail": "The Years | Aftersun | Come Away With Me"
+    },
+    {
+      "name": "1.2 rail numbers 01..03",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "1.3 getData().items order by stable id",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "1.4 preview (iframe Lecta.last) follows order",
+      "ok": true,
+      "detail": "wu5jpb3jxe,wu5jpb16vn,wu5jpb2faw"
+    },
+    {
+      "name": "1.5 selection kept on the same work through the drag",
+      "ok": true,
+      "detail": "wu5jpb2faw"
+    },
+    {
+      "name": "1.6 write surface still shows the selected work",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "1.7 write meta number updated to new position",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "1.8 order survives save + reload",
+      "ok": true,
+      "detail": "The Years | Aftersun | Come Away With Me"
+    },
+    {
+      "name": "1.9 ids stable across reload (no new uid)",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "1.10 selected work restored by id",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "1.11 preview order after reload",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "2.1 dropping in place changes nothing",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "2.2 dropping in place causes no save",
+      "ok": true,
+      "detail": "saves=0"
+    },
+    {
+      "name": "2.3 Escape during drag cancels",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "2.4 drag visuals cleared after cancel",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "2.5 cover row has no drag handle button",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "2.6 dragging the row body does not reorder",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "2.7 handles are the only drag source (touch-action:none on grip only)",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "2.8 drag to the end",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "2.9 Cmd/Ctrl+Z outside text undoes the move",
+      "ok": true,
+      "detail": "wu5jpb3jxe,wu5jpb16vn,wu5jpb2faw"
+    },
+    {
+      "name": "2.10 toast Undo restores order",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "2.11 preview back to original order after undo",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "3.1 lifted row shows drop line",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "3.2 keyboard Space/arrows/Space moves 1st to 3rd",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "3.3 focus returns to the moved handle",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "3.4 Escape cancels a keyboard lift",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "3.5 Alt+ArrowUp moves one step",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "3.6 row menu opens with move items",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "3.7 menu disables impossible moves",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "3.8 menu \"맨 위로\" moves last to first",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "3.9 Esc closes menu and returns focus to its button",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "3.10 autoscroll at rail edge with 23 works",
+      "ok": true,
+      "detail": "scrollTop=1124"
+    },
+    {
+      "name": "3.11 long list drop lands far down",
+      "ok": true,
+      "detail": "new index 22"
+    },
+    {
+      "name": "3.12 no console errors (suites 1-3)",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "4.0 no horizontal scroll at 390",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "4.1 sequence opens as drawer on phone",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "4.2 touch drag by handle reorders",
+      "ok": true,
+      "detail": "The Years | Aftersun | Come Away With Me"
+    },
+    {
+      "name": "4.3 touch swipe on row body does not reorder",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "4.4 tapping a row selects it and closes the drawer",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "4.5 design mode on phone: no horizontal scroll",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "4.6 details drawer opens on phone",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "4.7 preview on phone fills width",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "4.8 no console errors (mobile)",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "5.1 note editor is in the centre workspace, >= 60vh",
+      "ok": true,
+      "detail": "640px wide"
+    },
+    {
+      "name": "5.2 body font MaruBuri 17-19px, line-height 1.8-1.95",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "5.3 IME composition commits 한글 without breaking focus",
+      "ok": true,
+      "detail": "한글"
+    },
+    {
+      "name": "5.4 long Korean text >= 2000 chars typed",
+      "ok": true,
+      "detail": "2345 chars"
+    },
+    {
+      "name": "5.5 blank lines kept (paragraph breaks)",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "5.6 textarea keeps focus while typing; no re-render",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "5.7 counts update quietly",
+      "ok": true,
+      "detail": "1,695자  10문단"
+    },
+    {
+      "name": "5.8 getData note equals the editor text (no copy, no reason merge)",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "5.9 B wraps the selection in **",
+      "ok": true,
+      "detail": "의 **공기를** 아직"
+    },
+    {
+      "name": "5.10 selection stays on the word after B",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "5.11 native undo in textarea removes the bold",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "5.12 native redo brings it back",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "5.13 Cmd/Ctrl+I wraps in *",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "5.14 Quote prefixes each selected line and separates the block",
+      "ok": true,
+      "detail": "\"고 오래 머문다.\\n\\n마지막 문단이다.\\n\\n> 첫 줄 인용\\n> 둘째 줄 인용\""
+    },
+    {
+      "name": "5.15 template parser reads 2 quotes and >= 7 paragraphs",
+      "ok": true,
+      "detail": "quotes=2 paras=9"
+    },
+    {
+      "name": "5.16 long text grows the page and keeps the end in view",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "5.17 paste-like insert keeps paragraphs",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "5.18 reason is an underline field and stays one line",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "5.19 design preview renders the new paragraphs",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "5.20 bucket stays template-compatible (long)",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "6.1 Esc from preview returns to previous mode",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "6.2 caret and selection restored after Write>Design>Preview>template>Write",
+      "ok": true,
+      "detail": "w-note:123-130"
+    },
+    {
+      "name": "6.3 text intact after template switches",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "6.4 Focus hides bar, rail and tabs",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "6.5 Esc leaves Focus",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "7.1 portrait scene keeps its ratio in details (no crop)",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "7.2 scene ar saved in data",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "7.3 reload restores ids, order, title, reason, note, scenes, template",
+      "ok": true,
+      "detail": "template=the-edit"
+    },
+    {
+      "name": "7.4 palette persisted",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "7.5 mode and selection restored",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "7.6 v2 key untouched by v5",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "7.7 JSON export has same items, note and scene",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "7.8 quota: explicit status, toast and details warning",
+      "ok": true,
+      "detail": "Saved without 1 image 12:18 / 이미지 1개는 브라우저에 저장되지 않았어요. More에서 JSON으로 보관하세요."
+    },
+    {
+      "name": "7.9 quota: text and order still saved",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "7.10 no console errors (writing suite)",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "8.1 v2 draft opens, saved ids kept",
+      "ok": true,
+      "detail": "keep-a,keep-b,wu62m54mww,wu62m55nx5"
+    },
+    {
+      "name": "8.2 duplicate and missing ids repaired uniquely",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "8.3 status says v2 draft",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "8.4 v2 record unchanged, v3 written",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "8.5 v3 reload keeps repaired ids",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "8.6 ?fresh=1 starts from the sample",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "8.7 no page errors (migration)",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "9 the-spread set A: renders 8/8, plan 8, overflow 0",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "9 the-spread set B: renders 7/7, plan 7, overflow 0",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "9 the-spread set C: renders 6/6, plan 6, overflow 0",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "9 the-spread set D: renders 12/12, plan 12, overflow 0",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "9 the-edit set A: renders 8/8, plan 8, overflow 0",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "9 the-edit set B: renders 7/7, plan 7, overflow 0",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "9 the-edit set C: renders 6/6, plan 6, overflow 0",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "9 the-edit set D: renders 12/12, plan 12, overflow 0",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "9 afterimage set A: renders 8/8, plan 8, overflow 0",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "9 afterimage set B: renders 7/7, plan 7, overflow 0",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "9 afterimage set C: renders 6/6, plan 6, overflow 0",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "9 afterimage set D: renders 12/12, plan 12, overflow 0",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "9.x malicious title rendered as text in rail and details",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "9.y write surface shows raw markup text, no element injected",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "9.z no console errors or alert dialogs across 12 renders",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "10 1440x900 write: no h-scroll, no overlap (rail 240 / ws 1200 / det 0)",
+      "ok": true,
+      "detail": "colOff=false wbodyScroll=0"
+    },
+    {
+      "name": "10 1440x900 design: no h-scroll, no overlap (rail 240 / ws 912 / det 288)",
+      "ok": true,
+      "detail": "colOff=false wbodyScroll=0"
+    },
+    {
+      "name": "10 1440x900 preview: no h-scroll, no overlap (rail 0 / ws 1440 / det 0)",
+      "ok": true,
+      "detail": "colOff=false wbodyScroll=0"
+    },
+    {
+      "name": "11.1 add dialog: Esc closes and focus returns to opener",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "11.2 editor chrome has no rounded corners (cards, inputs, buttons, menu, dialog, toast)",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "11.3 tabs expose aria-selected; handles have labels",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "11.4 no exhibition wording in the editor UI",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "11.5 no middle dots or bullets in the editor UI",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "10 1280x800 write: no h-scroll, no overlap (rail 240 / ws 1040 / det 0)",
+      "ok": true,
+      "detail": "colOff=false wbodyScroll=0"
+    },
+    {
+      "name": "10 1280x800 design: no h-scroll, no overlap (rail 240 / ws 752 / det 288)",
+      "ok": true,
+      "detail": "colOff=false wbodyScroll=0"
+    },
+    {
+      "name": "10 1280x800 preview: no h-scroll, no overlap (rail 0 / ws 1280 / det 0)",
+      "ok": true,
+      "detail": "colOff=false wbodyScroll=0"
+    },
+    {
+      "name": "10 1024x768 write: no h-scroll, no overlap (rail 224 / ws 800 / det 0)",
+      "ok": true,
+      "detail": "colOff=false wbodyScroll=0"
+    },
+    {
+      "name": "10 1024x768 design: no h-scroll, no overlap (rail 224 / ws 800 / det 0)",
+      "ok": true,
+      "detail": "colOff=false wbodyScroll=0"
+    },
+    {
+      "name": "10 1024x768 preview: no h-scroll, no overlap (rail 0 / ws 1024 / det 0)",
+      "ok": true,
+      "detail": "colOff=false wbodyScroll=0"
+    },
+    {
+      "name": "10 390x844 write: no h-scroll, no overlap (rail 0 / ws 390 / det 0)",
+      "ok": true,
+      "detail": "colOff=false wbodyScroll=0"
+    },
+    {
+      "name": "10 390x844 design: no h-scroll, no overlap (rail 0 / ws 390 / det 0)",
+      "ok": true,
+      "detail": "colOff=false wbodyScroll=0"
+    },
+    {
+      "name": "10 390x844 preview: no h-scroll, no overlap (rail 0 / ws 390 / det 0)",
+      "ok": true,
+      "detail": "colOff=false wbodyScroll=0"
+    },
+    {
+      "name": "10.z no console errors across viewports",
+      "ok": true,
+      "detail": ""
+    }
+  ],
+  "errors": []
+}
