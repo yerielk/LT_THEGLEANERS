@@ -6,7 +6,8 @@
  * Tags are the team's *curated interpretation* (provenance HUMAN_CURATED), not facts about the work.
  * No poster/cover art is bundled: the UI renders typographic covers and never imitates real artwork.
  */
-export type Medium = "FILM" | "SERIES" | "BOOK" | "ALBUM" | "TRACK" | "PERFORMANCE" | "EXHIBITION";
+import type { Medium } from "../media";
+export type { Medium } from "../media";
 
 export interface SeedWork {
   id: string;

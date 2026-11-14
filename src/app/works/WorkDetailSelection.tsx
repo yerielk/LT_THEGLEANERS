@@ -3,8 +3,9 @@
 import { SelectButton } from "@/components/SelectButton";
 import { useRecommendationSelection } from "@/lib/recommendation/selection";
 import type { SelectedWork } from "@/lib/selection";
+import type { Medium as WorkMedium } from "@/lib/media";
 
-type Medium = "CURATION" | "FILM" | "SERIES" | "BOOK" | "ALBUM";
+type Medium = "CURATION" | WorkMedium;
 
 export function WorkDetailSelection({ work, query, medium }: { work: SelectedWork; query: string; medium: Medium }) {
   const { add, remove } = useRecommendationSelection(query, medium);

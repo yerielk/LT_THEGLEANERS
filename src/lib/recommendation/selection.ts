@@ -2,8 +2,9 @@
 
 import { useCallback, useEffect, useState } from "react";
 import type { SelectedWork } from "@/lib/selection";
+import type { Medium as WorkMedium } from "@/lib/media";
 
-type Medium = "CURATION" | "FILM" | "SERIES" | "BOOK" | "ALBUM";
+type Medium = "CURATION" | WorkMedium;
 type StoredSelection = { context: string; items: SelectedWork[] };
 
 const KEY = "lecta.recommendation-selection.v1";

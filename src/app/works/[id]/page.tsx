@@ -11,10 +11,11 @@ import { tagLabel } from "@/lib/recommendation/tags";
 import { and, asc, eq } from "drizzle-orm";
 import { getDb } from "@/lib/db";
 import { exhibitionItems, exhibitions } from "@/lib/schema";
+import { MEDIA, type Medium as WorkMedium } from "@/lib/media";
 
 export const dynamic = "force-dynamic";
 
-type Medium = "CURATION" | "FILM" | "SERIES" | "BOOK" | "ALBUM";
+type Medium = "CURATION" | WorkMedium;
 
 export default async function WorkPage({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<{ q?: string; medium?: string }> }) {
   const { id } = await params;
@@ -29,19 +30,19 @@ export default async function WorkPage({ params, searchParams }: { params: Promi
     .orderBy(asc(exhibitions.number));
   const query = typeof sp.q === "string" ? sp.q.slice(0, 80) : "";
   const requestedMedium = sp.medium;
-  const medium: Medium = requestedMedium === "CURATION" || requestedMedium === "FILM" || requestedMedium === "SERIES" || requestedMedium === "BOOK" || requestedMedium === "ALBUM"
-    ? requestedMedium
-    : w.medium === "FILM" || w.medium === "SERIES" || w.medium === "BOOK" || w.medium === "ALBUM" ? w.medium : "CURATION";
+  const requestedWorkMedium = MEDIA.find((candidate) => candidate === requestedMedium);
+  const medium: Medium = requestedMedium === "CURATION" ? "CURATION" : requestedWorkMedium ?? w.medium;
   const discoverParams = new URLSearchParams();
   if (query) discoverParams.set("q", query);
   discoverParams.set("medium", medium);
+  const returnHref = medium === "CURATION" ? `/curation?${discoverParams.toString()}` : `/discover?${discoverParams.toString()}`;
   const work = { id: w.id, title: w.title, originalTitle: w.originalTitle, creator: w.creator, medium: w.medium, releaseYear: w.releaseYear, coverTone: w.coverTone, artwork: w.artwork };
   return (
     <>
       <div className="wrap work-detail">
         <div className="wd-art" data-medium={w.medium} style={{ maxWidth: w.artwork ? Math.round(w.artwork.width * 1.5) : undefined, justifySelf: "center", width: "100%" }}><WorkImage work={w} vt={`work-${w.id}`} eager /></div>
         <div className="wd-body">
-          <p className="caption"><Link href={`/discover?${discoverParams.toString()}`} className="linkish">{MEDIUM_LABEL[w.medium]}</Link></p>
+          <p className="caption"><Link href={returnHref} className="linkish">{MEDIUM_LABEL[w.medium]}</Link></p>
           <h1 className="display">{w.title}</h1>
           {w.originalTitle && <p className="serif" style={{ fontSize: 26, fontStyle: "italic", margin: "0 0 8px", fontFamily: "var(--kserif)" }}>{w.originalTitle}</p>}
           <p style={{ fontSize: 15, margin: "0 0 20px" }}>{w.creator}{w.releaseYear ? `, ${w.releaseYear}` : ""}</p>

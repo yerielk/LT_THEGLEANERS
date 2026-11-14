@@ -4,7 +4,7 @@ import type { CSSProperties } from "react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { ArrowUp, ArrowDown, X } from "lucide-react";
 import { useSelection, type SelectedWork } from "@/lib/selection";
-import { WorkImage } from "./WorkImage";
+import { CurationWorkImage } from "./CurationWorkShelf";
 import { MEDIUM_KO } from "./WorkCover";
 import { wallFor } from "@/lib/design";
 
@@ -20,7 +20,7 @@ function clearDraft() { try { sessionStorage.removeItem(DRAFT_KEY); } catch { /*
 
 type EditInit = { id: string; number: number; version: number; title: string; description: string; items: (SelectedWork & { note: string })[] };
 
-export function ExhibitionEditor({ mode, init, canWrite }: { mode: "new" | "edit"; init?: EditInit; canWrite: boolean }) {
+export function ExhibitionEditor({ mode, init, canWrite, embedded = false }: { mode: "new" | "edit"; init?: EditInit; canWrite: boolean; embedded?: boolean }) {
   const router = useTransitionRouter();
   const selection = useSelection();
   const [title, setTitle] = useState(init?.title ?? "");
@@ -105,7 +105,7 @@ export function ExhibitionEditor({ mode, init, canWrite }: { mode: "new" | "edit
 
   if (mode === "new" && selection.ready && items.length === 0) {
     return (
-      <div className="wrap" style={{ paddingBlock: "48px 120px" }}>
+      <div className={embedded ? "me-builder-empty" : "wrap"} style={{ paddingBlock: "48px 120px" }}>
         <h1 className="display">Begin an exhibition.</h1>
         <p className="lede">아직 선반이 비어 있어요. Browse works에서 작품 2개 이상을 골라 오면 여기서 전시로 엮을 수 있어요.</p>
         <Link className="btn" href="/discover">Choose works</Link>
@@ -114,7 +114,7 @@ export function ExhibitionEditor({ mode, init, canWrite }: { mode: "new" | "edit
   }
 
   return (
-    <div className="wrap builder">
+    <div className={`${embedded ? "" : "wrap "}builder`}>
       <form className="builder-form" onSubmit={(e) => { e.preventDefault(); save(); }} noValidate>
         <div>
           <p className="caption">{mode === "new" ? "New exhibition" : "Edit exhibition"}</p>
@@ -136,9 +136,11 @@ export function ExhibitionEditor({ mode, init, canWrite }: { mode: "new" | "edit
           <ol style={{ listStyle: "none", padding: 0, margin: 0 }}>
             {items.map((w, i) => (
               <li key={w.id} className="item-row">
-                <span className="thumb"><WorkImage work={w} /></span>
+                <div className="curation-editor-work">
+                  <CurationWorkImage work={w} stage="row" />
+                  <span className="curation-work-title">{w.title}</span>
+                </div>
                 <div>
-                  <div className="serif" style={{ fontSize: 22, lineHeight: 1.15, fontStyle: "italic" }}>{w.title}</div>
                   <div className="muted" style={{ fontSize: 13 }}>{MEDIUM_KO[w.medium]} / {w.creator}</div>
                   <label className="field" style={{ marginTop: 8, gap: 4 }}>
                     <span className="sr-only">Why this work belongs (optional)</span>
@@ -180,7 +182,7 @@ export function ExhibitionEditor({ mode, init, canWrite }: { mode: "new" | "edit
           </div>
           {items.map((w, i) => (
             <figure key={w.id} className="hung" data-medium={w.medium} style={{ margin: 0, "--ar": w.artwork ? w.artwork.width / w.artwork.height : 0.66 } as CSSProperties}>
-              <WorkImage work={w} />
+              <CurationWorkImage work={w} stage="gallery" />
               <figcaption className="label" style={{ minHeight: 0, maxWidth: 180 }}>
                 <span className="l-title" style={{ fontSize: 16 }}>{String(i + 1).padStart(2, "0")} {w.title}</span>
                 {notes[w.id]?.trim() && <span className="l-line" style={{ color: "var(--ink)", fontFamily: "var(--kserif)" }}>“{notes[w.id].trim()}”</span>}

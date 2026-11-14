@@ -5,6 +5,8 @@ import { allWorks } from "@/lib/services/works";
 import { canUseAgentLab, webActor } from "@/lib/services/web-actor";
 import { MEDIUM_PLURAL } from "@/components/WorkCover";
 import { WorkImage } from "@/components/WorkImage";
+import { CurationWorkShelf } from "@/components/CurationWorkShelf";
+import { curationDisplayTitle } from "@/components/CurationCover";
 import { HangRow } from "@/components/HangRow";
 import { TAGS } from "@/lib/recommendation/tags";
 import { wallFor } from "@/lib/design";
@@ -65,19 +67,12 @@ export default async function Home() {
               <Link href={`/exhibitions/${ex.id}`} className="room-panel" style={{ viewTransitionName: `room-${ex.id}` }}>
                 <span className="room-no">Room {String(ex.number).padStart(2, "0")} / {wall.name}</span>
                 <span>
-                  <h3 className="room-title">{ex.title}</h3>
+                  <h3 className="room-title">{curationDisplayTitle(ex.title)}</h3>
                   <p className="room-desc">{ex.description}</p>
                 </span>
                 <span className="room-enter">Enter the room</span>
               </Link>
-              <div className="room-wall">
-                {ex.items.slice(0, 4).map((it) => (
-                  <Link key={it.workId} href={`/works/${it.workId}`} aria-label={`${it.work.title}, details`} style={{ alignSelf: "center" }}>
-                    <WorkImage work={it.work} />
-                    <span className="label" style={{ display: "block" }}><span className="l-title" style={{ fontSize: 17 }}>{it.work.title}</span>{it.work.creator}</span>
-                  </Link>
-                ))}
-              </div>
+              <CurationWorkShelf items={ex.items} hrefForWork={(workId) => `/works/${workId}`} showCreator className="room-wall" ariaLabel="Works in this curation" />
             </div>
           );
         })}

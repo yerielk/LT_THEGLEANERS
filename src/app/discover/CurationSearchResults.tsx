@@ -1,28 +1,25 @@
 "use client";
 import { Link } from "next-view-transitions";
 import { useEffect, useState } from "react";
-import { WorkImage } from "@/components/WorkImage";
 import type { CoverWork } from "@/components/WorkCover";
-import { CurationCover } from "@/components/CurationCover";
+import { CurationCover, curationDisplayTitle } from "@/components/CurationCover";
+import { CurationWorkShelf } from "@/components/CurationWorkShelf";
+import type { Medium as WorkMedium } from "@/lib/media";
+
+type Medium = "CURATION" | WorkMedium;
 
 type CurationResult = { id: string; number: number; title: string; description: string | null; items?: { workId: string; work: CoverWork & { id: string } }[] };
 type Item = CurationResult & { items: { workId: string; work: CoverWork & { id: string } }[] };
 type Payload = { exhibitions: Item[] };
 type WorkPreviewItem = { workId: string; work: CoverWork & { id: string } };
 
-export function CurationWorkPreviews({ works, hrefForWork, ariaLabel = "Included works" }: {
+export function CurationWorkPreviews({ works, hrefForWork, ariaLabel = "Included works", className = "" }: {
   works: WorkPreviewItem[];
   hrefForWork: (workId: string) => string;
   ariaLabel?: string;
+  className?: string;
 }) {
-  const shownWorks = works.slice(0, 4);
-  const remaining = Math.max(0, works.length - shownWorks.length);
-  return <span className="curation-search-works" aria-label={ariaLabel}>
-    {shownWorks.map(({ workId, work }) => <Link className="curation-search-work" href={hrefForWork(workId)} key={workId} aria-label={`${work.title} details`}>
-      <WorkImage work={work} className="curation-search-work-image" />
-    </Link>)}
-    {remaining > 0 && <span className="curation-search-more">+{remaining}</span>}
-  </span>;
+  return <CurationWorkShelf items={works} hrefForWork={hrefForWork} ariaLabel={ariaLabel} className={`curation-search-works${className ? ` ${className}` : ""}`} />;
 }
 
 function isPayload(value: unknown): value is Payload {
@@ -34,7 +31,7 @@ function isPayload(value: unknown): value is Payload {
     && Array.isArray((entry as Record<string, unknown>).items));
 }
 
-export function CurationSearchResults({ query, medium }: { query: string; medium: "CURATION" | "FILM" | "SERIES" | "BOOK" | "ALBUM" }) {
+export function CurationSearchResults({ query, medium }: { query: string; medium: Medium }) {
   const [items, setItems] = useState<Item[]>([]);
   const [state, setState] = useState<"loading" | "ready" | "error">("loading");
   const [resolvedQuery, setResolvedQuery] = useState("");
@@ -69,7 +66,7 @@ export function CurationSearchResults({ query, medium }: { query: string; medium
 
 export function CurationResultList({ items, medium, query, showWorks = true }: {
   items: CurationResult[];
-  medium: "CURATION" | "FILM" | "SERIES" | "BOOK" | "ALBUM";
+  medium: Medium;
   query?: string;
   showWorks?: boolean;
 }) {
@@ -84,7 +81,7 @@ export function CurationResultList({ items, medium, query, showWorks = true }: {
       <Link className="curation-search-main" href={`/exhibitions/${item.id}`}>
         <CurationCover number={item.number} title={item.title} />
         <span className="curation-search-copy">
-          <span className="curation-search-title">{item.title}</span>
+          <span className="curation-search-title">{curationDisplayTitle(item.title)}</span>
           {item.description && <span className="curation-search-description">{item.description}</span>}
         </span>
       </Link>

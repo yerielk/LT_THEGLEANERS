@@ -5,7 +5,7 @@ import { AuthButton } from "./AuthButton";
 
 const NAV: { href: string; label: string; xs?: string; small?: boolean }[] = [
   { href: "/discover", label: "Browse works", xs: "Browse" },
-  { href: "/exhibitions/new", label: "Curate" },
+  { href: "/curation", label: "Curation" },
   { href: "/me", label: "My rooms" },
   { href: "/agent-lab", label: "Agent lab", small: true },
 ];

@@ -3,11 +3,12 @@ import { Link } from "next-view-transitions";
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { useRecommendationSelection } from "@/lib/recommendation/selection";
 import { CurationCover } from "@/components/CurationCover";
+import type { Medium as WorkMedium } from "@/lib/media";
 
 type Item = { id: string; number: number; title: string };
 type RecommendationPayload = { recommendations: Item[] };
 type Snapshot = { context: string; selectedIds: string[]; results: Item[]; newIds: string[] };
-type Medium = "CURATION" | "FILM" | "SERIES" | "BOOK" | "ALBUM";
+type Medium = "CURATION" | WorkMedium;
 
 function isRecommendationPayload(value: unknown): value is RecommendationPayload {
   if (!value || typeof value !== "object" || !Array.isArray((value as { recommendations?: unknown }).recommendations)) return false;

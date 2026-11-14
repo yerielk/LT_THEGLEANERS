@@ -10,14 +10,13 @@ import { SelectButton } from "@/components/SelectButton";
 import { SelectionShelf } from "@/components/SelectionShelf";
 import { useSelection } from "@/lib/selection";
 import { useRecommendationSelection } from "@/lib/recommendation/selection";
+import { MEDIA, type Medium as WorkMedium } from "@/lib/media";
 import { ExternalResults } from "./ExternalResults";
 import { CurationRecommendations } from "./CurationRecommendations";
 import { CurationDiscovery } from "./CurationDiscovery";
 import { CurationSearchResults } from "./CurationSearchResults";
 
-const MEDIA = ["FILM", "SERIES", "BOOK", "ALBUM"] as const;
-type M = (typeof MEDIA)[number];
-type Filter = "CURATION" | M;
+type Filter = "CURATION" | WorkMedium;
 
 /** Re-hang the grid inside a view transition so works glide to their new places. */
 function rehang(update: () => void) {
@@ -26,7 +25,7 @@ function rehang(update: () => void) {
   else update();
 }
 
-export function DiscoverClient({ initial, initialMedium, initialQ = "", tagLabels }: { initial: WorkView[]; initialMedium: Filter; initialQ?: string; tagLabels: Record<string, string> }) {
+export function DiscoverClient({ initial, initialMedium, initialQ = "", tagLabels, mode = "works" }: { initial: WorkView[]; initialMedium: Filter; initialQ?: string; tagLabels: Record<string, string>; mode?: "works" | "curation" }) {
   const [q, setQ] = useState(initialQ);
   const [medium, setMedium] = useState<Filter>(initialMedium);
   const [works, setWorks] = useState<WorkView[]>(initial);
@@ -69,7 +68,7 @@ export function DiscoverClient({ initial, initialMedium, initialQ = "", tagLabel
       if (medium === "CURATION") return;
     }
     const url = new URL(window.location.href);
-    if (!isInitialLoad) url.searchParams.delete("medium");
+    url.searchParams.set("medium", medium);
     q.trim() ? url.searchParams.set("q", q.trim()) : url.searchParams.delete("q");
     window.history.replaceState(window.history.state, "", url);
     if (medium === "CURATION") {
@@ -126,19 +125,18 @@ export function DiscoverClient({ initial, initialMedium, initialQ = "", tagLabel
               onCompositionStart={() => { composing.current = true; }} onCompositionEnd={() => { composing.current = false; }} placeholder="제목, 창작자, 분위기로 검색 — memory, Ishiguro, 그리움" />
             {q && <button type="button" onClick={() => changeQuery("")} aria-label="Clear search"><X size={16} /></button>}
           </label>
-          <div className="toggles" role="group" aria-label="검색 결과 종류">
-            <button type="button" className="toggle" aria-pressed={medium === "CURATION"} onClick={() => pick(() => changeMedium("CURATION"))}>Curation</button>
+          {mode === "works" && <div className="toggles" role="group" aria-label="Medium filters">
             {MEDIA.map((m) => (
               <button key={m} type="button" className="toggle" aria-pressed={medium === m} onClick={() => pick(() => changeMedium(m))}>
                 {MEDIUM_PLURAL[m]}
               </button>
             ))}
-          </div>
+          </div>}
           <span className="caption" aria-live="polite">{q.trim() || medium !== "CURATION" ? state === "loading" ? "Searching…" : medium === "CURATION" ? "Curation" : `${total} works` : ""}</span>
         </div>
       </div>
-      <CurationDiscovery active={medium === "CURATION" && !q.trim()} />
-      {medium === "CURATION" && q.trim() && <CurationSearchResults query={q} medium={medium} />}
+      {mode === "curation" && <CurationDiscovery active={medium === "CURATION" && !q.trim()} />}
+      {mode === "curation" && medium === "CURATION" && q.trim() && <CurationSearchResults query={q} medium={medium} />}
       {medium !== "CURATION" && <section className="wrap" aria-label="Works">
         {state === "error" ? (
           <div className="empty">
@@ -182,7 +180,7 @@ export function DiscoverClient({ initial, initialMedium, initialQ = "", tagLabel
         setWorks([w, ...works]);
         setTotal(total + 1);
       }} />}
-      <SelectionShelf alwaysVisible />
+      {mode === "works" && <SelectionShelf alwaysVisible />}
     </>
   );
 }
