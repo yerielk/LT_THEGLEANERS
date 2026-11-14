@@ -6,6 +6,7 @@ import type { Actor } from "./actor";
 import { getWorksByIds, type WorkView } from "./works";
 import { createExhibitionSchema, patchExhibitionSchema, addItemSchema, zodMessage, type CreateExhibitionInput } from "../validators";
 import { extractTagsFromText } from "../recommendation/tags";
+import type { CurationDocument } from "../curation/document";
 
 export type Visibility = "DRAFT" | "PRIVATE" | "PUBLIC";
 
@@ -23,6 +24,7 @@ export interface ExhibitionView {
   description: string | null;
   visibility: Visibility;
   layoutTemplate: string;
+  curationData: CurationDocument | null;
   isEditorial: boolean;
   ownerId: string;
   ownerName: string;
@@ -57,6 +59,7 @@ async function load(db: Db, row: Row, actor: Actor): Promise<ExhibitionView> {
     description: row.description,
     visibility: row.visibility,
     layoutTemplate: row.layoutTemplate,
+    curationData: row.curationData,
     isEditorial: row.isEditorial,
     ownerId: row.ownerId,
     ownerName: owner?.name ?? "unknown",
@@ -108,7 +111,7 @@ async function assertWorksExist(db: Db, ids: string[]) {
   if (missing.length) throw new LectaError("WORK_NOT_FOUND", `Unknown work id(s): ${missing.join(", ")}`, false, { missing });
 }
 
-async function recordCurationSignals(db: Db, userId: string, exhibitionId: string, notes: { workId: string; note: string | null }[], origin: "USER_EXPLICIT" | "MODEL_SUGGESTED") {
+export async function recordCurationSignals(db: Db, userId: string, exhibitionId: string, notes: { workId: string; note: string | null }[], origin: "USER_EXPLICIT" | "MODEL_SUGGESTED") {
   if (!notes.length) return;
   await db.insert(tasteSignals).values(
     notes.map((n) => {
@@ -177,6 +180,7 @@ export async function updateExhibition(id: string, input: unknown, actor: Actor,
     await tx.update(exhibitions).set({
       title: p.title ?? row.title,
       description: p.description !== undefined ? p.description || null : row.description,
+      curationData: row.curationData && p.description !== undefined ? { ...row.curationData, intro: p.description } : row.curationData,
       version: sql`${exhibitions.version} + 1`,
       updatedAt: new Date(),
     }).where(eq(exhibitions.id, id));
@@ -199,7 +203,8 @@ export async function addItem(id: string, input: unknown, actor: Actor, db: Db =
   const [dup] = await db.select({ id: exhibitionItems.id }).from(exhibitionItems).where(and(eq(exhibitionItems.exhibitionId, id), eq(exhibitionItems.workId, workId)));
   if (dup) throw new LectaError("CONFLICT", "This work is already in the exhibition.");
   const [{ n }] = await db.select({ n: count() }).from(exhibitionItems).where(eq(exhibitionItems.exhibitionId, id));
-  if (n >= 16) throw new LectaError("VALIDATION_ERROR", "An exhibition can hold at most 16 works.");
+  const capacity = row.curationData ? 64 : 16;
+  if (n >= capacity) throw new LectaError("VALIDATION_ERROR", `A curation can hold at most ${capacity} works.`);
   await db.transaction(async (tx) => {
     const [{ p }] = await tx.select({ p: max(exhibitionItems.position) }).from(exhibitionItems).where(eq(exhibitionItems.exhibitionId, id));
     await tx.insert(exhibitionItems).values({ id: newId("exi"), exhibitionId: id, workId, position: (p ?? -1) + 1, curatorNote: curatorNote || null });

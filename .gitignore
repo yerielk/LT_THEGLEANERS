@@ -1,5 +1,7 @@
 node_modules/
 .next/
+.next-template-qa/
+.next-template-qa-build/
 out/
 /data/
 *.db

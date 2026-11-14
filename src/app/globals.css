@@ -1,5 +1,10 @@
 @import "tailwindcss";
 
+.curation-editor-shell { position: fixed; inset: 0; z-index: 100; background: #fff; }
+.curation-editor-frame { display: block; border: 0; width: 100%; height: 100%; }
+.curation-reader-frame { display: block; border: 0; width: 100%; height: 100svh; min-height: 600px; }
+.curation-reader-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 20px; padding-block: 16px; }
+
 /* ═════════════════════════ Lecta — white gallery ═════════════════════════
    White walls, no boxes. Colour lives on the painted wall of each room, with a faint wash
    inside the room (Sanzo Wada, A Dictionary of Color Combinations), and in the artworks themselves. */

@@ -1,6 +1,8 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  // Allows an isolated QA server/build alongside the developer's running instance.
+  distDir: process.env.LECTA_DIST_DIR || ".next",
   // keep the MCP SDK on the server side untouched by bundling quirks.
   serverExternalPackages: ["@modelcontextprotocol/client", "@modelcontextprotocol/server"],
   poweredByHeader: false,
