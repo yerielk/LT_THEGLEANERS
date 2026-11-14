@@ -1,0 +1,688 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AFTERIMAGE — Lecta</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=DM+Serif+Display&family=SUIT:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+@font-face {
+  font-family: 'MaruBuri';
+  src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_20-10-21@1.0/MaruBuri-Regular.woff') format('woff');
+  font-weight: 400;
+  font-style: normal;
+}
+
+:root {
+  --bg: #0C0D10;
+  --bg-card: #151619;
+  --bg-hover: #1C1D22;
+  --text: #E8E9EC;
+  --text-sub: #9A9DA6;
+  --text-dim: #5C5F68;
+  --accent: #A0B4D0;
+  --accent-warm: #D4A574;
+  --border: rgba(255,255,255,0.06);
+  --border-hover: rgba(255,255,255,0.12);
+  --overlay: rgba(12,13,16,0.85);
+}
+
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+html { font-size: 16px; scroll-behavior: smooth; -webkit-font-smoothing: antialiased; }
+body { font-family: 'SUIT', -apple-system, sans-serif; background: var(--bg); color: var(--text); overflow-x: hidden; }
+
+/* ===== SCROLL ANIMATIONS ===== */
+.fade-in { opacity: 0; transition: opacity 1.2s cubic-bezier(0.16,1,0.3,1); }
+.fade-in.vis { opacity: 1; }
+.drift-up { opacity: 0; transform: translateY(60px); transition: opacity 1s cubic-bezier(0.16,1,0.3,1), transform 1s cubic-bezier(0.16,1,0.3,1); }
+.drift-up.vis { opacity: 1; transform: translateY(0); }
+.drift-left { opacity: 0; transform: translateX(-40px); transition: opacity 0.9s cubic-bezier(0.16,1,0.3,1), transform 0.9s cubic-bezier(0.16,1,0.3,1); }
+.drift-left.vis { opacity: 1; transform: translateX(0); }
+
+/* ===== MINIMAL HEADER ===== */
+.ai-header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 100;
+  padding: 24px 40px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  mix-blend-mode: difference;
+}
+.ai-brand {
+  font-family: 'DM Serif Display', serif;
+  font-size: 14px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #fff;
+}
+.ai-count {
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.5);
+}
+
+/* ===== OPENING — FULLSCREEN TITLE ===== */
+.opening {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  padding: 0 40px 80px;
+  position: relative;
+  overflow: hidden;
+}
+.opening-bg {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, #0C0D10 0%, #141520 40%, #0C0D10 100%);
+  z-index: 0;
+}
+.opening-grain {
+  position: absolute;
+  inset: 0;
+  opacity: 0.03;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-size: 256px 256px;
+  z-index: 1;
+}
+.opening-content {
+  position: relative;
+  z-index: 2;
+  max-width: 700px;
+}
+.opening-label {
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: 24px;
+  opacity: 0;
+  animation: ai-fade 1s 0.5s forwards;
+}
+@keyframes ai-fade { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+.opening-title {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: clamp(48px, 8vw, 100px);
+  font-weight: 300;
+  line-height: 1.05;
+  font-style: italic;
+  margin-bottom: 24px;
+  opacity: 0;
+  animation: ai-fade 1.2s 0.8s forwards;
+}
+.opening-desc {
+  font-family: 'MaruBuri', serif;
+  font-size: 17px;
+  line-height: 1.7;
+  color: var(--text-sub);
+  max-width: 480px;
+  opacity: 0;
+  animation: ai-fade 1s 1.2s forwards;
+}
+.opening-meta {
+  margin-top: 48px;
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  opacity: 0;
+  animation: ai-fade 0.8s 1.5s forwards;
+}
+
+/* ===== MOODBOARD GRID — ASYMMETRIC ===== */
+.moodboard {
+  padding: 40px 40px 0;
+}
+.mood-row {
+  display: grid;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+.mood-row-1 { grid-template-columns: 2fr 1fr; }
+.mood-row-2 { grid-template-columns: 1fr 1fr 1fr; }
+.mood-row-3 { grid-template-columns: 1fr 2fr; }
+.mood-row-4 { grid-template-columns: 1.5fr 1fr 1fr; }
+
+.mood-cell {
+  position: relative;
+  overflow: hidden;
+  cursor: pointer;
+  background: var(--bg-card);
+}
+.mood-cell.tall { aspect-ratio: 2/3; }
+.mood-cell.wide { aspect-ratio: 16/9; }
+.mood-cell.square { aspect-ratio: 1/1; }
+.mood-cell.medium { aspect-ratio: 3/4; }
+
+.mood-cell-bg {
+  position: absolute;
+  inset: 0;
+  transition: transform 0.8s cubic-bezier(0.16,1,0.3,1), filter 0.6s;
+}
+.mood-cell:hover .mood-cell-bg {
+  transform: scale(1.06);
+  filter: brightness(0.7);
+}
+
+.mood-cell-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  padding: 24px;
+  opacity: 0;
+  transition: opacity 0.4s cubic-bezier(0.16,1,0.3,1);
+  background: linear-gradient(180deg, transparent 40%, rgba(12,13,16,0.9) 100%);
+}
+.mood-cell:hover .mood-cell-overlay { opacity: 1; }
+
+.mood-cell-type {
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: 6px;
+}
+.mood-cell-title {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 22px;
+  font-weight: 400;
+  font-style: italic;
+  color: #fff;
+  line-height: 1.2;
+  margin-bottom: 4px;
+}
+.mood-cell-creator {
+  font-size: 12px;
+  color: var(--text-sub);
+}
+
+/* Placeholder backgrounds */
+.mood-bg-1 { background: linear-gradient(135deg, #1a1c25, #252838); }
+.mood-bg-2 { background: linear-gradient(135deg, #1e3040, #0d1825); }
+.mood-bg-3 { background: linear-gradient(135deg, #302828, #1a1515); }
+.mood-bg-4 { background: linear-gradient(135deg, #253025, #121a12); }
+.mood-bg-5 { background: linear-gradient(135deg, #252030, #110e1a); }
+.mood-bg-6 { background: linear-gradient(135deg, #302818, #1a150a); }
+.mood-bg-7 { background: linear-gradient(135deg, #182530, #0a1218); }
+.mood-bg-8 { background: linear-gradient(135deg, #252530, #12121a); }
+
+/* ===== INTERSTITIAL QUOTE ===== */
+.interstitial {
+  padding: 120px 40px;
+  text-align: center;
+  position: relative;
+}
+.interstitial-text {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: clamp(28px, 5vw, 56px);
+  font-weight: 300;
+  font-style: italic;
+  line-height: 1.3;
+  color: var(--text);
+  max-width: 720px;
+  margin: 0 auto;
+}
+.interstitial-line {
+  width: 40px;
+  height: 1px;
+  background: var(--accent);
+  margin: 32px auto 0;
+  transform: scaleX(0);
+  transition: transform 1s cubic-bezier(0.16,1,0.3,1);
+}
+.interstitial.vis .interstitial-line { transform: scaleX(1); }
+
+/* ===== WORK DETAIL MODAL ===== */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: var(--overlay);
+  z-index: 200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.4s;
+  backdrop-filter: blur(8px);
+}
+.modal-overlay.active {
+  opacity: 1;
+  pointer-events: all;
+}
+.modal-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  max-width: 560px;
+  width: 90%;
+  display: grid;
+  grid-template-columns: 180px 1fr;
+  gap: 0;
+  transform: translateY(20px) scale(0.96);
+  transition: transform 0.5s cubic-bezier(0.16,1,0.3,1);
+  overflow: hidden;
+}
+.modal-overlay.active .modal-card {
+  transform: translateY(0) scale(1);
+}
+.modal-cover {
+  height: 100%;
+  min-height: 260px;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+}
+.modal-cover .placeholder-cover {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  padding: 16px;
+}
+.modal-cover .work-title-placeholder {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 16px;
+  font-style: italic;
+  color: rgba(255,255,255,0.7);
+  line-height: 1.3;
+}
+.modal-info {
+  padding: 32px 28px;
+  display: flex;
+  flex-direction: column;
+}
+.modal-type {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: 12px;
+}
+.modal-title {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 28px;
+  font-weight: 400;
+  font-style: italic;
+  line-height: 1.2;
+  margin-bottom: 6px;
+}
+.modal-creator {
+  font-size: 13px;
+  color: var(--text-dim);
+  margin-bottom: 24px;
+}
+.modal-note {
+  font-family: 'MaruBuri', serif;
+  font-size: 14px;
+  line-height: 1.8;
+  color: var(--text-sub);
+  flex: 1;
+}
+.modal-close {
+  margin-top: 24px;
+  align-self: flex-start;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  background: none;
+  border: 1px solid var(--border);
+  padding: 8px 16px;
+  cursor: pointer;
+  transition: color 0.2s, border-color 0.2s;
+}
+.modal-close:hover {
+  color: var(--text);
+  border-color: var(--border-hover);
+}
+
+/* ===== CLOSING NOTE ===== */
+.closing {
+  padding: 100px 40px;
+  text-align: center;
+}
+.closing-text {
+  font-family: 'MaruBuri', serif;
+  font-size: 16px;
+  line-height: 1.8;
+  color: var(--text-sub);
+  max-width: 400px;
+  margin: 0 auto;
+}
+
+/* ===== WORKS LIST (bottom) ===== */
+.works-list {
+  padding: 60px 40px;
+  border-top: 1px solid var(--border);
+}
+.works-list-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 32px;
+}
+.works-list-title {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 14px;
+  font-weight: 400;
+  font-style: italic;
+  letter-spacing: 0.1em;
+  color: var(--text-sub);
+}
+.works-list-count {
+  font-size: 11px;
+  color: var(--text-dim);
+  letter-spacing: 0.1em;
+}
+.works-row {
+  display: flex;
+  gap: 8px;
+  align-items: baseline;
+  padding: 14px 0;
+  border-bottom: 1px solid var(--border);
+  cursor: pointer;
+  transition: padding-left 0.3s cubic-bezier(0.16,1,0.3,1);
+}
+.works-row:hover { padding-left: 12px; }
+.works-row:first-child { border-top: 1px solid var(--border); }
+.wr-num { font-family: 'Cormorant Garamond', serif; font-size: 13px; color: var(--text-dim); width: 32px; flex-shrink: 0; }
+.wr-title { font-family: 'Cormorant Garamond', serif; font-size: 17px; font-style: italic; color: var(--text); flex: 1; }
+.wr-type { font-size: 10px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: var(--text-dim); flex-shrink: 0; }
+
+/* ===== FOOTER ===== */
+.ai-footer {
+  padding: 48px 40px;
+  text-align: center;
+  border-top: 1px solid var(--border);
+}
+.ai-footer-brand {
+  font-family: 'DM Serif Display', serif;
+  font-size: 18px;
+  color: var(--text-dim);
+  letter-spacing: 0.08em;
+  margin-bottom: 8px;
+}
+.ai-footer-tagline {
+  font-family: 'MaruBuri', serif;
+  font-size: 13px;
+  color: var(--text-dim);
+}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 860px) {
+  .ai-header { padding: 20px 24px; }
+  .opening { padding: 0 24px 60px; }
+  .opening-title { font-size: clamp(36px, 10vw, 64px); }
+  .moodboard { padding: 24px 24px 0; }
+  .mood-row-1, .mood-row-2, .mood-row-3, .mood-row-4 { grid-template-columns: 1fr 1fr; }
+  .mood-cell-overlay { opacity: 1; background: linear-gradient(180deg, transparent 50%, rgba(12,13,16,0.8) 100%); }
+  .mood-cell-title { font-size: 16px; }
+  .mood-cell-overlay { padding: 16px; }
+  .interstitial { padding: 80px 24px; }
+  .modal-card { grid-template-columns: 1fr; max-width: 400px; }
+  .modal-cover { min-height: 200px; }
+  .closing { padding: 60px 24px; }
+  .works-list { padding: 48px 24px; }
+  .ai-footer { padding: 36px 24px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fade-in, .drift-up, .drift-left { opacity: 1; transform: none; transition: none; }
+  .opening-label, .opening-title, .opening-desc, .opening-meta { animation: none; opacity: 1; }
+  .mood-cell-bg { transition: none; }
+  .mood-cell-overlay { transition: none; }
+  .interstitial-line { transform: scaleX(1); transition: none; }
+  .modal-overlay { transition: none; }
+  .modal-card { transition: none; }
+}
+</style>
+</head>
+<body>
+
+<!-- Header -->
+<header class="ai-header">
+  <div class="ai-brand">Lecta</div>
+  <div class="ai-count">8 Works</div>
+</header>
+
+<!-- Opening -->
+<section class="opening">
+  <div class="opening-bg"></div>
+  <div class="opening-grain"></div>
+  <div class="opening-content">
+    <div class="opening-label">Afterimage</div>
+    <h1 class="opening-title">A Softer Kind<br>of Sadness</h1>
+    <p class="opening-desc">잔잔한 고독을 느끼게 하는 영화와 음악. 슬프지만 계속 찾게 되는 감정의 색들.</p>
+    <div class="opening-meta">Curated by Minjae · 2026</div>
+  </div>
+</section>
+
+<!-- Moodboard Grid -->
+<section class="moodboard">
+  <!-- Row 1: 2fr + 1fr -->
+  <div class="mood-row mood-row-1 fade-in">
+    <div class="mood-cell tall" data-work="0">
+      <div class="mood-cell-bg mood-bg-1"></div>
+      <div class="mood-cell-overlay">
+        <div class="mood-cell-type">Film</div>
+        <div class="mood-cell-title">Past Lives</div>
+        <div class="mood-cell-creator">Celine Song · 2023</div>
+      </div>
+    </div>
+    <div class="mood-cell medium" data-work="1">
+      <div class="mood-cell-bg mood-bg-2"></div>
+      <div class="mood-cell-overlay">
+        <div class="mood-cell-type">Album</div>
+        <div class="mood-cell-title">For Emma, Forever Ago</div>
+        <div class="mood-cell-creator">Bon Iver · 2007</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Interstitial quote -->
+  <div class="interstitial fade-in">
+    <p class="interstitial-text">오래 남아 있는 것들은<br>대개 조용히 온다</p>
+    <div class="interstitial-line"></div>
+  </div>
+
+  <!-- Row 2: 1fr + 1fr + 1fr -->
+  <div class="mood-row mood-row-2 fade-in">
+    <div class="mood-cell square" data-work="2">
+      <div class="mood-cell-bg mood-bg-3"></div>
+      <div class="mood-cell-overlay">
+        <div class="mood-cell-type">Book</div>
+        <div class="mood-cell-title">나의 아름다운 그늘</div>
+        <div class="mood-cell-creator">이석원 · 2021</div>
+      </div>
+    </div>
+    <div class="mood-cell tall" data-work="3">
+      <div class="mood-cell-bg mood-bg-4"></div>
+      <div class="mood-cell-overlay">
+        <div class="mood-cell-type">Film</div>
+        <div class="mood-cell-title">Aftersun</div>
+        <div class="mood-cell-creator">Charlotte Wells · 2022</div>
+      </div>
+    </div>
+    <div class="mood-cell medium" data-work="4">
+      <div class="mood-cell-bg mood-bg-5"></div>
+      <div class="mood-cell-overlay">
+        <div class="mood-cell-type">Book</div>
+        <div class="mood-cell-title">The Great Gatsby</div>
+        <div class="mood-cell-creator">F. S. Fitzgerald · 1925</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Row 3: 1fr + 2fr -->
+  <div class="mood-row mood-row-3 fade-in">
+    <div class="mood-cell square" data-work="5">
+      <div class="mood-cell-bg mood-bg-6"></div>
+      <div class="mood-cell-overlay">
+        <div class="mood-cell-type">Album</div>
+        <div class="mood-cell-title">Blonde</div>
+        <div class="mood-cell-creator">Frank Ocean · 2016</div>
+      </div>
+    </div>
+    <div class="mood-cell wide" data-work="6">
+      <div class="mood-cell-bg mood-bg-7"></div>
+      <div class="mood-cell-overlay">
+        <div class="mood-cell-type">Drama</div>
+        <div class="mood-cell-title">나의 아저씨</div>
+        <div class="mood-cell-creator">박해영 · 2018</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Row 4: 1.5fr + 1fr + 1fr -->
+  <div class="mood-row mood-row-4 fade-in">
+    <div class="mood-cell medium" data-work="7">
+      <div class="mood-cell-bg mood-bg-8"></div>
+      <div class="mood-cell-overlay">
+        <div class="mood-cell-type">Album</div>
+        <div class="mood-cell-title">Carrie & Lowell</div>
+        <div class="mood-cell-creator">Sufjan Stevens · 2015</div>
+      </div>
+    </div>
+    <div class="mood-cell square" style="background: var(--bg-card); display: flex; align-items: center; justify-content: center;">
+      <div style="text-align: center; padding: 24px;">
+        <div style="font-family: 'Cormorant Garamond', serif; font-size: 40px; font-weight: 300; font-style: italic; color: var(--text-dim); margin-bottom: 8px;">8</div>
+        <div style="font-size: 10px; letter-spacing: 0.15em; text-transform: uppercase; color: var(--text-dim);">Works</div>
+      </div>
+    </div>
+    <div class="mood-cell square" style="background: transparent; border: 1px solid var(--border);">
+    </div>
+  </div>
+</section>
+
+<!-- Closing Note -->
+<section class="closing drift-up">
+  <p class="closing-text">이 전시에 담긴 작품들은 하나의 감정을 공유한다. 슬프지만 아름다운, 그래서 자꾸 돌아가게 되는 것들.</p>
+</section>
+
+<!-- Works List -->
+<section class="works-list">
+  <div class="works-list-header">
+    <div class="works-list-title">All Works</div>
+    <div class="works-list-count">8 Entries</div>
+  </div>
+  <div class="works-row" data-work="0"><span class="wr-num">01</span><span class="wr-title">Past Lives</span><span class="wr-type">Film</span></div>
+  <div class="works-row" data-work="1"><span class="wr-num">02</span><span class="wr-title">For Emma, Forever Ago</span><span class="wr-type">Album</span></div>
+  <div class="works-row" data-work="2"><span class="wr-num">03</span><span class="wr-title">나의 아름다운 그늘</span><span class="wr-type">Book</span></div>
+  <div class="works-row" data-work="3"><span class="wr-num">04</span><span class="wr-title">Aftersun</span><span class="wr-type">Film</span></div>
+  <div class="works-row" data-work="4"><span class="wr-num">05</span><span class="wr-title">The Great Gatsby</span><span class="wr-type">Book</span></div>
+  <div class="works-row" data-work="5"><span class="wr-num">06</span><span class="wr-title">Blonde</span><span class="wr-type">Album</span></div>
+  <div class="works-row" data-work="6"><span class="wr-num">07</span><span class="wr-title">나의 아저씨</span><span class="wr-type">Drama</span></div>
+  <div class="works-row" data-work="7"><span class="wr-num">08</span><span class="wr-title">Carrie & Lowell</span><span class="wr-type">Album</span></div>
+</section>
+
+<footer class="ai-footer">
+  <div class="ai-footer-brand">Lecta</div>
+  <div class="ai-footer-tagline">나의 취향을 하나의 감각으로</div>
+</footer>
+
+<!-- Modal -->
+<div class="modal-overlay" id="modal">
+  <div class="modal-card">
+    <div class="modal-cover" id="modalCover"></div>
+    <div class="modal-info">
+      <div class="modal-type" id="modalType"></div>
+      <h2 class="modal-title" id="modalTitle"></h2>
+      <div class="modal-creator" id="modalCreator"></div>
+      <p class="modal-note" id="modalNote"></p>
+      <button class="modal-close" id="modalCloseBtn">Close</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// Work data
+const works = [
+  { type: 'Film', title: 'Past Lives', creator: 'Celine Song · 2023', note: '다른 삶을 살았을 수도 있는 사람을 마주한다는 건, 지금의 나를 다시 묻는 일이다. 마지막 장면에서 나영이 걸어가는 뒷모습이 오래 남았다.', bg: 'linear-gradient(135deg, #1a1c25, #252838)' },
+  { type: 'Album', title: 'For Emma, Forever Ago', creator: 'Bon Iver · 2007', note: '겨울 산장에서 혼자 녹음한 앨범이라는 사실을 알고 나면, 소리의 질감이 달라진다. 외로움이 아닌 고요를 선택한 사람의 음악.', bg: 'linear-gradient(135deg, #1e3040, #0d1825)' },
+  { type: 'Book', title: '나의 아름다운 그늘', creator: '이석원 · 2021', note: '빛이 강할수록 그늘은 깊어진다. 이 책은 밝은 곳에서는 보이지 않는 감정들을 천천히 펼쳐 보여준다.', bg: 'linear-gradient(135deg, #302828, #1a1515)' },
+  { type: 'Film', title: 'Aftersun', creator: 'Charlotte Wells · 2022', note: '아빠와의 마지막 여름. 기억은 늘 빛과 함께 온다. 캠코더 화면 속 아빠의 모습이 점점 멀어지는데, 그래서 더 선명하다.', bg: 'linear-gradient(135deg, #253025, #121a12)' },
+  { type: 'Book', title: 'The Great Gatsby', creator: 'F. Scott Fitzgerald · 1925', note: '닿을 수 없는 것을 향해 손을 뻗는 사람의 이야기. 초록빛 불빛은 가장 아름다운 형태의 그리움이다.', bg: 'linear-gradient(135deg, #252030, #110e1a)' },
+  { type: 'Album', title: 'Blonde', creator: 'Frank Ocean · 2016', note: '이별 후에 듣는 Frank Ocean은 다르다. 노래가 끝나도 그 공기가 방 안에 남아 있다.', bg: 'linear-gradient(135deg, #302818, #1a150a)' },
+  { type: 'Drama', title: '나의 아저씨', creator: '박해영 · 2018', note: '위로라는 말을 한 번도 하지 않으면서 가장 큰 위로가 되는 드라마. 걷는 장면이 많은 드라마는 좋은 드라마다.', bg: 'linear-gradient(135deg, #182530, #0a1218)' },
+  { type: 'Album', title: 'Carrie & Lowell', creator: 'Sufjan Stevens · 2015', note: '떠난 사람에게 바치는 앨범. 기타 한 대와 목소리만으로 이렇게 많은 것을 담을 수 있다는 걸, 이 앨범이 증명한다.', bg: 'linear-gradient(135deg, #252530, #12121a)' }
+];
+
+// Scroll reveals
+const fadeEls = document.querySelectorAll('.fade-in, .drift-up, .drift-left');
+const fadeObs = new IntersectionObserver(entries => {
+  entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('vis'); });
+}, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
+fadeEls.forEach(el => fadeObs.observe(el));
+
+// Interstitial line
+const interstitials = document.querySelectorAll('.interstitial');
+const intObs = new IntersectionObserver(entries => {
+  entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('vis'); });
+}, { threshold: 0.3 });
+interstitials.forEach(el => intObs.observe(el));
+
+// Modal
+const modal = document.getElementById('modal');
+const modalCover = document.getElementById('modalCover');
+const modalType = document.getElementById('modalType');
+const modalTitle = document.getElementById('modalTitle');
+const modalCreator = document.getElementById('modalCreator');
+const modalNote = document.getElementById('modalNote');
+const modalCloseBtn = document.getElementById('modalCloseBtn');
+
+function openModal(idx) {
+  const w = works[idx];
+  if (!w) return;
+  modalCover.innerHTML = `<div class="placeholder-cover" style="background:${w.bg};"><div class="work-title-placeholder">${w.title}</div></div>`;
+  modalType.textContent = w.type;
+  modalTitle.textContent = w.title;
+  modalCreator.textContent = w.creator;
+  modalNote.textContent = w.note;
+  modal.classList.add('active');
+  document.body.style.overflow = 'hidden';
+}
+function closeModal() {
+  modal.classList.remove('active');
+  document.body.style.overflow = '';
+}
+
+document.querySelectorAll('[data-work]').forEach(el => {
+  el.addEventListener('click', () => openModal(parseInt(el.dataset.work)));
+});
+modalCloseBtn.addEventListener('click', closeModal);
+modal.addEventListener('click', e => { if (e.target === modal) closeModal(); });
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
+
+// Staggered works list
+const wRows = document.querySelectorAll('.works-row');
+const wObs = new IntersectionObserver(entries => {
+  entries.forEach((e, i) => {
+    if (e.isIntersecting) {
+      const el = e.target;
+      el.style.opacity = '0';
+      el.style.transform = 'translateX(-12px)';
+      el.style.transition = `opacity 0.4s ${i * 0.04}s, transform 0.4s ${i * 0.04}s`;
+      requestAnimationFrame(() => { el.style.opacity = '1'; el.style.transform = 'translateX(0)'; });
+      wObs.unobserve(el);
+    }
+  });
+}, { threshold: 0.1 });
+wRows.forEach(r => wObs.observe(r));
+</script>
+</body>
+</html>

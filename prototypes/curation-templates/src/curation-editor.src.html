@@ -1,0 +1,556 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Lecta, Edit curation</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Serif+Display&family=Noto+Serif+KR:wght@300;400;500&display=swap" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/gh/sun-typeface/SUIT@2/fonts/variable/woff2/SUIT-Variable.css" rel="stylesheet">
+<link href="https://hangeul.pstatic.net/hangeul_static/css/maru-buri.css" rel="stylesheet">
+<style>
+:root{
+  --ink:#14171C;--mute:#5B616B;--faint:#8A8F98;--fill:#F1F2F4;--fill2:#E7E9ED;
+  --serif:'Instrument Serif','MaruBuri','Noto Serif KR',serif;
+  --kr:'MaruBuri','Noto Serif KR',serif;
+  --sans:'SUIT Variable','SUIT',-apple-system,'Apple SD Gothic Neo','Noto Sans KR',system-ui,sans-serif;
+  --brand:'DM Serif Display',serif;
+  --ease:cubic-bezier(.2,.7,.2,1);
+  --bar:64px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{background:#fff;color:var(--ink);font:400 15px/1.5 var(--sans);-webkit-font-smoothing:antialiased;word-break:keep-all;overflow:hidden}
+button,input,textarea,select{font:inherit;color:inherit}
+button{background:none;border:0;cursor:pointer}
+ol,ul{list-style:none}
+a{color:inherit;text-decoration:none}
+[hidden]{display:none!important}
+.lnk{text-decoration:underline;text-underline-offset:6px;text-decoration-thickness:1px}
+.btn{display:inline-flex;align-items:center;justify-content:center;border-radius:99px;padding:10px 20px;background:var(--ink);color:#fff;font-weight:500;font-size:14px;transition:opacity .2s}
+.btn:hover{opacity:.86}.btn.ghost{background:var(--fill);color:var(--ink)}
+
+/* bar */
+.bar{height:var(--bar);display:flex;align-items:center;justify-content:space-between;gap:20px;padding:0 24px}
+.bar .l{display:flex;align-items:baseline;gap:22px;min-width:0}
+.brand{font:400 30px/1 var(--brand)}
+.crumb{font-size:14px;color:var(--faint);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.crumb b{font-weight:400;color:var(--ink)}
+.acts{display:flex;align-items:center;gap:20px;font-size:14px}
+.acts .msg{color:var(--faint);font-variant-numeric:tabular-nums}
+
+/* three panes */
+.ws{display:grid;grid-template-columns:288px minmax(0,1fr) 392px;height:calc(100svh - var(--bar));min-height:0}
+.rail,.insp{overflow:auto;min-height:0;scrollbar-width:thin;scrollbar-color:var(--fill2) transparent}
+.rail{padding:6px 12px 24px 18px}
+.insp{padding:6px 24px 60px 8px}
+.h{font:400 13px/1 var(--sans);color:var(--faint);margin:22px 0 12px}
+
+/* page rail */
+.pg{display:grid;grid-template-columns:22px 40px minmax(0,1fr) auto;column-gap:10px;align-items:center;padding:8px 8px 8px 6px;border-radius:14px;cursor:pointer;transition:background .2s,color .2s}
+.pg:hover{background:var(--fill)}
+.pg.on{background:var(--ink);color:#fff}
+.pg .n{font:400 12px/1 var(--sans);font-variant-numeric:tabular-nums;color:var(--faint)}
+.pg.on .n{color:rgba(255,255,255,.6)}
+.pg .th{width:40px;aspect-ratio:3/4;overflow:hidden;background:var(--fill2);display:grid;place-items:center}
+.pg .th img{width:100%;height:100%;object-fit:cover;display:block}
+.pg .th.ct{background:transparent;font:400 17px/1 var(--brand);color:inherit}
+.pg .tt{min-width:0}
+.pg .tt b{display:block;font:italic 400 19px/1.1 var(--serif);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pg .tt b.hk{font:300 15px/1.25 var(--kr);letter-spacing:-.02em}
+.pg .tt small{display:block;margin-top:3px;font-size:12px;color:var(--faint);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pg.on .tt small{color:rgba(255,255,255,.62)}
+.pg .rt{display:none;gap:2px}
+.pg:hover .rt,.pg.on .rt{display:flex}
+.sm{width:24px;height:24px;border-radius:50%;display:grid;place-items:center}
+.sm:hover{background:rgba(127,127,127,.22)}
+.sm[disabled]{opacity:.3;cursor:default}
+.sm svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+.addw{margin-top:8px;display:flex;align-items:center;gap:12px;padding:10px 8px;font-size:14px;width:100%;border-radius:14px;color:var(--mute)}
+.addw:hover{background:var(--fill)}
+.addw i{width:40px;height:40px;border-radius:50%;background:var(--fill);display:grid;place-items:center;font-style:normal;font-size:20px;color:var(--ink)}
+
+/* stage */
+.stage-w{display:flex;flex-direction:column;min-width:0;min-height:0;padding:0 8px 16px}
+.sbar{display:flex;align-items:center;justify-content:space-between;padding:6px 6px 14px;font-size:14px;color:var(--mute)}
+.sbar .pn{display:flex;align-items:center;gap:6px;font-variant-numeric:tabular-nums}
+.sbar .pn button{width:30px;height:30px;border-radius:50%;background:var(--fill);display:grid;place-items:center}
+.sbar .pn button:hover{background:var(--fill2)}
+.sbar .pn svg{width:14px;height:14px;stroke:var(--ink);fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+.sbar .pn span{min-width:7em;text-align:center;color:var(--ink)}
+.seg{display:flex;gap:18px}
+.seg button{color:var(--faint);padding:2px 0}
+.seg button.on{color:var(--ink);text-decoration:underline;text-underline-offset:7px;text-decoration-thickness:1px}
+.stage{position:relative;flex:1;min-height:0;border-radius:18px;background:var(--fill);overflow:hidden}
+.stage iframe{position:absolute;border:0;background:#fff;transform-origin:0 0;box-shadow:0 22px 50px -24px rgba(0,0,0,.35)}
+
+/* inspector */
+.ph1{font:400 clamp(30px,2.3vw,36px)/1.05 var(--serif);letter-spacing:-.01em;margin:14px 0 6px;overflow-wrap:anywhere}
+.ph1.hk{font:300 26px/1.25 var(--kr);letter-spacing:-.03em}
+.ph2{font-size:14px;color:var(--mute)}
+.field{width:100%;border:0;border-radius:14px;background:var(--fill);padding:12px 16px 13px;font:400 16px/1.4 var(--kr);outline:none}
+.field:focus,.area:focus{background:var(--fill2)}
+.field::placeholder,.area::placeholder,.title-in::placeholder{color:#A9AEB6}
+.area{width:100%;resize:vertical;min-height:120px;border:0;border-radius:16px;background:var(--fill);padding:16px 18px;font:400 15.5px/1.75 var(--kr);outline:none}
+.title-in{display:block;width:100%;border:0;border-bottom:2px solid var(--ink);background:transparent;padding:0 0 10px;font:400 34px/1.12 var(--serif);letter-spacing:-.015em;outline:none;resize:none;overflow:hidden;height:1.3em}
+.title-in.hk{font-family:var(--kr);font-weight:300;letter-spacing:-.04em}
+.sub-in{width:100%;margin-top:12px;border:0;background:transparent;font:400 16px/1.5 var(--kr);outline:none;color:var(--mute)}
+.sub-in::placeholder{color:#A9AEB6}
+.lay{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:4px}
+.lay button{display:flex;flex-direction:column;align-items:center;gap:7px;padding:10px 0 8px;border-radius:12px;font-size:11.5px;color:var(--mute);transition:background .2s,color .2s}
+.lay button svg{width:34px;height:46px;stroke:currentColor;fill:none;stroke-width:1.2}
+.lay button svg .f{fill:currentColor;stroke:none}
+.lay button:hover{background:var(--fill)}.lay button.on{background:var(--ink);color:#fff}.lay button.off{opacity:.38}
+.hint{margin-top:10px;font-size:13px;color:var(--mute);line-height:1.6}
+.tb{display:flex;gap:6px;margin-bottom:8px;align-items:center}
+.tb button{height:30px;min-width:30px;padding:0 12px;border-radius:99px;background:var(--fill);font-size:12.5px}
+.tb button:hover{background:var(--fill2)}
+.tb .sp{flex:1}.tb .cnt{font-size:12px;color:var(--faint);font-variant-numeric:tabular-nums}
+.sc{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.sc .t{position:relative;min-width:0}
+.sc .im{display:block;width:100%;aspect-ratio:4/3;border-radius:10px;object-fit:cover;background:var(--fill)}
+.sc .ctl{position:absolute;top:5px;right:5px;display:flex;gap:3px;opacity:0;transition:opacity .2s}
+.sc .t:hover .ctl,.sc .t:focus-within .ctl{opacity:1}
+.sc .ctl button{width:22px;height:22px;border-radius:50%;background:rgba(20,23,28,.8);color:#fff;font-size:12px;line-height:1}
+.sc .cap-in{width:100%;margin-top:5px;border:0;background:transparent;font:400 12px/1.3 var(--sans);color:var(--mute);outline:none}
+.sc .cap-in::placeholder{color:#B3B8BF}
+.sc .addtile{aspect-ratio:4/3;border-radius:10px;background:var(--fill);display:grid;place-items:center;font-size:12.5px;color:var(--mute);cursor:pointer;text-align:center;padding:6px;transition:background .2s}
+.sc .addtile:hover,.sc .addtile.drag{background:var(--fill2)}
+.sc .ghost{opacity:.55}
+.switch{display:flex;align-items:center;gap:12px;font-size:14px;color:var(--mute);margin-top:22px;cursor:pointer}
+.switch input{appearance:none;width:40px;height:23px;border-radius:99px;background:#CDD1D8;position:relative;transition:background .2s;cursor:pointer;flex:none}
+.switch input::after{content:"";position:absolute;left:3px;top:3px;width:17px;height:17px;border-radius:50%;background:#fff;transition:transform .25s var(--ease)}
+.switch input:checked{background:var(--ink)}.switch input:checked::after{transform:translateX(17px)}
+.det{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.det .full{grid-column:1/3}
+.tpl{display:grid;grid-template-columns:1fr;gap:8px}
+.tpl button{display:grid;grid-template-columns:84px 1fr;column-gap:14px;align-items:center;text-align:left;padding:12px 14px;border-radius:16px;background:var(--fill);transition:background .2s,color .2s}
+.tpl button:hover{background:var(--fill2)}.tpl button.on{background:var(--ink);color:#fff}
+.tpl svg{width:84px;height:44px;stroke:currentColor;fill:none;stroke-width:1.2}.tpl svg .f{fill:currentColor;stroke:none}
+.tpl b{display:block;font:400 21px/1.1 var(--serif)}.tpl small{display:block;margin-top:3px;font-size:12.5px;line-height:1.4;opacity:.7}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chips button{display:flex;align-items:center;gap:8px;padding:7px 14px 7px 8px;border-radius:99px;background:var(--fill);font-size:13px;transition:background .2s}
+.chips button.on{background:var(--ink);color:#fff}
+.chips i{width:20px;height:20px;border-radius:50%;flex:none}
+.chip-s{font-size:12.5px;color:var(--faint)}
+.rm{margin-top:34px;font-size:13px;color:var(--faint)}
+.rm button:hover{color:var(--ink)}
+
+/* add dialog and toast */
+.veil{position:fixed;inset:0;z-index:50;background:rgba(20,23,28,.34);display:grid;place-items:center;opacity:0;visibility:hidden;transition:opacity .25s,visibility .25s}
+.veil.on{opacity:1;visibility:visible}
+.sheet{width:min(560px,92vw);max-height:84svh;background:#fff;border-radius:22px;box-shadow:0 30px 80px rgba(0,0,0,.2);padding:26px 26px 22px;display:flex;flex-direction:column;transform:translateY(14px);transition:transform .35s var(--ease)}
+.veil.on .sheet{transform:none}
+.sheet h3{font:400 30px/1 var(--serif);margin-bottom:16px}
+.sheet .res{margin-top:14px;overflow:auto;min-height:120px}
+.res li{display:grid;grid-template-columns:44px minmax(0,1fr) auto;gap:14px;align-items:center;padding:9px 0}
+.res li .cv{width:44px;aspect-ratio:2/3;display:block;overflow:hidden;background:var(--fill)}
+.res li img{width:100%;height:100%;object-fit:cover;display:block}
+.res li b{display:block;font:italic 400 19px/1.15 var(--serif)}
+.res li b.hk{font:400 16px/1.3 var(--kr)}
+.res li small{font-size:13px;color:var(--faint)}
+.res .none{padding:20px 0;color:var(--faint);font-size:14.5px;display:block}
+.manual{margin-top:12px;display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.manual .full{grid-column:1/3}
+.sheet .row{margin-top:18px;display:flex;justify-content:space-between;align-items:center}
+.toast{position:fixed;left:50%;bottom:26px;transform:translate(-50%,20px);background:var(--ink);color:#fff;border-radius:99px;padding:12px 22px;font-size:14px;opacity:0;pointer-events:none;transition:opacity .3s,transform .3s var(--ease);z-index:60;display:flex;gap:18px;align-items:center}
+.toast.on{opacity:1;transform:translate(-50%,0);pointer-events:auto}
+.toast button{text-decoration:underline;text-underline-offset:5px;color:#fff;font-size:14px}
+
+@media (max-width:1180px){.ws{grid-template-columns:220px minmax(0,1fr) 340px}.acts .lnk{display:none}}
+@media (max-width:900px){body{overflow:auto}.ws{display:block;height:auto}.stage-w{height:70svh}.rail,.insp{overflow:visible;padding:12px 18px}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<header class="bar"><div class="l"><a class="brand" href="#">Lecta</a><span class="crumb">My rooms <span style="margin:0 8px">/</span> <b id="crumb-t">Untitled</b></span></div>
+  <div class="acts"><span class="msg" id="saved">Draft</span><button class="lnk" type="button" data-act="open-full">Open full preview</button><button class="lnk" type="button" data-act="json">Download JSON</button><button class="btn" type="button" data-act="save">Save</button></div></header>
+
+<main class="ws">
+  <nav class="rail" id="rail" aria-label="Pages"></nav>
+  <section class="stage-w">
+    <div class="sbar"><div class="pn"><button type="button" data-act="prev" aria-label="Previous page"><svg viewBox="0 0 14 14"><path d="M9 2L4 7l5 5"/></svg></button><span id="pn-t"></span><button type="button" data-act="next" aria-label="Next page"><svg viewBox="0 0 14 14"><path d="M5 2l5 5-5 5"/></svg></button></div>
+      <div class="seg" id="seg"><button type="button" data-mode="desktop" class="on">Desktop</button><button type="button" data-mode="mobile">Mobile</button></div></div>
+    <div class="stage" id="stage"><iframe id="frame" title="Curation preview"></iframe></div>
+  </section>
+  <aside class="insp" id="insp" aria-label="Page settings"></aside>
+</main>
+
+<div class="veil" id="veil"><div class="sheet" role="dialog" aria-label="Add a work">
+  <h3>Add a work</h3>
+  <input class="field" id="q" type="search" placeholder="제목이나 만든 사람으로 찾기" autocomplete="off">
+  <ul class="res" id="res"></ul>
+  <div class="manual" id="manual" hidden>
+    <input class="field full" data-m="title" placeholder="제목">
+    <input class="field" data-m="creator" placeholder="만든 사람">
+    <input class="field" data-m="year" placeholder="연도" inputmode="numeric">
+    <select class="field" data-m="medium"><option value="film">영화</option><option value="series">시리즈</option><option value="book">책</option><option value="album">앨범</option></select>
+    <label class="field" style="cursor:pointer;color:var(--mute)">표지 이미지 올리기<input type="file" accept="image/*" data-m-file hidden></label>
+    <span class="full chip-s" id="m-file-name"></span>
+  </div>
+  <div class="row"><button class="lnk" type="button" data-act="manual">Add by hand</button><span style="display:flex;gap:12px"><button class="btn ghost" type="button" data-act="close-add">Close</button><button class="btn" type="button" data-act="add-manual" id="add-manual" hidden>Add</button></span></div>
+</div></div>
+<div class="toast" id="toast"><span id="toast-t"></span><button type="button" id="toast-u" hidden>Undo</button></div>
+
+<script>
+/*@samples*/
+</script>
+<script>
+(function () {
+  'use strict';
+  var SM = window.LectaSamples;
+  var $ = function (s, r) { return (r || document).querySelector(s); };
+  var esc = function (s) { return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;'); };
+  var hk = function (s) { return /[ᄀ-ᇿ㄰-㆏가-힯]/.test(s || '') ? 'hk' : ''; };
+  var MEDIUM = { film: '영화', series: '시리즈', book: '책', album: '앨범' };
+  var TEMPLATES = [
+    { id: 'the-spread', name: 'The Spread', desc: '잡지 내지처럼. 단 나눈 글 사이에 장면이 놓여요', svg: '<svg viewBox="0 0 84 44"><rect class="f" x="3" y="3" width="20" height="4"/><path d="M3 14h34M3 19h34M3 24h22M46 3h35v17H46z"/><path d="M46 27h35M46 32h28M46 37h32"/></svg>' },
+    { id: 'the-edit', name: 'The Edit', desc: '큰 활자의 에세이. 한 작품이 한 장을 써요', svg: '<svg viewBox="0 0 84 44"><rect class="f" x="3" y="4" width="42" height="9"/><path d="M3 22h30M3 27h22M3 32h28M58 3h24v38H58z"/></svg>' },
+    { id: 'afterimage', name: 'Afterimage', desc: '어두운 방에서 한 작품씩 천천히', svg: '<svg viewBox="0 0 84 44"><rect class="f" x="28" y="3" width="28" height="26"/><path d="M20 35h44M30 40h24"/></svg>' }
+  ];
+  var LAYOUTS = [
+    { id: 'auto', name: 'Auto', svg: '<svg viewBox="0 0 44 58"><rect x="4" y="5" width="36" height="48" stroke-dasharray="3 3"/><path d="M22 21v16M14 29h16"/></svg>' },
+    { id: 'page', name: 'Page', svg: '<svg viewBox="0 0 44 58"><rect class="f" x="4" y="5" width="22" height="5"/><path d="M4 22h12M4 28h12M4 34h10M22 22h18M22 28h18M22 34h18M22 40h14"/></svg>' },
+    { id: 'inset', name: 'Inset', svg: '<svg viewBox="0 0 44 58"><path d="M4 6h36M4 11h28"/><rect x="4" y="18" width="36" height="14"/><path d="M4 38h36M4 43h30M4 48h22"/></svg>' },
+    { id: 'full', name: 'Full', svg: '<svg viewBox="0 0 44 58"><rect x="2" y="4" width="40" height="32"/><rect class="f" x="4" y="43" width="22" height="5"/><path d="M30 46h10"/></svg>' },
+    { id: 'plate', name: 'Plate', svg: '<svg viewBox="0 0 44 58"><rect class="f" x="4" y="6" width="14" height="5"/><path d="M4 48h12"/><rect x="24" y="12" width="16" height="32"/></svg>' },
+    { id: 'quote', name: 'Quote', svg: '<svg viewBox="0 0 44 58"><rect class="f" x="2" y="4" width="40" height="50"/><path stroke="#fff" d="M8 24h28M8 31h22"/></svg>' }
+  ];
+  var ICON = {
+    up: '<svg viewBox="0 0 14 14"><path d="M7 12V2M3 6l4-4 4 4"/></svg>',
+    down: '<svg viewBox="0 0 14 14"><path d="M7 2v10M3 8l4 4 4-4"/></svg>'
+  };
+
+  var uid = 0;
+  function newWork(o) {
+    return { uid: 'w' + (++uid) + Math.random().toString(36).slice(2, 5), title: o.title || '', creator: o.creator || '', year: o.year || '', medium: o.medium || 'film',
+      reason: o.reason || '', note: o.note || '', layout: o.layout || 'auto', featured: !!o.featured,
+      cover: o.cover || null, art: o.art || null, scenes: (o.scenes || []).map(function (s) { return { src: s.src, caption: s.caption || '', ar: s.ar }; }), palette: null, ar: o.ar || 0.667 };
+  }
+  var CATALOG = [];
+  ['A', 'B', 'C'].forEach(function (k) { SM.SETS[k].ex.items.forEach(function (it) { if (it.art) CATALOG.push({ title: it.title, creator: it.creator, year: it.year, medium: it.medium, art: it.art }); }); });
+  function artSrc(a, t, c) { return SM.svgUri(SM.ART[a.kind](a.colors, t, c)); }
+  function coverSrc(w) { return w.cover ? w.cover.src : (w.art ? artSrc(w.art, w.title, w.creator) : ''); }
+
+  var S = {
+    title: 'Longing & Other Quiet Things', subtitle: '', intro: '', curator: '', template: 'the-spread', accent: null,
+    sel: 'cover', device: 'desktop', chips: [], accentIndex: 0, plan: [], kinds: null, focusPending: false,
+    works: [
+      newWork({ title: 'Aftersun', creator: 'Charlotte Wells', year: '2022', medium: 'film', art: { kind: 'sea', colors: ['#2F5D8A', '#E0875A', '#1F3F63', '#0F2540', '#F2B27A'] },
+        reason: '영화가 끝나도 끝나지 않는 장면이 있다.',
+        note: '이 영화에서 나는 아버지의 뒷모습을 오래 보았다.\n\n> 기억은 사진보다 느리게 도착한다.\n\n그날의 햇빛과 호텔 수영장, 캠코더 속의 얼굴이 한참 뒤에야 의미를 갖는다. 영화는 아무것도 설명하지 않고 그 기다림이 이 영화의 첫 장면이다.',
+        scenes: [{ src: SM.svgUri(SM.ART.photo(['#233B63', '#E58B5E', '#F6C58F', '#10233F'])), caption: '수영장 장면', ar: 1.6 }, { src: SM.svgUri(SM.ART.photo(['#1B2F4F', '#C97A55', '#E8B98A', '#0B1A30'])), caption: '', ar: 1.6 }] }),
+      newWork({ title: 'Come Away With Me', creator: 'Norah Jones', year: '2002', medium: 'album', art: { kind: 'orb', colors: ['#173F3A', '#E8873A', '#0B1F1D', '#5FA39A', '#F2C36B'] }, reason: '낮은 목소리 하나로 방 안의 온도가 달라진다.' }),
+      newWork({ title: 'The Years', creator: 'Annie Ernaux', year: '2008', medium: 'book', art: { kind: 'type', colors: ['#9E2B25', '#E6E2DC', '#F4F0EA', '#6E1A17'] }, reason: '한 사람의 기억이 한 세대의 기록이 되는 방식을 이 책에서 처음 배웠다.' })
+    ]
+  };
+  var frame = $('#frame'), frameReady = false, saveTimer = 0, pushTimer = 0;
+
+  function byUid(u) { return S.works.filter(function (w) { return w.uid === u; })[0]; }
+  function selIndex() { return S.sel === 'cover' ? -1 : S.works.findIndex(function (w) { return w.uid === S.sel; }); }
+  function selWork() { return S.sel === 'cover' ? null : byUid(S.sel); }
+  function planOf(w) { return S.plan.filter(function (p) { return p.id === w.uid; })[0]; }
+
+  /* ---------- data out ---------- */
+  function curation() {
+    return {
+      title: S.title, subtitle: S.subtitle, curator: S.curator, intro: S.intro, accentIndex: S.accent, heroId: S.works[0] && S.works[0].uid,
+      focus: S.focusPending ? selIndex() : null,
+      items: S.works.map(function (w) {
+        return { id: w.uid, title: w.title, creator: w.creator, year: w.year, medium: w.medium, reason: w.reason, note: w.note, layout: w.layout === 'auto' ? '' : w.layout, featured: w.featured,
+          cover: w.cover ? { src: w.cover.src } : null, art: w.art, noCover: !w.cover && !w.art, scenes: w.scenes.map(function (s) { return { src: s.src, caption: s.caption }; }), palette: w.palette };
+      })
+    };
+  }
+  window.LectaEditor = { getData: function () { return Object.assign(curation(), { template: S.template }); }, onSave: null, setData: function (d) { load(d); loadFrame(); renderAll(); } };
+
+  function bucketOf(w) {
+    var txt = [w.reason, w.note].filter(Boolean).join('\n\n').replace(/^>\s*/gm, ''), n = txt.replace(/\s/g, '').length;
+    var paras = txt.split(/\n{2,}/).filter(function (p) { return p.trim(); }).length;
+    if (!n) return 'none'; if (n <= 90 && paras <= 1) return 'line'; if (n <= 260 && paras <= 2) return 'short'; if (n <= 600 && paras <= 4) return 'medium'; return 'long';
+  }
+  var BUCKET_MSG = {
+    none: '글이 없으면 장면이나 표지가 한 장을 채워요.',
+    line: '한 줄이에요. 큼직한 한 문장으로 놓여요.',
+    short: '짧은 글이에요. 장면과 함께 한 호흡으로 읽혀요.',
+    medium: '적당한 길이예요. 단을 나눠 잡지 지면처럼 놓여요.',
+    long: '긴 글이에요. 여러 단으로 흐르고, 장면이 글 사이에 들어가요.'
+  };
+
+  /* ---------- rail ---------- */
+  function renderRail() {
+    var n = S.works.length;
+    var rows = '<li class="pg ' + (S.sel === 'cover' ? 'on' : '') + '" data-sel="cover"><span class="n">00</span><span class="th ct">L</span><span class="tt"><b class="' + hk(S.title) + '">' + esc(S.title || 'Untitled') + '</b><small>Cover and settings</small></span><span class="rt"></span></li>';
+    rows += S.works.map(function (w, i) {
+      var src = coverSrc(w), plan = planOf(w);
+      var cap = function (k) { return k ? k.charAt(0).toUpperCase() + k.slice(1) : 'Auto'; };
+      var kind = w.layout !== 'auto' ? cap(w.layout) + ' fixed' : cap(plan && plan.kind);
+      return '<li class="pg ' + (S.sel === w.uid ? 'on' : '') + '" data-sel="' + w.uid + '"><span class="n">' + String(i + 1).padStart(2, '0') + '</span><span class="th">' + (src ? '<img src="' + esc(src) + '" alt="">' : '') + '</span>' +
+        '<span class="tt"><b class="' + hk(w.title) + '">' + esc(w.title || 'Untitled') + '</b><small>' + esc(kind) + (w.scenes.length ? ', ' + w.scenes.length + (w.scenes.length === 1 ? ' scene' : ' scenes') : ', cover') + '</small></span>' +
+        '<span class="rt"><button class="sm" type="button" data-act="up" aria-label="Move up"' + (i === 0 ? ' disabled' : '') + '>' + ICON.up + '</button><button class="sm" type="button" data-act="down" aria-label="Move down"' + (i === n - 1 ? ' disabled' : '') + '>' + ICON.down + '</button></span></li>';
+    }).join('');
+    $('#rail').innerHTML = '<p class="h">Pages</p><ol>' + rows + '</ol><button class="addw" type="button" data-act="add"><i>+</i>Add a work</button>';
+  }
+
+  /* ---------- inspector ---------- */
+  function tplCards() {
+    return TEMPLATES.map(function (t) { return '<button type="button" data-act="tpl" data-v="' + t.id + '" class="' + (S.template === t.id ? 'on' : '') + '">' + t.svg + '<span><b>' + t.name + '</b><small>' + t.desc + '</small></span></button>'; }).join('');
+  }
+  function chipRow() {
+    if (!S.chips.length) return '<span class="chip-s">작품을 담으면 표지에서 색을 뽑아 보여드려요.</span>';
+    return S.chips.map(function (c, i) { return '<button type="button" data-act="chip" data-v="' + i + '" class="' + (i === S.accentIndex ? 'on' : '') + '"><i style="background:' + esc(c.hex) + '"></i>' + esc(c.name) + '</button>'; }).join('');
+  }
+  function inspCover() {
+    return '<p class="h">Curation</p>' +
+      '<textarea class="title-in ' + hk(S.title) + '" id="f-title" rows="1" data-g="title" placeholder="큐레이션 제목" maxlength="120">' + esc(S.title) + '</textarea>' +
+      '<input class="sub-in" data-g="subtitle" value="' + esc(S.subtitle) + '" placeholder="한 줄 부제 (선택)" maxlength="160">' +
+      '<p class="h">Introduction <span class="chip-s">(optional)</span></p>' +
+      '<textarea class="area" data-g="intro" placeholder="이 큐레이션을 한두 문장으로 소개해 주세요.">' + esc(S.intro) + '</textarea>' +
+      '<p class="h">Template</p><div class="tpl">' + tplCards() + '</div>' +
+      '<p class="h">Wall color <span class="chip-s">(taken from the covers)</span></p><div class="chips" id="chips">' + chipRow() + '</div>';
+  }
+  function inspWork(w) {
+    var plan = planOf(w), kinds = S.kinds;
+    var lay = LAYOUTS.map(function (l) {
+      var off = l.id !== 'auto' && kinds && kinds.indexOf(l.id) < 0;
+      return '<button type="button" data-act="layout" data-v="' + l.id + '" class="' + (w.layout === l.id ? 'on' : '') + (off ? ' off' : '') + '"' + (off ? ' title="이 템플릿에는 없어서 Auto로 놓여요"' : '') + '>' + l.svg + l.name + '</button>';
+    }).join('');
+    var now = plan && plan.kind ? plan.kind : '';
+    var layHint = w.layout === 'auto' ? 'Auto는 글의 길이와 장면에 맞춰 정해요' + (now ? '. 지금은 ' + now : '') + '.' :
+      (kinds && kinds.indexOf(w.layout) < 0 ? '이 템플릿에는 ' + w.layout + ' 구성이 없어서 Auto로 놓여요.' : '이 작품만 이 구성으로 고정해요.');
+    var scenes = w.scenes.map(function (s, k) {
+      return '<div class="t" data-k="' + k + '"><img class="im" src="' + esc(s.src) + '" alt=""><div class="ctl">' + (k > 0 ? '<button type="button" data-act="sc-left" aria-label="Earlier">&larr;</button>' : '') + (k < w.scenes.length - 1 ? '<button type="button" data-act="sc-right" aria-label="Later">&rarr;</button>' : '') + '<button type="button" data-act="sc-del" aria-label="Remove">&times;</button></div>' +
+        '<input class="cap-in" data-f="caption" value="' + esc(s.caption) + '" placeholder="장면 설명" maxlength="120"></div>';
+    }).join('');
+    var cs = coverSrc(w);
+    var ghost = !w.scenes.length && cs ? '<div class="t ghost"><img class="im" src="' + esc(cs) + '" alt="" style="object-fit:contain;background:var(--fill2)"><p class="cap-in">표지</p></div>' : '';
+    return '<h2 class="ph1 ' + hk(w.title) + '">' + esc(w.title || 'Untitled') + '</h2><p class="ph2">' + esc(MEDIUM[w.medium] || '') + (w.creator ? ' / ' + esc(w.creator) : '') + (w.year ? ', ' + esc(w.year) : '') + '</p>' +
+      '<p class="h">Layout</p><div class="lay">' + lay + '</div><p class="hint">' + esc(layHint) + '</p>' +
+      '<p class="h">Why this work</p><input class="field" data-f="reason" value="' + esc(w.reason) + '" placeholder="왜 이 작품인가요? 한 줄이면 충분해요" maxlength="400">' +
+      '<p class="h">Writing <span class="chip-s">(optional)</span></p>' +
+      '<div class="tb"><button type="button" data-act="b"><b>B</b></button><button type="button" data-act="i"><i>I</i></button><button type="button" data-act="q">Pull quote</button><span class="sp"></span><span class="cnt" id="cnt">' + (w.reason + w.note).replace(/\s/g, '').length + '</span></div>' +
+      '<textarea class="area" data-f="note" style="min-height:170px" placeholder="더 쓰고 싶다면 여기에. 빈 줄로 문단을 나누고, 줄 맨 앞에 >를 쓰면 인용문이 돼요.">' + esc(w.note) + '</textarea>' +
+      '<p class="hint" id="bk">' + BUCKET_MSG[bucketOf(w)] + '</p>' +
+      '<p class="h">Scenes</p><div class="sc">' + scenes + ghost + '<label class="addtile" data-drop>+ Add<input type="file" accept="image/*" multiple hidden data-scenes></label></div>' +
+      '<p class="hint">작품 속 장면이나 직접 찍은 사진을 넣어요. 넣지 않으면 표지가 그 자리에 놓여요.</p>' +
+      '<label class="switch"><input type="checkbox" data-f="featured"' + (w.featured ? ' checked' : '') + '>이 작품을 크게 보여주기</label>' +
+      '<p class="h">Details</p><div class="det"><input class="field full" data-f="title" value="' + esc(w.title) + '" placeholder="제목"><input class="field" data-f="creator" value="' + esc(w.creator) + '" placeholder="만든 사람"><input class="field" data-f="year" value="' + esc(w.year) + '" placeholder="연도" inputmode="numeric"></div>' +
+      '<p class="rm"><button class="lnk" type="button" data-act="remove">Remove this work</button></p>';
+  }
+  function renderInsp() {
+    var w = selWork(), el = $('#insp'), top = el.scrollTop, same = el.getAttribute('data-for') === S.sel;
+    el.innerHTML = w ? inspWork(w) : inspCover();
+    el.setAttribute('data-for', S.sel);
+    el.scrollTop = same ? top : 0;
+    var tt = $('#f-title'); if (tt) grow(tt);
+  }
+  function grow(t) { t.style.height = 'auto'; t.style.height = t.scrollHeight + 'px'; }
+
+  /* ---------- stage ---------- */
+  function renderBar() {
+    $('#crumb-t').textContent = S.title || 'Untitled';
+    var i = selIndex(), n = S.works.length;
+    $('#pn-t').textContent = i < 0 ? 'Cover' : String(i + 1).padStart(2, '0') + ' / ' + String(n).padStart(2, '0');
+    [].forEach.call($('#seg').children, function (b) { b.classList.toggle('on', b.getAttribute('data-mode') === S.device); });
+  }
+  function fitFrame() {
+    var st = $('#stage'), W = st.clientWidth, H = st.clientHeight, m = S.device === 'mobile';
+    var w = m ? 390 : 1280, h = m ? 844 : 800, s = Math.min((W - 28) / w, (H - 28) / h);
+    if (!(s > 0)) return;
+    frame.style.cssText = 'width:' + w + 'px;height:' + h + 'px;left:' + Math.max(0, (W - w * s) / 2) + 'px;top:' + Math.max(0, (H - h * s) / 2) + 'px;transform:scale(' + s + ')';
+  }
+  function loadFrame() { frameReady = false; frame.setAttribute('src', S.template + '.html?embed=1'); }
+  function push(now) {
+    clearTimeout(pushTimer);
+    var go = function () { if (!frameReady) return; frame.contentWindow.postMessage({ type: 'lecta:curation', data: curation() }, '*'); S.focusPending = false; };
+    if (now) go(); else pushTimer = setTimeout(go, 260);
+  }
+  function goto(i) { if (frameReady) frame.contentWindow.postMessage({ type: 'lecta:goto', index: i }, '*'); }
+  window.addEventListener('message', function (e) {
+    if (e.source !== frame.contentWindow) return;
+    var d = e.data || {};
+    if (d.type === 'lecta:ready') { frameReady = true; S.focusPending = true; push(true); }
+    else if (d.type === 'lecta:state') {
+      S.chips = d.chips || []; S.accentIndex = S.accent != null ? S.accent : (d.accentIndex || 0); S.plan = d.plan || []; S.kinds = d.kinds && d.kinds.length ? d.kinds : null;
+      (d.palettes || []).forEach(function (p) { var w = byUid(p.id); if (w) { w.palette = p.palette; w.ar = p.ar || w.ar; } });
+      var ch = $('#chips'); if (ch) ch.innerHTML = chipRow();
+      renderRail();
+      if (selWork() && !document.activeElement.closest('#insp')) renderInsp(); else refreshHints();
+    }
+    else if (d.type === 'lecta:view') {
+      /* scrolling the preview moves the selection; the inspector follows, unless the author is typing in it */
+      var target = d.index < 0 ? 'cover' : (S.works[d.index] && S.works[d.index].uid);
+      if (!target || target === S.sel || S.focusPending) return;
+      if (document.activeElement && document.activeElement.closest('#insp')) return;
+      S.sel = target; renderRail(); renderInsp(); renderBar();
+    }
+  });
+  function refreshHints() {
+    var w = selWork(); if (!w) return;
+    var b = $('#bk'); if (b) b.textContent = BUCKET_MSG[bucketOf(w)];
+    var c = $('#cnt'); if (c) c.textContent = (w.reason + w.note).replace(/\s/g, '').length;
+  }
+
+  function renderAll() { renderRail(); renderInsp(); renderBar(); push(); autosave(); }
+  function select(id) { S.sel = id; renderRail(); renderInsp(); renderBar(); goto(selIndex()); }
+
+  /* ---------- actions ---------- */
+  function move(u, d) { var i = S.works.findIndex(function (w) { return w.uid === u; }), j = i + d; if (j < 0 || j >= S.works.length) return; var t = S.works[i]; S.works[i] = S.works[j]; S.works[j] = t; }
+  function toast(msg, undo) {
+    var t = $('#toast'), u = $('#toast-u'); $('#toast-t').textContent = msg; u.hidden = !undo; u.onclick = function () { undo(); t.classList.remove('on'); };
+    t.classList.add('on'); clearTimeout(toast.t); toast.t = setTimeout(function () { t.classList.remove('on'); }, 4200);
+  }
+  document.addEventListener('click', function (e) {
+    var a = e.target.closest('[data-act]');
+    if (!a) { var row = e.target.closest('.pg[data-sel]'); if (row) select(row.getAttribute('data-sel')); return; }
+    var act = a.getAttribute('data-act'), w = selWork(), rowEl = a.closest('.pg[data-sel]'), rw = rowEl && byUid(rowEl.getAttribute('data-sel'));
+    if ((act === 'up' || act === 'down') && rw) { move(rw.uid, act === 'up' ? -1 : 1); S.sel = rw.uid; S.focusPending = true; renderAll(); }
+    else if (act === 'remove' && w) {
+      var i = S.works.indexOf(w), nx = S.works[i + 1] || S.works[i - 1]; S.works.splice(i, 1); S.sel = nx ? nx.uid : 'cover'; S.focusPending = true; renderAll();
+      toast('Removed ' + (w.title || 'work'), function () { S.works.splice(i, 0, w); S.sel = w.uid; S.focusPending = true; renderAll(); });
+    }
+    else if (act === 'prev' || act === 'next') {
+      var idx = selIndex() + (act === 'next' ? 1 : -1); if (idx < -1 || idx >= S.works.length) return; select(idx < 0 ? 'cover' : S.works[idx].uid);
+    }
+    else if (act === 'layout' && w) { w.layout = a.getAttribute('data-v'); S.focusPending = true; renderInsp(); renderRail(); push(); autosave(); }
+    else if ((act === 'b' || act === 'i' || act === 'q') && w) { var ta = $('textarea[data-f="note"]'); wrapSel(ta, act); w.note = ta.value; refreshHints(); push(); autosave(); }
+    else if (act === 'sc-del' && w) { w.scenes.splice(+a.closest('.t').getAttribute('data-k'), 1); S.focusPending = true; renderInsp(); renderRail(); push(); autosave(); }
+    else if ((act === 'sc-left' || act === 'sc-right') && w) { var k2 = +a.closest('.t').getAttribute('data-k'), j = k2 + (act === 'sc-left' ? -1 : 1), t = w.scenes[k2]; w.scenes[k2] = w.scenes[j]; w.scenes[j] = t; S.focusPending = true; renderInsp(); push(); autosave(); }
+    else if (act === 'tpl') { S.template = a.getAttribute('data-v'); S.kinds = null; S.accent = null; S.plan = []; renderInsp(); renderRail(); loadFrame(); autosave(); }
+    else if (act === 'chip') { S.accent = +a.getAttribute('data-v'); S.accentIndex = S.accent; var ch = $('#chips'); if (ch) ch.innerHTML = chipRow(); push(); autosave(); }
+    else if (act === 'add') openAdd();
+    else if (act === 'close-add') closeAdd();
+    else if (act === 'manual') { var m = $('#manual'); m.hidden = !m.hidden; $('#add-manual').hidden = m.hidden; }
+    else if (act === 'add-manual') addManual();
+    else if (act === 'save') save(true);
+    else if (act === 'json') downloadJson();
+    else if (act === 'open-full') openFull();
+  });
+  function wrapSel(ta, kind) {
+    var s = ta.selectionStart, e = ta.selectionEnd, v = ta.value, sel = v.slice(s, e);
+    if (kind === 'q') { var ls = v.lastIndexOf('\n', s - 1) + 1; ta.value = v.slice(ls, ls + 2) === '> ' ? v.slice(0, ls) + v.slice(ls + 2) : v.slice(0, ls) + '> ' + v.slice(ls); ta.focus(); return; }
+    var m = kind === 'b' ? '**' : '*', body = sel || '텍스트'; ta.value = v.slice(0, s) + m + body + m + v.slice(e); ta.focus(); ta.selectionStart = s + m.length; ta.selectionEnd = s + m.length + body.length;
+  }
+  document.addEventListener('keydown', function (e) { if (e.key === 'Enter' && e.target.id === 'f-title') e.preventDefault(); if (e.key === 'Escape') closeAdd(); });
+  document.addEventListener('input', function (e) {
+    var t = e.target, g = t.getAttribute && t.getAttribute('data-g'), f = t.getAttribute && t.getAttribute('data-f');
+    if (g) { if (g === 'title') { grow(t); t.classList.toggle('hk', !!hk(t.value)); } S[g] = t.value; if (g === 'title') { renderBar(); renderRail(); } push(); autosave(); }
+    else if (f) {
+      var w = selWork(); if (!w) return;
+      if (f === 'caption') w.scenes[+t.closest('.t').getAttribute('data-k')].caption = t.value;
+      else if (f === 'featured') w.featured = t.checked;
+      else w[f] = t.value;
+      if (f === 'reason' || f === 'note') refreshHints();
+      if (f === 'title') { renderRail(); var h1 = $('.ph1'); if (h1) { h1.textContent = w.title || 'Untitled'; h1.className = 'ph1 ' + hk(w.title); } }
+      push(); autosave();
+    }
+    else if (t.id === 'q') renderResults(t.value);
+  });
+
+  /* ---------- images ---------- */
+  function readImage(file, max) {
+    return new Promise(function (res) {
+      var fr = new FileReader();
+      fr.onload = function () {
+        var im = new Image();
+        im.onload = function () {
+          var r = Math.min(1, max / Math.max(im.width, im.height)), c = document.createElement('canvas'); c.width = Math.round(im.width * r); c.height = Math.round(im.height * r);
+          var x = c.getContext('2d'); x.fillStyle = '#fff'; x.fillRect(0, 0, c.width, c.height); x.drawImage(im, 0, 0, c.width, c.height);
+          res({ src: c.toDataURL('image/jpeg', 0.86), ar: im.width / im.height });
+        };
+        im.onerror = function () { res(null); }; im.src = fr.result;
+      };
+      fr.onerror = function () { res(null); }; fr.readAsDataURL(file);
+    });
+  }
+  function addScenes(w, files) {
+    var list = [].slice.call(files || []).filter(function (f) { return /^image\//.test(f.type); });
+    if (!list.length) return;
+    Promise.all(list.map(function (f) { return readImage(f, 1800); })).then(function (rs) {
+      rs.filter(Boolean).forEach(function (r) { w.scenes.push({ src: r.src, caption: '', ar: r.ar }); });
+      S.focusPending = true; renderInsp(); renderRail(); push(); autosave();
+    });
+  }
+  var manualFile = null;
+  document.addEventListener('change', function (e) {
+    var t = e.target;
+    if (t.matches && t.matches('[data-scenes]') && selWork()) addScenes(selWork(), t.files);
+    if (t.matches && t.matches('[data-m-file]')) { $('#m-file-name').textContent = t.files[0] ? t.files[0].name : ''; manualFile = t.files[0] || null; }
+  });
+  document.addEventListener('dragover', function (e) { var d = e.target.closest && e.target.closest('[data-drop]'); if (d) { e.preventDefault(); d.classList.add('drag'); } });
+  document.addEventListener('dragleave', function (e) { var d = e.target.closest && e.target.closest('[data-drop]'); if (d) d.classList.remove('drag'); });
+  document.addEventListener('drop', function (e) { var d = e.target.closest && e.target.closest('[data-drop]'); if (!d || !selWork()) return; e.preventDefault(); d.classList.remove('drag'); addScenes(selWork(), e.dataTransfer.files); });
+
+  /* ---------- add a work ---------- */
+  function openAdd() { $('#veil').classList.add('on'); $('#q').value = ''; $('#manual').hidden = true; $('#add-manual').hidden = true; renderResults(''); setTimeout(function () { $('#q').focus(); }, 60); }
+  function closeAdd() { $('#veil').classList.remove('on'); }
+  $('#veil').addEventListener('click', function (e) { if (e.target === $('#veil')) closeAdd(); });
+  function renderResults(q) {
+    q = String(q || '').trim().toLowerCase();
+    var have = S.works.map(function (w) { return w.title + '|' + w.creator; });
+    var list = CATALOG.filter(function (c) { return have.indexOf(c.title + '|' + c.creator) < 0 && (!q || (c.title + ' ' + c.creator).toLowerCase().indexOf(q) > -1); }).slice(0, 30);
+    $('#res').innerHTML = list.length ? list.map(function (c) {
+      return '<li data-c="' + CATALOG.indexOf(c) + '"><span class="cv"><img src="' + esc(artSrc(c.art, c.title, c.creator)) + '" alt=""></span><span><b class="' + hk(c.title) + '">' + esc(c.title) + '</b><small>' + esc(MEDIUM[c.medium] || '') + ' / ' + esc(c.creator) + ', ' + esc(c.year) + '</small></span><button class="btn ghost" type="button" data-pick>Add</button></li>';
+    }).join('') : '<li class="none">찾는 작품이 없어요. 아래 Add by hand로 직접 담을 수 있어요.</li>';
+  }
+  $('#res').addEventListener('click', function (e) {
+    var b = e.target.closest('[data-pick]'); if (!b) return;
+    var c = CATALOG[+b.closest('li').getAttribute('data-c')], nw = newWork({ title: c.title, creator: c.creator, year: String(c.year || ''), medium: c.medium, art: c.art });
+    S.works.push(nw); S.sel = nw.uid; S.focusPending = true; closeAdd(); renderAll(); toast('Added ' + c.title);
+  });
+  function addManual() {
+    var v = {}; [].forEach.call($('#manual').querySelectorAll('[data-m]'), function (el) { v[el.getAttribute('data-m')] = el.value.trim(); });
+    if (!v.title) { toast('제목을 적어 주세요'); return; }
+    var mk = function (cover) {
+      var nw = newWork({ title: v.title, creator: v.creator, year: v.year, medium: v.medium, cover: cover ? { src: cover.src } : null, ar: cover ? cover.ar : 0.667 });
+      S.works.push(nw); S.sel = nw.uid; S.focusPending = true; closeAdd();
+      [].forEach.call($('#manual').querySelectorAll('[data-m]'), function (el) { if (el.tagName !== 'SELECT') el.value = ''; }); manualFile = null; $('#m-file-name').textContent = ''; renderAll();
+    };
+    if (manualFile) readImage(manualFile, 900).then(mk); else mk(null);
+  }
+
+  /* ---------- save and export ---------- */
+  var KEY = 'lecta.curation.draft.v2';
+  function autosave() { clearTimeout(saveTimer); $('#saved').textContent = 'Editing'; saveTimer = setTimeout(function () { save(false); }, 900); }
+  function save(manual) {
+    var d = window.LectaEditor.getData(), ok = true;
+    d.focus = null;
+    try { localStorage.setItem(KEY, JSON.stringify(d)); } catch (err) {
+      try { d.items.forEach(function (it) { it.scenes = []; if (it.cover && /^data:/.test(it.cover.src)) it.cover = null; }); localStorage.setItem(KEY, JSON.stringify(d)); ok = 'partial'; } catch (e2) { ok = false; }
+    }
+    if (manual && typeof window.LectaEditor.onSave === 'function') window.LectaEditor.onSave(window.LectaEditor.getData());
+    var t = new Date(), hh = String(t.getHours()).padStart(2, '0') + ':' + String(t.getMinutes()).padStart(2, '0');
+    $('#saved').textContent = ok === true ? 'Saved ' + hh : ok ? 'Saved without images ' + hh : 'Not saved';
+    if (manual) toast(ok === true ? 'Saved' : ok ? '이미지가 커서 글만 저장했어요' : '저장 공간이 부족해요');
+  }
+  function downloadJson() {
+    var d = window.LectaEditor.getData(); d.focus = null;
+    var blob = new Blob([JSON.stringify(d, null, 2)], { type: 'application/json' }), a = document.createElement('a');
+    a.href = URL.createObjectURL(blob); a.download = (S.title || 'curation').replace(/[^\wㄱ-힣]+/g, '-') + '.json'; document.body.appendChild(a); a.click(); a.remove();
+  }
+  function openFull() {
+    var w = window.open(S.template + '.html?feed=1', '_blank'); if (!w) { toast('팝업이 막혀 있어요'); return; }
+    var h = function (e) { if (e.source === w && e.data && e.data.type === 'lecta:ready') { var d = curation(); d.focus = null; w.postMessage({ type: 'lecta:curation', data: d }, '*'); window.removeEventListener('message', h); } };
+    window.addEventListener('message', h);
+  }
+  function load(d) {
+    S.title = d.title || ''; S.subtitle = d.subtitle || ''; S.intro = d.intro || ''; S.curator = d.curator || ''; S.accent = d.accentIndex != null ? d.accentIndex : null;
+    if (d.template && TEMPLATES.some(function (t) { return t.id === d.template; })) S.template = d.template;
+    S.works = (d.items || []).map(function (it) {
+      var w = newWork({ title: it.title, creator: it.creator, year: it.year, medium: it.medium, reason: it.reason, note: it.note, layout: it.layout || 'auto', featured: it.featured, cover: it.cover, art: it.art, scenes: it.scenes });
+      w.palette = it.palette || null; return w;
+    });
+    S.sel = 'cover'; S.plan = []; S.kinds = null;
+  }
+
+  /* ---------- boot ---------- */
+  $('#seg').addEventListener('click', function (e) { var b = e.target.closest('button[data-mode]'); if (!b) return; S.device = b.getAttribute('data-mode'); renderBar(); fitFrame(); setTimeout(function () { goto(selIndex()); }, 120); });
+  window.addEventListener('resize', fitFrame);
+  if (window.ResizeObserver) new ResizeObserver(fitFrame).observe($('#stage'));
+  try { var sv = localStorage.getItem(KEY); if (sv && !/[?&]fresh=1/.test(location.search)) { var dd = JSON.parse(sv); if (dd && dd.items && dd.items.length) load(dd); } } catch (err) { }
+  renderRail(); renderInsp(); renderBar(); fitFrame(); loadFrame();
+})();
+</script>
+</body>
+</html>

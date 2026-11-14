@@ -1,0 +1,314 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Lecta, THE EDIT</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Serif+Display&family=Noto+Serif+KR:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/gh/sun-typeface/SUIT@2/fonts/variable/woff2/SUIT-Variable.css" rel="stylesheet">
+<link href="https://hangeul.pstatic.net/hangeul_static/css/maru-buri.css" rel="stylesheet">
+<style>
+:root{
+  --mute:#5B616B;--faint:#8A8F98;
+  --serif:'Instrument Serif','MaruBuri','Noto Serif KR',serif;
+  --kr:'MaruBuri','Noto Serif KR','Instrument Serif',serif;
+  --sans:'SUIT Variable','SUIT',-apple-system,'Apple SD Gothic Neo','Noto Sans KR',system-ui,sans-serif;
+  --brand:'DM Serif Display',serif;
+  --ease:cubic-bezier(.2,.7,.2,1);
+  --pad:clamp(20px,4.2vw,72px);
+  --sh:0 22px 40px -14px rgba(18,24,38,.22),0 6px 14px -6px rgba(18,24,38,.12);
+  --sh-field:0 36px 64px -20px rgba(0,0,0,.52),0 10px 22px -8px rgba(0,0,0,.34);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth;-webkit-text-size-adjust:100%}
+body{background:var(--paper);color:var(--ink);font-family:var(--sans);-webkit-font-smoothing:antialiased;overflow-x:hidden;word-break:keep-all;overflow-wrap:break-word}
+a{color:inherit;text-decoration:none}
+ol,ul{list-style:none}
+.hk{font-style:normal!important}
+
+/* shared pieces */
+.sp{position:relative}
+.eb{font:500 13px/1 var(--sans);letter-spacing:.01em;font-variant-numeric:tabular-nums}
+.ti{font-family:var(--serif);font-weight:400;line-height:.98;letter-spacing:-.02em;text-wrap:balance;overflow-wrap:anywhere;--tb:clamp(52px,6vw,96px)}
+.ti.t1{font-size:var(--tb)}.ti.t2{font-size:calc(var(--tb)*.82)}.ti.t3{font-size:calc(var(--tb)*.66)}.ti.t4{font-size:calc(var(--tb)*.52)}.ti.t5{font-size:calc(var(--tb)*.42)}
+.med{display:block;font:500 13px/1 var(--sans);color:var(--faint);margin-bottom:22px}
+.cr{margin-top:14px;font:400 16px/1.45 var(--sans);color:var(--mute);overflow-wrap:anywhere}
+.mt{margin-top:6px;font:400 13px/1.4 var(--sans);color:var(--faint)}
+.bd{margin-top:34px;font-family:var(--kr);color:#2c3138}
+.bd p+p{margin-top:1.1em}
+.bd.line{font-size:clamp(22px,2.3vw,32px);line-height:1.55;color:var(--ink)}
+.bd.none,.bd.short{font-size:clamp(16px,1.35vw,18px);line-height:1.95}
+.bd.medium,.bd.long{font-size:clamp(16px,1.3vw,17.5px);line-height:1.95}
+.pq{font-family:var(--serif);font-style:italic;font-size:clamp(26px,2.6vw,40px);line-height:1.2;margin:1em 0;color:var(--field);text-wrap:balance}
+.pq.kr{font-style:normal;font-family:var(--kr);font-size:clamp(20px,2vw,28px);line-height:1.5}
+.cv{transition:transform .6s var(--ease),box-shadow .6s var(--ease)}
+.cv.sh{box-shadow:var(--sh)}.cv.sh-field{box-shadow:var(--sh-field)}
+.cv:hover{transform:translateY(-6px)}
+.par{will-change:transform}
+
+/* cover */
+.cover{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr);min-height:100svh}
+.cover-l{display:flex;flex-direction:column;padding:26px var(--pad) 30px;min-height:100svh}
+.cover-top{display:flex;justify-content:space-between;align-items:baseline}
+.brand{font-family:var(--brand);font-size:21px;letter-spacing:.005em}
+.cover-top .eb{color:var(--faint)}
+.mast{margin:auto 0 0;font-family:var(--serif);font-weight:400;line-height:.9;letter-spacing:-.028em;text-wrap:balance;overflow-wrap:anywhere;padding-top:8svh}
+.mast.t1{font-size:clamp(88px,14vw,230px)}.mast.t2{font-size:clamp(72px,10.4vw,170px)}.mast.t3{font-size:clamp(54px,7.4vw,122px)}.mast.t4{font-size:clamp(42px,5.6vw,92px)}.mast.t5{font-size:clamp(32px,4.2vw,68px)}
+.deck{margin-top:28px;max-width:31em;font-family:var(--kr);font-size:clamp(16px,1.4vw,19px);line-height:1.8;color:var(--mute)}
+.cover-lines{margin-top:46px;columns:2 14rem;column-gap:36px}
+.cover-lines li{break-inside:avoid}
+.cover-lines a{display:grid;grid-template-columns:2.4rem minmax(0,1fr);align-items:baseline;padding:7px 0;transition:transform .35s var(--ease)}
+.cover-lines a:hover{transform:translateX(6px)}
+.cover-lines .n{font:400 12px/1 var(--sans);color:var(--faint);font-variant-numeric:tabular-nums}
+.cover-lines .t{font:400 clamp(19px,1.5vw,23px)/1.2 var(--serif);letter-spacing:-.01em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.cover-lines .t.hk{font-family:var(--kr);font-weight:300;font-size:clamp(16px,1.2vw,19px);letter-spacing:-.03em}
+.cover-lines .more{padding:5px 0;color:var(--faint)}
+.cover-foot{margin-top:26px;color:var(--faint);font-size:12px}
+.cover-r{position:relative;display:flex;align-items:center;justify-content:center;background:var(--field);color:var(--on-field);padding:var(--pad);min-height:100svh}
+.cover-r .eb{position:absolute;top:26px;left:clamp(20px,3vw,48px);opacity:.88}
+.enter{position:absolute;left:clamp(20px,3vw,48px);bottom:30px;font-size:15px;text-decoration:underline;text-underline-offset:6px;text-decoration-thickness:1px}
+
+/* editor's note */
+.note{padding:22svh var(--pad);display:grid;grid-template-columns:repeat(12,minmax(0,1fr));column-gap:24px}
+.note .lbl{grid-column:1/4;font:500 13px/1 var(--sans);color:var(--faint);position:sticky;top:40px;align-self:start}
+.note .nt{grid-column:5/12;font-family:var(--kr);font-size:clamp(22px,2.5vw,36px);line-height:1.6;text-wrap:pretty}
+.note .nt p+p{margin-top:1.1em}
+.note .sig{grid-column:5/12;margin-top:44px;font-size:13px;color:var(--faint)}
+
+/* split: pinned color half and a text half that scrolls */
+.sp-split{display:grid;grid-template-columns:1fr 1fr;align-items:start;min-height:100svh}
+.sp-split .field{position:sticky;top:0;height:100svh;display:flex;align-items:center;justify-content:center;background:var(--field);color:var(--on-field)}
+.sp-split .field .eb{position:absolute;top:26px;left:clamp(20px,3vw,48px);opacity:.88}
+.sp-split.flip .field{order:2}
+.sp-split .text{min-height:100svh;display:flex;align-items:center;padding:14svh var(--pad)}
+.sp-split .tx{width:100%;max-width:33rem}
+.sp-split .ti{--tb:clamp(52px,6vw,96px)}
+
+/* float: the Lecta room composition. cover on a pale tint, caption under it, left aligned to the cover */
+.sp-float{background:var(--tint);min-height:100svh;padding:13svh var(--pad);display:grid;grid-template-columns:repeat(12,minmax(0,1fr));column-gap:24px;align-items:center}
+.sp-float>.eb{position:absolute;top:26px;left:var(--pad);color:var(--mute)}
+.sp-float .fg{width:fit-content;max-width:100%}
+.sp-float .cap{margin-top:26px}
+.sp-float .ti{font-style:italic;--tb:clamp(34px,3.6vw,56px)}
+.sp-float .ft{max-width:27rem}
+.sp-float .ft .bd{margin-top:0}
+.sp-float.v0 .fg{grid-column:2/8;justify-self:start}.sp-float.v0 .ft{grid-column:8/12;align-self:end;justify-self:start}
+.sp-float.v1 .fg{grid-column:1/-1;justify-self:center}.sp-float.v1 .ft{grid-column:4/10;grid-row:2;margin-top:56px;justify-self:center}
+.sp-float.v2 .fg{grid-column:6/12;justify-self:end}.sp-float.v2 .ft{grid-column:1/6;grid-row:1;align-self:start;margin-top:12svh;justify-self:start}
+
+/* bleed */
+.sp-bleed{min-height:100svh;color:#fff;overflow:hidden;background:var(--field)}
+.sp-bleed .bg{position:absolute;inset:0;overflow:hidden}
+.sp-bleed .bg img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.sp-bleed .bg::after{content:"";position:absolute;inset:0;background:rgba(8,10,14,.34)}
+.sp-bleed .bl{position:relative;z-index:2;min-height:100svh;padding:26px var(--pad) clamp(28px,5vw,64px);display:grid;grid-template-columns:repeat(12,minmax(0,1fr));column-gap:24px;align-items:end}
+.sp-bleed>.bl>.eb{position:absolute;top:26px;left:var(--pad);color:rgba(255,255,255,.88)}
+.sp-bleed .bt{grid-column:1/9;padding-top:18svh}
+.sp-bleed .bc{grid-column:10/13;justify-self:end;align-self:end}
+.sp-bleed .ti{--tb:clamp(60px,9vw,150px);color:#fff}
+.sp-bleed .med{color:rgba(255,255,255,.75)}.sp-bleed .cr{color:rgba(255,255,255,.85)}
+.sp-bleed .bd{color:rgba(255,255,255,.94);max-width:31rem}.sp-bleed .pq{color:#fff}
+
+/* column: long read in two columns */
+.sp-column{padding:16svh var(--pad) 14svh;background:var(--paper)}
+.sp-column>.eb{display:block;color:var(--field);margin-bottom:36px}
+.sp-column .ch{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));column-gap:24px;align-items:start}
+.sp-column .ct{grid-column:1/9}.sp-column .cc{grid-column:10/13;justify-self:end}
+.sp-column.flip .ct{grid-column:5/13;grid-row:1}.sp-column.flip .cc{grid-column:1/4;grid-row:1;justify-self:start}
+.sp-column .ti{--tb:clamp(52px,7.4vw,124px)}
+.sp-column .cbw{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));column-gap:24px;margin-top:clamp(52px,8vw,112px)}
+.sp-column .cb{grid-column:3/12;columns:2 22rem;column-gap:clamp(36px,5vw,84px);font-family:var(--kr);font-size:clamp(16px,1.25vw,17px);line-height:2;color:#2c313a}
+.sp-column .cb p{margin:0 0 1.1em}
+.sp-column .cb .pq{column-span:all;margin:1.1em 0 1.3em}
+.sp-column .cb.dc p:first-of-type::first-letter{font-family:var(--serif);float:left;font-size:5em;line-height:.8;padding:.05em .09em 0 0;color:var(--field)}
+
+/* quote: a color page that is only type */
+.sp-quote{min-height:100svh;background:var(--field);color:var(--on-field);display:flex;flex-direction:column;padding:26px var(--pad) clamp(28px,4vw,56px)}
+.sp-quote>.eb{opacity:.88}
+.sp-quote .qt{margin:auto 0;padding:10svh 0;font-family:var(--serif);font-style:italic;line-height:1.08;letter-spacing:-.015em;text-wrap:balance;max-width:15em;overflow-wrap:anywhere}
+.sp-quote .qt.kr{font-style:normal;font-family:var(--kr);line-height:1.4;letter-spacing:-.01em}
+.sp-quote .q1{font-size:clamp(64px,11vw,190px)}.sp-quote .q2{font-size:clamp(52px,8.4vw,140px)}.sp-quote .q3{font-size:clamp(40px,6vw,96px)}.sp-quote .q4{font-size:clamp(32px,4.6vw,74px)}
+.sp-quote .qt.kr.q1{font-size:clamp(52px,8vw,130px)}.sp-quote .qt.kr.q2{font-size:clamp(42px,6.4vw,104px)}.sp-quote .qt.kr.q3{font-size:clamp(32px,4.6vw,72px)}.sp-quote .qt.kr.q4{font-size:clamp(26px,3.6vw,56px)}
+.sp-quote.v1 .qt{text-align:center;margin-left:auto;margin-right:auto}
+.sp-quote .qf{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));column-gap:24px;align-items:end}
+.sp-quote .qcap{grid-column:1/5}
+.sp-quote .qcap .ti{font-size:clamp(22px,2vw,30px);line-height:1.1;font-style:italic;--tb:0}
+.sp-quote .qcap .cr{color:var(--on-field);opacity:.8;margin-top:8px}.sp-quote .qcap .mt{color:var(--on-field);opacity:.6}
+.sp-quote .qbody{grid-column:5/10;font-family:var(--kr);font-size:15px;line-height:1.85;opacity:.92}
+.sp-quote .qbody p+p{margin-top:.9em}
+.sp-quote .qc{grid-column:11/13;justify-self:end}
+
+/* colophon */
+.colo{padding:20svh var(--pad) 10svh;background:var(--paper)}
+.colo h3{font:500 13px/1 var(--sans);color:var(--faint);margin-bottom:44px}
+.idx a{display:grid;grid-template-columns:3.2rem minmax(0,1.7fr) minmax(0,1fr) minmax(0,.8fr);gap:0 24px;align-items:baseline;padding:14px 0;transition:padding-left .4s var(--ease)}
+.idx .n{color:var(--faint);font-variant-numeric:tabular-nums;font-size:13px}
+.idx .t{font-family:var(--serif);font-size:clamp(26px,3.2vw,48px);line-height:1.05;letter-spacing:-.01em;overflow-wrap:anywhere}
+.idx .c{font-size:14px;color:var(--mute)}.idx .m{font-size:13px;color:var(--faint);text-align:right}
+.idx a:hover{padding-left:18px}
+.idx a:hover .t:not(.hk){font-style:italic}
+.chips{display:flex;flex-wrap:wrap;gap:30px 34px;margin-top:96px}
+.chip{display:flex;flex-direction:column;gap:12px;font-size:12px;color:var(--mute)}
+.chip i{display:block;width:62px;height:62px;border-radius:50%;box-shadow:0 14px 24px -12px rgba(0,0,0,.4)}
+.colo .lbl2{margin-top:96px;font:500 13px/1 var(--sans);color:var(--faint)}
+.foot{padding:0 var(--pad) 64px;display:flex;justify-content:space-between;align-items:baseline;color:var(--faint);font-size:12px;background:var(--paper)}
+.foot .brand{color:var(--ink)}
+
+/* page counter */
+.pill{position:fixed;left:20px;bottom:20px;z-index:40;padding:8px 14px;border-radius:99px;background:rgba(246,247,249,.94);font:500 12px/1 var(--sans);color:#14171C;font-variant-numeric:tabular-nums;opacity:0;transform:translateY(8px);transition:opacity .4s,transform .4s;box-shadow:0 8px 20px -10px rgba(0,0,0,.3);pointer-events:none}
+.pill.on{opacity:1;transform:none}
+
+@media (max-width:860px){
+  .cover{grid-template-columns:1fr}.cover-l{min-height:auto;padding-bottom:56px}.cover-r{min-height:92svh}
+  .cover-lines{columns:1}
+  .note{display:block;padding:16svh var(--pad)}.note .lbl{position:static;margin-bottom:28px}
+  .sp-split{display:block}.sp-split .field,.sp-split.flip .field{position:relative;height:80svh;order:0}.sp-split .text{min-height:0;padding:56px var(--pad) 72px}
+  .sp-float{display:block;padding:12svh var(--pad) 10svh}.sp-float .fg{margin:0 auto}.sp-float .ft{margin:52px 0 0;max-width:none}.sp-float.v1 .ft{margin-left:0}
+  .sp-bleed .bl{display:flex;flex-direction:column;justify-content:flex-end;align-items:flex-start;gap:36px}.sp-bleed .bt{padding-top:30svh}.sp-bleed .bc{align-self:flex-end;order:-1}
+  .sp-column .ch{display:block}.sp-column .cc{margin-top:44px;justify-self:start}.sp-column .cbw{display:block}.sp-column .cb{columns:1}
+  .sp-quote .qf{display:flex;flex-direction:column;align-items:flex-start;gap:28px}.sp-quote .qc{align-self:flex-end}
+  .idx a{grid-template-columns:2.4rem 1fr}.idx .c,.idx .m{grid-column:2}.idx .m{text-align:left}
+}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<script>
+/*@shared*/
+</script>
+<script>
+(function () {
+  'use strict';
+  var L = Lecta, P = LectaPalette, E = L.esc, pad = L.pad;
+
+  /* Which spread can hold which kind of content. Same data, rule based layouts. */
+  var TYPES = {
+    split:  { kind: 'page', fits: ['line', 'short', 'medium'], weight: 'mid' },
+    float:  { kind: 'plate', fits: ['none', 'line', 'short'], weight: 'sparse' },
+    bleed:  { kind: 'full', fits: ['none', 'line', 'short'], weight: 'sparse', feature: true, needs: function (it) { return it.featured || !!it.photo; } },
+    column: { kind: 'page', fits: ['medium', 'long'], weight: 'dense' },
+    quote:  { kind: 'quote', fits: ['none', 'line', 'short'], weight: 'mid', spaced: 2, prefer: true, needs: function (it) { return !!it.quote && it.quote.length <= 140; } }
+  };
+
+  function R(html, kind, delay) { return '<div data-r="' + kind + '"' + (delay ? ' data-d="' + delay + 'ms"' : '') + '>' + html + '</div>'; }
+  function eb(it, i) { return '<span class="eb">' + pad(i + 1) + ' / ' + E(it.theme.name) + '</span>'; }
+  function title(it, cls) { return '<h2 class="ti ' + L.tcls(it.title) + ' ' + L.hk(it.title) + (cls ? ' ' + cls : '') + '">' + E(it.title) + '</h2>'; }
+  function credit(it) { return it.creator ? '<p class="cr">' + E(it.creator) + '</p>' : ''; }
+  function hasBody(it) { return it.paras.length > 0 || !!it.quote; }
+  function body(it) { return hasBody(it) ? '<div class="bd ' + it.bucket + '">' + L.bodyHTML(it) + '</div>' : ''; }
+  function head(it, i, pl, extra) {
+    return '<section class="sp sp-' + pl.type + (extra || '') + '" id="s-' + i + '" data-i="' + i + '" data-spread="' + pl.type + ' / ' + pl.bucket + '" style="' + L.themeStyle(it) + '">';
+  }
+
+  function coverHTML(ex) {
+    var tp = ex.theme.primary, items = ex.items;
+    var lines = items.slice(0, 12).map(function (it, i) {
+      return '<li><a href="#s-' + i + '"><span class="n">' + pad(i + 1) + '</span><span class="t ' + L.hk(it.title) + '">' + E(it.title) + '</span></a></li>';
+    }).join('');
+    if (items.length > 12) lines += '<li class="more">외 ' + (items.length - 12) + '편</li>';
+    return '<section class="cover sp" id="top" data-spread="cover">' +
+      '<div class="cover-l"><div class="cover-top"><a class="brand" href="#top">Lecta</a><span class="eb">The Edit</span></div>' +
+      '<h1 class="mast ' + L.tcls(ex.title) + ' ' + L.hk(ex.title) + '" data-r="up">' + E(ex.title) + '</h1>' +
+      (ex.subtitle ? '<p class="deck" data-r="up" data-d="120ms">' + L.rich(ex.subtitle) + '</p>' : '') +
+      '<ol class="cover-lines" data-r="up" data-d="240ms">' + lines + '</ol>' +
+      '<div class="cover-foot">' + (ex.curator ? 'Curated by ' + E(ex.curator) + ', ' : '') + items.length + (items.length === 1 ? ' work' : ' works') + '</div></div>' +
+      '<div class="cover-r" style="' + P.cssVars(tp) + '"><span class="eb">No. 01 / ' + E(tp.name) + '</span>' +
+      '<div data-r="scale"><div class="par" data-par="0.05">' + L.cover(ex.hero, { ch: 'min(62svh,620px)', cw: '80%', cls: 'sh-field' }) + '</div></div>' +
+      (items.length ? '<a class="enter" href="#s-0">Enter the curation</a>' : '') + '</div></section>';
+  }
+
+  function noteHTML(ex) {
+    return '<section class="note sp" data-spread="note"><span class="lbl" data-r="up">Editor\'s note</span>' +
+      '<div class="nt" data-r="up" data-d="100ms">' + ex.intro.map(function (p) { return '<p>' + L.rich(p) + '</p>'; }).join('') + '</div>' +
+      (ex.curator ? '<div class="sig" data-r="up" data-d="200ms">' + E(ex.curator) + '</div>' : '') + '</section>';
+  }
+
+  var SPREAD = {
+    split: function (it, i, pl) {
+      var flip = pl.variant % 2 === 1;
+      return head(it, i, pl, flip ? ' flip' : '') +
+        '<div class="field">' + eb(it, i) + R('<div class="par" data-par="0.04">' + L.visual(it, { ch: 'min(64svh,620px)', cw: '72%', cls: 'sh-field' }) + '</div>', 'scale') + '</div>' +
+        '<div class="text"><div class="tx">' + R('<span class="med">' + E(L.metaLine(it)) + '</span>', 'up') +
+        R(title(it) + credit(it), 'up', 80) + (hasBody(it) ? R(body(it), 'up', 160) : '') + '</div></div></section>';
+    },
+    float: function (it, i, pl) {
+      var v = pl.variant % 3;
+      return head(it, i, pl, ' v' + v) + eb(it, i) +
+        '<div class="fg" data-r="up"><div class="par" data-par="0.06">' + L.visual(it, { ch: 'min(60svh,560px)', cls: 'sh' }) + '</div>' +
+        '<div class="cap">' + title(it) + credit(it) + '<p class="mt">' + E(L.metaLine(it)) + '</p></div></div>' +
+        (hasBody(it) ? '<div class="ft" data-r="up" data-d="160ms">' + body(it) + '</div>' : '') + '</section>';
+    },
+    bleed: function (it, i, pl) {
+      var bg = it.photo
+        ? '<img src="' + E(it.photo.src) + '" alt="" aria-hidden="true">'
+        : '';
+      return head(it, i, pl) + '<div class="bg">' + bg + '</div><div class="bl">' + eb(it, i) +
+        '<div class="bt">' + R('<span class="med">' + E(L.metaLine(it)) + '</span>', 'up') + R(title(it) + credit(it), 'up', 80) + (hasBody(it) ? R(body(it), 'up', 160) : '') + '</div>' +
+        '<div class="bc" data-r="up" data-d="200ms">' + L.cover(it, { ch: 'min(44svh,420px)', cw: '100%', cls: 'sh-field' }) + '</div></div></section>';
+    },
+    column: function (it, i, pl) {
+      var flip = pl.variant % 2 === 1;
+      var dc = /^[A-Za-z]/.test(it.paras[0] || '') ? ' dc' : '';
+      return head(it, i, pl, flip ? ' flip' : '') + R(eb(it, i), 'up') +
+        '<div class="ch"><div class="ct">' + R('<span class="med">' + E(L.metaLine(it)) + '</span>', 'up') + R(title(it) + credit(it), 'up', 80) + '</div>' +
+        '<div class="cc" data-r="up" data-d="160ms">' + L.visual(it, { ch: 'min(40svh,380px)', cw: '100%', cls: 'sh' }) + '</div></div>' +
+        '<div class="cbw"><div class="cb' + dc + '" data-r="up">' + L.bodyHTML(it) + '</div></div></section>';
+    },
+    quote: function (it, i, pl) {
+      var q = it.quote, n = q.length;
+      var qc = n <= 24 ? 'q1' : n <= 48 ? 'q2' : n <= 90 ? 'q3' : 'q4';
+      var kr = /[ᄀ-ᇿ㄰-㆏가-힯]/.test(q) ? ' kr' : '';
+      return head(it, i, pl, ' v' + (pl.variant % 2)) + eb(it, i) +
+        '<blockquote class="qt ' + qc + kr + '" data-r="up">' + L.rich(q) + '</blockquote>' +
+        '<div class="qf"><div class="qcap" data-r="up">' + title(it) + credit(it) + '<p class="mt">' + E(L.metaLine(it)) + '</p></div>' +
+        (it.paras.length ? '<div class="qbody" data-r="up" data-d="100ms">' + it.paras.map(function (p) { return '<p>' + L.rich(p) + '</p>'; }).join('') + '</div>' : '') +
+        '<div class="qc" data-r="up" data-d="160ms">' + L.visual(it, { ch: 'min(26svh,240px)', cw: '100%', cls: 'sh-field' }) + '</div></div></section>';
+    }
+  };
+
+  function colophonHTML(ex) {
+    var rows = ex.items.map(function (it, i) {
+      return '<li data-r="up" data-d="' + Math.min(i, 8) * 40 + 'ms"><a href="#s-' + i + '"><span class="n">' + pad(i + 1) + '</span><span class="t ' + L.hk(it.title) + '">' + E(it.title) + '</span><span class="c">' + E(it.creator) + '</span><span class="m">' + E(L.metaLine(it)) + '</span></a></li>';
+    }).join('');
+    var chips = ex.theme.chips.slice(0, 7).map(function (c) {
+      return '<div class="chip"><i style="background:' + c.hex + '"></i>' + E(c.name) + '</div>';
+    }).join('');
+    return '<section class="colo sp" data-spread="index"><h3 data-r="up">Index</h3><ol class="idx">' + rows + '</ol>' +
+      '<div class="lbl2" data-r="up">Colors of this curation, taken from the covers</div><div class="chips" data-r="up">' + chips + '</div></section>' +
+      '<footer class="foot"><a class="brand" href="#top">Lecta</a><span>Made with Lecta</span></footer>';
+  }
+
+  Lecta.boot({
+    render: function (ex, app) {
+      var plan = L.plan(ex.items, TYPES);
+      var html = coverHTML(ex) + (ex.intro.length ? noteHTML(ex) : '');
+      ex.items.forEach(function (it, i) { html += SPREAD[plan[i].type](it, i, plan[i]); });
+      html += colophonHTML(ex) + '<div class="pill" id="pill"><span id="pc">01</span> / ' + pad(ex.items.length) + '</div>';
+      app.innerHTML = html;
+
+      /* counter: visible only while reading the works */
+      var pill = document.getElementById('pill'), pc = document.getElementById('pc');
+      L.spy([].slice.call(app.querySelectorAll('.sp[data-i]')), function (el) { pc.textContent = pad(+el.dataset.i + 1); pill.classList.add('on'); });
+      L.spy([].slice.call(app.querySelectorAll('.cover,.note,.colo')), function () { pill.classList.remove('on'); });
+
+      /* gentle parallax on covers */
+      var pars = [].slice.call(app.querySelectorAll('[data-par]'));
+      if (!L.reduced && pars.length) {
+        L.onScroll(function () {
+          var vh = window.innerHeight;
+          pars.forEach(function (p) {
+            var r = p.getBoundingClientRect();
+            if (r.bottom < -120 || r.top > vh + 120) return;
+            var d = (r.top + r.height / 2 - vh / 2) / vh;
+            p.style.transform = 'translate3d(0,' + (-d * parseFloat(p.dataset.par) * vh).toFixed(1) + 'px,0)';
+          });
+        });
+      }
+    }
+  });
+})();
+</script>
+</body>
+</html>

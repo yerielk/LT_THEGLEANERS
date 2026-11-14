@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>THE EDIT — Lecta</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Serif+Display&family=SUIT:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+@font-face {
+  font-family: 'MaruBuri';
+  src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_20-10-21@1.0/MaruBuri-Regular.woff') format('woff');
+  font-weight: 400;
+  font-style: normal;
+}
+@font-face {
+  font-family: 'MaruBuri';
+  src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_20-10-21@1.0/MaruBuri-Bold.woff') format('woff');
+  font-weight: 700;
+  font-style: normal;
+}
+
+:root {
+  --bg-primary: #F4F5F7;
+  --bg-secondary: #EBEDF0;
+  --bg-dark: #1A1C20;
+  --text-primary: #1A1C20;
+  --text-secondary: #5A5E66;
+  --text-tertiary: #8A8E96;
+  --text-inverse: #F4F5F7;
+  --accent: #3D4EAC;
+  --accent-muted: rgba(61,78,172,0.08);
+  --border: rgba(26,28,32,0.08);
+  --border-strong: rgba(26,28,32,0.15);
+  --cover-bg: #DDDFE4;
+}
+
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+html { font-size: 16px; scroll-behavior: smooth; -webkit-font-smoothing: antialiased; }
+body { font-family: 'SUIT', -apple-system, sans-serif; background: var(--bg-primary); color: var(--text-primary); overflow-x: hidden; }
+
+/* ===== SCROLL REVEAL SYSTEM ===== */
+.reveal { opacity: 0; transform: translateY(40px); transition: opacity 0.8s cubic-bezier(0.16,1,0.3,1), transform 0.8s cubic-bezier(0.16,1,0.3,1); }
+.reveal.visible { opacity: 1; transform: translateY(0); }
+.reveal-left { opacity: 0; transform: translateX(-60px); transition: opacity 0.9s cubic-bezier(0.16,1,0.3,1), transform 0.9s cubic-bezier(0.16,1,0.3,1); }
+.reveal-left.visible { opacity: 1; transform: translateX(0); }
+.reveal-right { opacity: 0; transform: translateX(60px); transition: opacity 0.9s cubic-bezier(0.16,1,0.3,1), transform 0.9s cubic-bezier(0.16,1,0.3,1); }
+.reveal-right.visible { opacity: 1; transform: translateX(0); }
+.reveal-scale { opacity: 0; transform: scale(0.92); transition: opacity 0.8s cubic-bezier(0.16,1,0.3,1), transform 0.8s cubic-bezier(0.16,1,0.3,1); }
+.reveal-scale.visible { opacity: 1; transform: scale(1); }
+
+/* ===== PROGRESS BAR ===== */
+.progress-bar { position: fixed; top: 0; left: 0; width: 0%; height: 2px; background: var(--accent); z-index: 200; transition: width 0.1s linear; }
+
+/* ===== MASTHEAD ===== */
+.masthead { padding: 24px 40px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 100; backdrop-filter: blur(12px); background: rgba(244,245,247,0.92); }
+.masthead-brand { font-family: 'DM Serif Display', serif; font-size: 15px; letter-spacing: 0.12em; text-transform: uppercase; }
+.masthead-brand span { color: var(--text-tertiary); font-family: 'SUIT', sans-serif; font-weight: 400; font-size: 11px; letter-spacing: 0.15em; margin-left: 12px; }
+.masthead-issue { font-family: 'SUIT', sans-serif; font-size: 11px; font-weight: 500; letter-spacing: 0.15em; text-transform: uppercase; color: var(--text-tertiary); }
+
+/* ===== HERO — CENTER ALIGNED ===== */
+.hero { min-height: 100vh; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; padding: 120px 40px 80px; position: relative; }
+.hero::before { content: ''; position: absolute; top: 0; left: 50%; transform: translateX(-50%); width: 1px; height: 80px; background: var(--border-strong); opacity: 0; animation: line-down 1s 0.5s cubic-bezier(0.16,1,0.3,1) forwards; }
+@keyframes line-down { from { opacity: 0; height: 0; } to { opacity: 1; height: 80px; } }
+@keyframes fade-up { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+
+.hero-label { font-family: 'SUIT', sans-serif; font-size: 11px; font-weight: 600; letter-spacing: 0.2em; text-transform: uppercase; color: var(--accent); margin-bottom: 32px; margin-top: 80px; opacity: 0; animation: fade-up 0.8s 0.8s cubic-bezier(0.16,1,0.3,1) forwards; }
+.hero-title { font-family: 'Instrument Serif', serif; font-size: clamp(56px, 8vw, 120px); line-height: 1.0; font-weight: 400; max-width: 900px; margin-bottom: 24px; opacity: 0; animation: fade-up 1s 1s cubic-bezier(0.16,1,0.3,1) forwards; }
+.hero-title em { font-style: italic; color: var(--accent); }
+.hero-subtitle { font-family: 'MaruBuri', serif; font-size: clamp(18px, 2.5vw, 26px); line-height: 1.6; color: var(--text-secondary); max-width: 560px; opacity: 0; animation: fade-up 1s 1.2s cubic-bezier(0.16,1,0.3,1) forwards; }
+.hero-meta { margin-top: 48px; display: flex; align-items: center; gap: 24px; font-size: 12px; font-weight: 500; letter-spacing: 0.1em; color: var(--text-tertiary); text-transform: uppercase; opacity: 0; animation: fade-up 0.8s 1.5s cubic-bezier(0.16,1,0.3,1) forwards; }
+.hero-meta .dot { width: 3px; height: 3px; border-radius: 50%; background: var(--text-tertiary); }
+
+/* ===== EDITOR'S NOTE — RIGHT ALIGNED ===== */
+.editors-note { padding: 100px 40px; display: flex; justify-content: flex-end; }
+.editors-note-inner { max-width: 480px; text-align: right; }
+.editors-note-label { font-size: 11px; font-weight: 600; letter-spacing: 0.2em; text-transform: uppercase; color: var(--text-tertiary); margin-bottom: 20px; }
+.editors-note-text { font-family: 'MaruBuri', serif; font-size: 18px; line-height: 1.85; color: var(--text-secondary); }
+
+/* ===== DIVIDER ===== */
+.section-divider { display: flex; align-items: center; justify-content: center; padding: 20px 40px; gap: 16px; }
+.section-divider .line { flex: 1; max-width: 200px; height: 1px; background: var(--border-strong); transform: scaleX(0); transition: transform 1.2s cubic-bezier(0.16,1,0.3,1); transform-origin: center; }
+.section-divider.visible .line { transform: scaleX(1); }
+.section-divider .marker { width: 6px; height: 6px; border: 1px solid var(--border-strong); transform: rotate(45deg); flex-shrink: 0; }
+
+/* ===== FEATURE LAYOUTS ===== */
+.feature { padding: 80px 40px; max-width: 1200px; margin: 0 auto; }
+.feature-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 60px; align-items: start; }
+.feature-layout.reversed { direction: rtl; }
+.feature-layout.reversed > * { direction: ltr; }
+
+.feature-image-wrap { position: relative; overflow: hidden; }
+.feature-image-wrap::after { content: ''; position: absolute; inset: 0; border: 1px solid rgba(0,0,0,0.04); pointer-events: none; }
+
+.cover-frame { display: grid; place-items: center; background: var(--cover-bg); overflow: hidden; }
+.cover-frame.portrait { aspect-ratio: 2/3; }
+.cover-frame.square { aspect-ratio: 1/1; }
+.work-cover { width: 100%; height: 100%; object-fit: contain; transition: transform 0.6s cubic-bezier(0.16,1,0.3,1); }
+.feature-image-wrap:hover .work-cover { transform: scale(1.03); }
+
+.placeholder-cover { width: 100%; height: 100%; display: flex; flex-direction: column; justify-content: flex-end; padding: 24px; background: linear-gradient(135deg, var(--bg-dark) 0%, #2a2d35 100%); }
+.placeholder-cover .work-type { font-size: 10px; font-weight: 600; letter-spacing: 0.2em; text-transform: uppercase; color: rgba(255,255,255,0.4); margin-bottom: 8px; }
+.placeholder-cover .work-title-placeholder { font-family: 'Instrument Serif', serif; font-size: 22px; color: rgba(255,255,255,0.85); line-height: 1.3; }
+
+.feature-number { font-family: 'Instrument Serif', serif; font-size: 72px; color: var(--accent-muted); line-height: 1; margin-bottom: 16px; position: relative; }
+.feature-number::after { content: ''; position: absolute; bottom: 8px; left: 0; width: 40px; height: 2px; background: var(--accent); }
+
+.feature-content { padding-top: 20px; }
+.feature-type { font-size: 11px; font-weight: 600; letter-spacing: 0.15em; text-transform: uppercase; color: var(--accent); margin-bottom: 12px; }
+.feature-title { font-family: 'Instrument Serif', serif; font-size: clamp(28px, 3.5vw, 42px); line-height: 1.15; margin-bottom: 8px; }
+.feature-title em { font-style: italic; }
+.feature-creator { font-size: 14px; color: var(--text-tertiary); margin-bottom: 28px; }
+.feature-note { font-family: 'MaruBuri', serif; font-size: 16px; line-height: 1.85; color: var(--text-secondary); border-left: 2px solid var(--accent); padding-left: 20px; }
+
+/* ===== PULLQUOTE — DARK FULL WIDTH ===== */
+.pullquote { padding: 100px 40px; text-align: center; background: var(--bg-dark); color: var(--text-inverse); position: relative; overflow: hidden; }
+.pullquote::before { content: '\201C'; font-family: 'Instrument Serif', serif; font-size: 200px; position: absolute; top: 20px; left: 50%; transform: translateX(-50%); color: rgba(255,255,255,0.04); line-height: 1; }
+.pullquote-text { font-family: 'Instrument Serif', serif; font-size: clamp(28px, 4vw, 48px); line-height: 1.35; font-style: italic; max-width: 800px; margin: 0 auto 24px; position: relative; z-index: 1; }
+.pullquote-attr { font-size: 13px; font-weight: 500; letter-spacing: 0.1em; color: rgba(255,255,255,0.5); position: relative; z-index: 1; }
+
+/* ===== NUMBERED RULE ===== */
+.numbered-rule { display: flex; align-items: center; padding: 40px; max-width: 1200px; margin: 0 auto; gap: 20px; }
+.numbered-rule .rule-line { flex: 1; height: 1px; background: var(--border-strong); }
+.numbered-rule .rule-num { font-family: 'Instrument Serif', serif; font-size: 14px; color: var(--text-tertiary); }
+
+/* ===== CENTERED FEATURE ===== */
+.feature-centered { padding: 80px 40px; max-width: 720px; margin: 0 auto; text-align: center; }
+.feature-centered .cover-frame { max-width: 400px; margin: 0 auto 40px; }
+.feature-centered .feature-title { font-size: clamp(26px, 3vw, 38px); }
+.feature-centered .feature-note { border-left: none; padding-left: 0; text-align: center; max-width: 520px; margin: 0 auto; position: relative; }
+.feature-centered .feature-note::before { content: ''; display: block; width: 40px; height: 1px; background: var(--accent); margin: 0 auto 20px; }
+
+/* ===== COLOPHON ===== */
+.colophon { padding: 80px 40px; border-top: 1px solid var(--border); max-width: 1200px; margin: 0 auto; }
+.colophon-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 48px; }
+.colophon-title { font-family: 'DM Serif Display', serif; font-size: 14px; letter-spacing: 0.1em; text-transform: uppercase; }
+.colophon-count { font-size: 12px; color: var(--text-tertiary); }
+.colophon-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 32px; }
+.colophon-item { display: flex; gap: 16px; align-items: flex-start; padding: 16px 0; border-top: 1px solid var(--border); cursor: pointer; transition: background 0.2s, padding 0.2s; }
+.colophon-item:hover { background: var(--accent-muted); margin: 0 -12px; padding: 16px 12px; }
+.colophon-thumb { width: 48px; height: 64px; background: var(--cover-bg); flex-shrink: 0; overflow: hidden; }
+.colophon-thumb .placeholder-cover { padding: 6px; }
+.colophon-thumb .work-title-placeholder { font-size: 8px; }
+.colophon-info .col-num { font-size: 10px; font-weight: 600; letter-spacing: 0.15em; color: var(--text-tertiary); text-transform: uppercase; margin-bottom: 4px; }
+.colophon-info .col-title { font-family: 'Instrument Serif', serif; font-size: 16px; line-height: 1.3; margin-bottom: 2px; }
+.colophon-info .col-creator { font-size: 12px; color: var(--text-tertiary); }
+
+/* ===== FOOTER ===== */
+.edit-footer { padding: 60px 40px; text-align: center; border-top: 1px solid var(--border); }
+.footer-brand { font-family: 'DM Serif Display', serif; font-size: 20px; letter-spacing: 0.08em; margin-bottom: 12px; }
+.footer-tagline { font-family: 'MaruBuri', serif; font-size: 14px; color: var(--text-tertiary); margin-bottom: 24px; }
+.footer-curator { font-size: 12px; color: var(--text-tertiary); }
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 860px) {
+  .masthead { padding: 20px 24px; }
+  .hero { padding: 100px 24px 60px; min-height: 80vh; }
+  .hero-title { font-size: clamp(40px, 10vw, 72px); }
+  .editors-note { padding: 60px 24px; justify-content: flex-start; }
+  .editors-note-inner { text-align: left; max-width: 100%; }
+  .feature { padding: 60px 24px; }
+  .feature-layout { grid-template-columns: 1fr; gap: 32px; }
+  .feature-layout.reversed { direction: ltr; }
+  .feature-number { font-size: 48px; }
+  .pullquote { padding: 60px 24px; }
+  .pullquote-text { font-size: clamp(22px, 6vw, 36px); }
+  .feature-centered { padding: 60px 24px; }
+  .colophon { padding: 60px 24px; }
+  .colophon-grid { grid-template-columns: 1fr; }
+  .section-divider .line { max-width: 100px; }
+  .numbered-rule { padding: 24px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .reveal, .reveal-left, .reveal-right, .reveal-scale { opacity: 1; transform: none; transition: none; }
+  .hero::before { animation: none; opacity: 1; height: 80px; }
+  .hero-label, .hero-title, .hero-subtitle, .hero-meta { animation: none; opacity: 1; }
+  .section-divider .line { transform: scaleX(1); transition: none; }
+  .work-cover { transition: none; }
+}
+</style>
+</head>
+<body>
+
+<div class="progress-bar" id="progressBar"></div>
+
+<header class="masthead">
+  <div class="masthead-brand">Lecta <span>The Edit</span></div>
+  <div class="masthead-issue">Issue No. 01</div>
+</header>
+
+<section class="hero">
+  <div class="hero-label">A Curated Exhibition</div>
+  <h1 class="hero-title">On <em>Longing</em><br>& Other Things</h1>
+  <p class="hero-subtitle">여운이 남는 영화와 소설, 그리고 음악. 떠나지 않는 것들에 대한 이야기.</p>
+  <div class="hero-meta">
+    <span>Curated by Minjae</span>
+    <span class="dot"></span>
+    <span>8 Works</span>
+    <span class="dot"></span>
+    <span>2026</span>
+  </div>
+</section>
+
+<section class="editors-note reveal">
+  <div class="editors-note-inner">
+    <div class="editors-note-label">Editor's Note</div>
+    <p class="editors-note-text">어떤 작품은 보는 동안보다 보고 난 뒤가 더 길다. 영화관을 나서고, 책을 덮고, 음악이 멈춘 뒤에도 남아 있는 것들. 이 전시는 그런 여운에 대한 기록이다.</p>
+  </div>
+</section>
+
+<div class="section-divider reveal"><div class="line"></div><div class="marker"></div><div class="line"></div></div>
+
+<!-- Feature 01 — Left image, Right text -->
+<section class="feature">
+  <div class="feature-layout reveal-left">
+    <div class="feature-image-wrap">
+      <div class="cover-frame portrait">
+        <div class="placeholder-cover"><div class="work-type">Film</div><div class="work-title-placeholder">Past Lives</div></div>
+      </div>
+    </div>
+    <div class="feature-content">
+      <div class="feature-number">01</div>
+      <div class="feature-type">Film</div>
+      <h2 class="feature-title"><em>Past Lives</em></h2>
+      <div class="feature-creator">Celine Song · 2023</div>
+      <p class="feature-note">다른 삶을 살았을 수도 있는 사람을 마주한다는 건, 지금의 나를 다시 묻는 일이다. 마지막 장면에서 나영이 걸어가는 뒷모습이 오래 남았다.</p>
+    </div>
+  </div>
+</section>
+
+<div class="numbered-rule reveal"><div class="rule-line"></div><div class="rule-num">01 / 08</div><div class="rule-line"></div></div>
+
+<!-- Feature 02 — Right image, Left text (reversed) -->
+<section class="feature">
+  <div class="feature-layout reversed reveal-right">
+    <div class="feature-image-wrap">
+      <div class="cover-frame square">
+        <div class="placeholder-cover" style="background: linear-gradient(135deg, #1e3a5f 0%, #0d1b2a 100%);"><div class="work-type">Album</div><div class="work-title-placeholder">For Emma,<br>Forever Ago</div></div>
+      </div>
+    </div>
+    <div class="feature-content">
+      <div class="feature-number">02</div>
+      <div class="feature-type">Album</div>
+      <h2 class="feature-title"><em>For Emma, Forever Ago</em></h2>
+      <div class="feature-creator">Bon Iver · 2007</div>
+      <p class="feature-note">겨울 산장에서 혼자 녹음한 앨범이라는 사실을 알고 나면, 소리의 질감이 달라진다. 외로움이 아닌 고요를 선택한 사람의 음악.</p>
+    </div>
+  </div>
+</section>
+
+<!-- Pullquote — Full width dark -->
+<section class="pullquote reveal-scale">
+  <p class="pullquote-text">The things you love<br>stay longer than you think.</p>
+  <div class="pullquote-attr">— From this exhibition</div>
+</section>
+
+<!-- Feature 03 — Centered -->
+<section class="feature-centered reveal">
+  <div class="cover-frame portrait">
+    <div class="placeholder-cover" style="background: linear-gradient(135deg, #3a2f2f 0%, #1a1615 100%);"><div class="work-type">Book</div><div class="work-title-placeholder">나의 아름다운<br>그늘</div></div>
+  </div>
+  <div class="feature-type">Book</div>
+  <h2 class="feature-title">나의 아름다운 그늘</h2>
+  <div class="feature-creator">이석원 · 2021</div>
+  <p class="feature-note">빛이 강할수록 그늘은 깊어진다. 이 책은 밝은 곳에서는 보이지 않는 감정들을 천천히 펼쳐 보여준다.</p>
+</section>
+
+<div class="section-divider reveal"><div class="line"></div><div class="marker"></div><div class="line"></div></div>
+
+<!-- Feature 04 — Left image -->
+<section class="feature">
+  <div class="feature-layout reveal-left">
+    <div class="feature-image-wrap">
+      <div class="cover-frame portrait">
+        <div class="placeholder-cover" style="background: linear-gradient(135deg, #2d3a2d 0%, #141a14 100%);"><div class="work-type">Film</div><div class="work-title-placeholder">Aftersun</div></div>
+      </div>
+    </div>
+    <div class="feature-content">
+      <div class="feature-number">04</div>
+      <div class="feature-type">Film</div>
+      <h2 class="feature-title"><em>Aftersun</em></h2>
+      <div class="feature-creator">Charlotte Wells · 2022</div>
+      <p class="feature-note">아빠와의 마지막 여름. 기억은 늘 빛과 함께 온다. 캠코더 화면 속 아빠의 모습이 점점 멀어지는데, 그래서 더 선명하다.</p>
+    </div>
+  </div>
+</section>
+
+<!-- Feature 05 — Right image (reversed) -->
+<section class="feature">
+  <div class="feature-layout reversed reveal-right">
+    <div class="feature-image-wrap">
+      <div class="cover-frame portrait">
+        <div class="placeholder-cover" style="background: linear-gradient(135deg, #2a2440 0%, #110f1e 100%);"><div class="work-type">Book</div><div class="work-title-placeholder">The Great<br>Gatsby</div></div>
+      </div>
+    </div>
+    <div class="feature-content">
+      <div class="feature-number">05</div>
+      <div class="feature-type">Book</div>
+      <h2 class="feature-title"><em>The Great Gatsby</em></h2>
+      <div class="feature-creator">F. Scott Fitzgerald · 1925</div>
+      <p class="feature-note">닿을 수 없는 것을 향해 손을 뻗는 사람의 이야기. 초록빛 불빛은 가장 아름다운 형태의 그리움이다.</p>
+    </div>
+  </div>
+</section>
+
+<div class="numbered-rule reveal"><div class="rule-line"></div><div class="rule-num">05 / 08</div><div class="rule-line"></div></div>
+
+<!-- Feature 06 — Centered -->
+<section class="feature-centered reveal">
+  <div class="cover-frame square">
+    <div class="placeholder-cover" style="background: linear-gradient(135deg, #3d2d1e 0%, #1e150e 100%);"><div class="work-type">Album</div><div class="work-title-placeholder">Blonde</div></div>
+  </div>
+  <div class="feature-type">Album</div>
+  <h2 class="feature-title"><em>Blonde</em></h2>
+  <div class="feature-creator">Frank Ocean · 2016</div>
+  <p class="feature-note">이별 후에 듣는 Frank Ocean은 다르다. 노래가 끝나도 그 공기가 방 안에 남아 있다.</p>
+</section>
+
+<!-- Feature 07 — Left image -->
+<section class="feature">
+  <div class="feature-layout reveal-left">
+    <div class="feature-image-wrap">
+      <div class="cover-frame portrait">
+        <div class="placeholder-cover" style="background: linear-gradient(135deg, #1a2a3a 0%, #0a1520 100%);"><div class="work-type">Drama</div><div class="work-title-placeholder">나의 아저씨</div></div>
+      </div>
+    </div>
+    <div class="feature-content">
+      <div class="feature-number">07</div>
+      <div class="feature-type">Drama</div>
+      <h2 class="feature-title">나의 아저씨</h2>
+      <div class="feature-creator">박해영 · 2018</div>
+      <p class="feature-note">위로라는 말을 한 번도 하지 않으면서 가장 큰 위로가 되는 드라마. 걷는 장면이 많은 드라마는 좋은 드라마다.</p>
+    </div>
+  </div>
+</section>
+
+<!-- Feature 08 — Right image (reversed) -->
+<section class="feature">
+  <div class="feature-layout reversed reveal-right">
+    <div class="feature-image-wrap">
+      <div class="cover-frame square">
+        <div class="placeholder-cover" style="background: linear-gradient(135deg, #2d2d3a 0%, #14141e 100%);"><div class="work-type">Album</div><div class="work-title-placeholder">Carrie &<br>Lowell</div></div>
+      </div>
+    </div>
+    <div class="feature-content">
+      <div class="feature-number">08</div>
+      <div class="feature-type">Album</div>
+      <h2 class="feature-title"><em>Carrie & Lowell</em></h2>
+      <div class="feature-creator">Sufjan Stevens · 2015</div>
+      <p class="feature-note">떠난 사람에게 바치는 앨범. 기타 한 대와 목소리만으로 이렇게 많은 것을 담을 수 있다는 걸, 이 앨범이 증명한다.</p>
+    </div>
+  </div>
+</section>
+
+<!-- Colophon -->
+<section class="colophon reveal">
+  <div class="colophon-header">
+    <div class="colophon-title">Index</div>
+    <div class="colophon-count">8 Works Selected</div>
+  </div>
+  <div class="colophon-grid">
+    <div class="colophon-item"><div class="colophon-thumb"><div class="placeholder-cover" style="background:linear-gradient(135deg,var(--bg-dark),#2a2d35);padding:6px;"><div class="work-title-placeholder" style="font-size:9px;">Past Lives</div></div></div><div class="colophon-info"><div class="col-num">01 · Film</div><div class="col-title">Past Lives</div><div class="col-creator">Celine Song, 2023</div></div></div>
+    <div class="colophon-item"><div class="colophon-thumb"><div class="placeholder-cover" style="background:linear-gradient(135deg,#1e3a5f,#0d1b2a);padding:6px;"><div class="work-title-placeholder" style="font-size:8px;">For Emma</div></div></div><div class="colophon-info"><div class="col-num">02 · Album</div><div class="col-title">For Emma, Forever Ago</div><div class="col-creator">Bon Iver, 2007</div></div></div>
+    <div class="colophon-item"><div class="colophon-thumb"><div class="placeholder-cover" style="background:linear-gradient(135deg,#3a2f2f,#1a1615);padding:6px;"><div class="work-title-placeholder" style="font-size:9px;">나의 아름다운 그늘</div></div></div><div class="colophon-info"><div class="col-num">03 · Book</div><div class="col-title">나의 아름다운 그늘</div><div class="col-creator">이석원, 2021</div></div></div>
+    <div class="colophon-item"><div class="colophon-thumb"><div class="placeholder-cover" style="background:linear-gradient(135deg,#2d3a2d,#141a14);padding:6px;"><div class="work-title-placeholder" style="font-size:9px;">Aftersun</div></div></div><div class="colophon-info"><div class="col-num">04 · Film</div><div class="col-title">Aftersun</div><div class="col-creator">Charlotte Wells, 2022</div></div></div>
+    <div class="colophon-item"><div class="colophon-thumb"><div class="placeholder-cover" style="background:linear-gradient(135deg,#2a2440,#110f1e);padding:6px;"><div class="work-title-placeholder" style="font-size:9px;">Gatsby</div></div></div><div class="colophon-info"><div class="col-num">05 · Book</div><div class="col-title">The Great Gatsby</div><div class="col-creator">F. Scott Fitzgerald, 1925</div></div></div>
+    <div class="colophon-item"><div class="colophon-thumb"><div class="placeholder-cover" style="background:linear-gradient(135deg,#3d2d1e,#1e150e);padding:6px;"><div class="work-title-placeholder" style="font-size:9px;">Blonde</div></div></div><div class="colophon-info"><div class="col-num">06 · Album</div><div class="col-title">Blonde</div><div class="col-creator">Frank Ocean, 2016</div></div></div>
+    <div class="colophon-item"><div class="colophon-thumb"><div class="placeholder-cover" style="background:linear-gradient(135deg,#1a2a3a,#0a1520);padding:6px;"><div class="work-title-placeholder" style="font-size:9px;">나의 아저씨</div></div></div><div class="colophon-info"><div class="col-num">07 · Drama</div><div class="col-title">나의 아저씨</div><div class="col-creator">박해영, 2018</div></div></div>
+    <div class="colophon-item"><div class="colophon-thumb"><div class="placeholder-cover" style="background:linear-gradient(135deg,#2d2d3a,#14141e);padding:6px;"><div class="work-title-placeholder" style="font-size:8px;">Carrie & Lowell</div></div></div><div class="colophon-info"><div class="col-num">08 · Album</div><div class="col-title">Carrie & Lowell</div><div class="col-creator">Sufjan Stevens, 2015</div></div></div>
+  </div>
+</section>
+
+<footer class="edit-footer reveal">
+  <div class="footer-brand">Lecta</div>
+  <div class="footer-tagline">나의 취향을 한 편의 매거진으로</div>
+  <div class="footer-curator">This exhibition was curated on Lecta</div>
+</footer>
+
+<script>
+// Progress bar
+const progressBar = document.getElementById('progressBar');
+function updateProgress() {
+  const s = window.scrollY, d = document.documentElement.scrollHeight - window.innerHeight;
+  progressBar.style.width = (s / d * 100) + '%';
+}
+
+// IntersectionObserver for scroll reveals
+const revealEls = document.querySelectorAll('.reveal, .reveal-left, .reveal-right, .reveal-scale');
+const obs = new IntersectionObserver(entries => {
+  entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
+}, { threshold: 0.15, rootMargin: '0px 0px -60px 0px' });
+revealEls.forEach(el => obs.observe(el));
+
+// Divider line animation
+const dividers = document.querySelectorAll('.section-divider');
+const divObs = new IntersectionObserver(entries => {
+  entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
+}, { threshold: 0.5 });
+dividers.forEach(d => divObs.observe(d));
+
+// Staggered colophon items
+const colItems = document.querySelectorAll('.colophon-item');
+const stgObs = new IntersectionObserver(entries => {
+  entries.forEach((e, i) => {
+    if (e.isIntersecting) {
+      const el = e.target;
+      el.style.opacity = '0';
+      el.style.transform = 'translateY(20px)';
+      el.style.transition = `opacity 0.5s ${i * 0.06}s cubic-bezier(0.16,1,0.3,1), transform 0.5s ${i * 0.06}s cubic-bezier(0.16,1,0.3,1)`;
+      requestAnimationFrame(() => { el.style.opacity = '1'; el.style.transform = 'translateY(0)'; });
+      stgObs.unobserve(el);
+    }
+  });
+}, { threshold: 0.1 });
+colItems.forEach(item => stgObs.observe(item));
+
+window.addEventListener('scroll', updateProgress, { passive: true });
+</script>
+</body>
+</html>

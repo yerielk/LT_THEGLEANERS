@@ -1,0 +1,686 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>THE CABINET — Lecta</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,300;0,6..72,400;0,6..72,500;1,6..72,400&family=Noto+Serif+KR:wght@300;400;500;600;700&family=DM+Serif+Display&family=SUIT:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #F0F1F3;
+  --bg-alt: #E6E8EC;
+  --bg-dark: #18191D;
+  --text: #1C1D21;
+  --text-sub: #5C5F67;
+  --text-dim: #9A9DA5;
+  --text-inv: #F0F1F3;
+  --accent: #C4473A;
+  --accent-muted: rgba(196,71,58,0.06);
+  --border: rgba(28,29,33,0.1);
+  --border-strong: rgba(28,29,33,0.18);
+  --cover-bg: #D8DAE0;
+  --catalogue-num: rgba(28,29,33,0.06);
+}
+
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+html { font-size: 16px; scroll-behavior: smooth; -webkit-font-smoothing: antialiased; }
+body { font-family: 'SUIT', -apple-system, sans-serif; background: var(--bg); color: var(--text); overflow-x: hidden; }
+
+/* ===== SCROLL REVEAL ===== */
+.reveal { opacity: 0; transform: translateY(32px); transition: opacity 0.7s cubic-bezier(0.16,1,0.3,1), transform 0.7s cubic-bezier(0.16,1,0.3,1); }
+.reveal.vis { opacity: 1; transform: translateY(0); }
+.stagger-child { opacity: 0; transform: translateY(24px); }
+.stagger-child.vis { opacity: 1; transform: translateY(0); }
+
+/* ===== HEADER ===== */
+.cab-header {
+  padding: 28px 48px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid var(--border);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  backdrop-filter: blur(12px);
+  background: rgba(240,241,243,0.92);
+}
+.cab-brand {
+  font-family: 'DM Serif Display', serif;
+  font-size: 14px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+.cab-label {
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+}
+
+/* ===== COLLECTION COVER ===== */
+.collection-cover {
+  padding: 120px 48px 80px;
+  text-align: center;
+  position: relative;
+}
+.collection-cover::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 1px;
+  height: 60px;
+  background: var(--border-strong);
+}
+.vol-label {
+  font-family: 'Newsreader', serif;
+  font-size: 13px;
+  font-weight: 400;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  margin-bottom: 24px;
+  opacity: 0;
+  animation: cab-fade 0.8s 0.3s forwards;
+}
+@keyframes cab-fade { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+.collection-title {
+  font-family: 'Newsreader', serif;
+  font-size: clamp(40px, 6vw, 80px);
+  line-height: 1.1;
+  font-weight: 400;
+  margin-bottom: 16px;
+  opacity: 0;
+  animation: cab-fade 1s 0.6s forwards;
+}
+.collection-title em { font-style: italic; }
+.collection-subtitle {
+  font-family: 'Noto Serif KR', serif;
+  font-size: clamp(16px, 2vw, 22px);
+  font-weight: 300;
+  line-height: 1.6;
+  color: var(--text-sub);
+  max-width: 520px;
+  margin: 0 auto 20px;
+  opacity: 0;
+  animation: cab-fade 0.8s 0.9s forwards;
+}
+.collection-meta {
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  opacity: 0;
+  animation: cab-fade 0.8s 1.1s forwards;
+}
+
+/* ===== HORIZONTAL SCROLL OVERVIEW ===== */
+.overview-section {
+  padding: 80px 0 60px;
+  background: var(--bg-alt);
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+}
+.overview-label {
+  padding: 0 48px 24px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+}
+.overview-scroll {
+  display: flex;
+  gap: 24px;
+  padding: 0 48px;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+.overview-scroll::-webkit-scrollbar { display: none; }
+.overview-card {
+  flex: 0 0 200px;
+  scroll-snap-align: start;
+  cursor: pointer;
+  transition: transform 0.3s cubic-bezier(0.16,1,0.3,1);
+}
+.overview-card:hover { transform: translateY(-6px); }
+.overview-card:last-child { margin-right: 48px; }
+.overview-frame {
+  width: 200px;
+  height: 280px;
+  background: var(--cover-bg);
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  margin-bottom: 12px;
+  position: relative;
+}
+.overview-frame .placeholder-cover {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  padding: 16px;
+}
+.overview-frame .work-type {
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.35);
+  margin-bottom: 6px;
+}
+.overview-frame .work-title-placeholder {
+  font-family: 'Newsreader', serif;
+  font-size: 16px;
+  color: rgba(255,255,255,0.8);
+  line-height: 1.3;
+}
+.overview-num {
+  font-family: 'Newsreader', serif;
+  font-size: 12px;
+  color: var(--text-dim);
+  letter-spacing: 0.1em;
+  margin-bottom: 4px;
+}
+.overview-title {
+  font-family: 'Newsreader', serif;
+  font-size: 15px;
+  line-height: 1.3;
+}
+.overview-creator {
+  font-size: 12px;
+  color: var(--text-dim);
+  margin-top: 2px;
+}
+
+/* ===== CATALOGUE ENTRIES ===== */
+.catalogue-section {
+  padding: 80px 48px;
+  max-width: 1100px;
+  margin: 0 auto;
+}
+.catalogue-entry {
+  display: grid;
+  grid-template-columns: 80px 1fr;
+  gap: 0;
+  border-bottom: 1px solid var(--border);
+  position: relative;
+  cursor: pointer;
+}
+.catalogue-entry:first-child { border-top: 1px solid var(--border); }
+
+.cat-num-col {
+  padding: 32px 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  border-right: 1px solid var(--border);
+}
+.cat-num {
+  font-family: 'Newsreader', serif;
+  font-size: 32px;
+  font-weight: 300;
+  color: var(--text-dim);
+  line-height: 1;
+}
+.cat-type-badge {
+  font-size: 8px;
+  font-weight: 700;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-top: 8px;
+  background: var(--accent-muted);
+  padding: 3px 8px;
+  border-radius: 2px;
+}
+
+.cat-content {
+  display: grid;
+  grid-template-columns: 100px 1fr auto;
+  gap: 24px;
+  padding: 32px 24px;
+  align-items: center;
+  transition: background 0.2s;
+}
+.catalogue-entry:hover .cat-content { background: var(--accent-muted); }
+
+.cat-thumb {
+  width: 100px;
+  height: 140px;
+  background: var(--cover-bg);
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+.cat-thumb .placeholder-cover {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  padding: 10px;
+}
+.cat-thumb .work-title-placeholder {
+  font-family: 'Newsreader', serif;
+  font-size: 12px;
+  color: rgba(255,255,255,0.7);
+  line-height: 1.3;
+}
+
+.cat-info {}
+.cat-title {
+  font-family: 'Newsreader', serif;
+  font-size: 22px;
+  line-height: 1.3;
+  margin-bottom: 4px;
+}
+.cat-title em { font-style: italic; }
+.cat-creator {
+  font-size: 13px;
+  color: var(--text-dim);
+  margin-bottom: 12px;
+}
+.cat-reason {
+  font-family: 'Noto Serif KR', serif;
+  font-size: 14px;
+  line-height: 1.7;
+  color: var(--text-sub);
+  max-width: 500px;
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.5s cubic-bezier(0.16,1,0.3,1), opacity 0.3s;
+  opacity: 0;
+}
+.catalogue-entry.open .cat-reason {
+  max-height: 200px;
+  opacity: 1;
+}
+
+.cat-expand {
+  width: 32px;
+  height: 32px;
+  border: 1px solid var(--border-strong);
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  transition: transform 0.3s, background 0.2s;
+}
+.cat-expand::before {
+  content: '+';
+  font-family: 'SUIT', sans-serif;
+  font-size: 16px;
+  color: var(--text-dim);
+  transition: transform 0.3s;
+}
+.catalogue-entry.open .cat-expand { background: var(--accent-muted); }
+.catalogue-entry.open .cat-expand::before { content: '−'; }
+
+/* ===== INDEX FOOTER ===== */
+.index-footer {
+  padding: 60px 48px;
+  background: var(--bg-dark);
+  color: var(--text-inv);
+}
+.index-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 40px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid rgba(255,255,255,0.1);
+}
+.index-title {
+  font-family: 'Newsreader', serif;
+  font-size: 14px;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+}
+.index-count {
+  font-size: 12px;
+  color: rgba(255,255,255,0.4);
+}
+.index-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 0;
+}
+.index-item {
+  padding: 16px 0;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+  display: flex;
+  gap: 12px;
+  align-items: baseline;
+}
+.idx-num {
+  font-family: 'Newsreader', serif;
+  font-size: 11px;
+  color: rgba(255,255,255,0.3);
+  flex-shrink: 0;
+  width: 36px;
+}
+.idx-title {
+  font-family: 'Newsreader', serif;
+  font-size: 15px;
+  color: rgba(255,255,255,0.8);
+}
+.idx-type {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.25);
+  margin-left: auto;
+  flex-shrink: 0;
+}
+
+/* ===== BRAND FOOTER ===== */
+.cab-footer {
+  padding: 48px 48px;
+  background: var(--bg-dark);
+  border-top: 1px solid rgba(255,255,255,0.06);
+  text-align: center;
+}
+.cab-footer-brand {
+  font-family: 'DM Serif Display', serif;
+  font-size: 18px;
+  color: rgba(255,255,255,0.6);
+  letter-spacing: 0.08em;
+  margin-bottom: 8px;
+}
+.cab-footer-tagline {
+  font-family: 'Noto Serif KR', serif;
+  font-size: 13px;
+  color: rgba(255,255,255,0.3);
+}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 860px) {
+  .cab-header { padding: 20px 24px; }
+  .collection-cover { padding: 80px 24px 60px; }
+  .overview-section { padding: 48px 0 36px; }
+  .overview-label { padding: 0 24px 16px; }
+  .overview-scroll { padding: 0 24px; gap: 16px; }
+  .overview-card { flex: 0 0 160px; }
+  .overview-frame { width: 160px; height: 224px; }
+  .catalogue-section { padding: 48px 24px; }
+  .catalogue-entry { grid-template-columns: 52px 1fr; }
+  .cat-num { font-size: 22px; }
+  .cat-content { grid-template-columns: 72px 1fr auto; gap: 16px; padding: 24px 16px; }
+  .cat-thumb { width: 72px; height: 100px; }
+  .cat-title { font-size: 18px; }
+  .index-footer { padding: 48px 24px; }
+  .index-grid { grid-template-columns: 1fr; }
+  .cab-footer { padding: 36px 24px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .reveal, .stagger-child { opacity: 1; transform: none; transition: none; }
+  .vol-label, .collection-title, .collection-subtitle, .collection-meta { animation: none; opacity: 1; }
+  .overview-card { transition: none; }
+  .cat-reason { transition: none; }
+}
+</style>
+</head>
+<body>
+
+<header class="cab-header">
+  <div class="cab-brand">Lecta</div>
+  <div class="cab-label">Private Collection</div>
+</header>
+
+<!-- Collection Cover -->
+<section class="collection-cover">
+  <div class="vol-label">Vol. 01 · 2026</div>
+  <h1 class="collection-title">An Index of<br><em>Things I Love</em></h1>
+  <p class="collection-subtitle">나의 인생 영화, 소설, 그리고 앨범. 오래 간직하고 싶은 작품들의 도록.</p>
+  <div class="collection-meta">Curated by Minjae · 8 Works</div>
+</section>
+
+<!-- Horizontal Scroll Overview -->
+<section class="overview-section">
+  <div class="overview-label">Collection Overview</div>
+  <div class="overview-scroll" id="overviewScroll">
+    <div class="overview-card" data-idx="0">
+      <div class="overview-frame"><div class="placeholder-cover" style="background:linear-gradient(135deg,#1a1c20,#2a2d35);"><div class="work-type">Film</div><div class="work-title-placeholder">Past Lives</div></div></div>
+      <div class="overview-num">CAT. 001</div>
+      <div class="overview-title">Past Lives</div>
+      <div class="overview-creator">Celine Song</div>
+    </div>
+    <div class="overview-card" data-idx="1">
+      <div class="overview-frame"><div class="placeholder-cover" style="background:linear-gradient(135deg,#1e3a5f,#0d1b2a);"><div class="work-type">Album</div><div class="work-title-placeholder">For Emma,<br>Forever Ago</div></div></div>
+      <div class="overview-num">CAT. 002</div>
+      <div class="overview-title">For Emma, Forever Ago</div>
+      <div class="overview-creator">Bon Iver</div>
+    </div>
+    <div class="overview-card" data-idx="2">
+      <div class="overview-frame"><div class="placeholder-cover" style="background:linear-gradient(135deg,#3a2f2f,#1a1615);"><div class="work-type">Book</div><div class="work-title-placeholder">나의 아름다운<br>그늘</div></div></div>
+      <div class="overview-num">CAT. 003</div>
+      <div class="overview-title">나의 아름다운 그늘</div>
+      <div class="overview-creator">이석원</div>
+    </div>
+    <div class="overview-card" data-idx="3">
+      <div class="overview-frame"><div class="placeholder-cover" style="background:linear-gradient(135deg,#2d3a2d,#141a14);"><div class="work-type">Film</div><div class="work-title-placeholder">Aftersun</div></div></div>
+      <div class="overview-num">CAT. 004</div>
+      <div class="overview-title">Aftersun</div>
+      <div class="overview-creator">Charlotte Wells</div>
+    </div>
+    <div class="overview-card" data-idx="4">
+      <div class="overview-frame"><div class="placeholder-cover" style="background:linear-gradient(135deg,#2a2440,#110f1e);"><div class="work-type">Book</div><div class="work-title-placeholder">The Great<br>Gatsby</div></div></div>
+      <div class="overview-num">CAT. 005</div>
+      <div class="overview-title">The Great Gatsby</div>
+      <div class="overview-creator">F. S. Fitzgerald</div>
+    </div>
+    <div class="overview-card" data-idx="5">
+      <div class="overview-frame"><div class="placeholder-cover" style="background:linear-gradient(135deg,#3d2d1e,#1e150e);"><div class="work-type">Album</div><div class="work-title-placeholder">Blonde</div></div></div>
+      <div class="overview-num">CAT. 006</div>
+      <div class="overview-title">Blonde</div>
+      <div class="overview-creator">Frank Ocean</div>
+    </div>
+    <div class="overview-card" data-idx="6">
+      <div class="overview-frame"><div class="placeholder-cover" style="background:linear-gradient(135deg,#1a2a3a,#0a1520);"><div class="work-type">Drama</div><div class="work-title-placeholder">나의 아저씨</div></div></div>
+      <div class="overview-num">CAT. 007</div>
+      <div class="overview-title">나의 아저씨</div>
+      <div class="overview-creator">박해영</div>
+    </div>
+    <div class="overview-card" data-idx="7">
+      <div class="overview-frame"><div class="placeholder-cover" style="background:linear-gradient(135deg,#2d2d3a,#14141e);"><div class="work-type">Album</div><div class="work-title-placeholder">Carrie &<br>Lowell</div></div></div>
+      <div class="overview-num">CAT. 008</div>
+      <div class="overview-title">Carrie & Lowell</div>
+      <div class="overview-creator">Sufjan Stevens</div>
+    </div>
+  </div>
+</section>
+
+<!-- Catalogue Entries -->
+<section class="catalogue-section">
+  <div class="catalogue-entry reveal" data-entry>
+    <div class="cat-num-col"><div class="cat-num">01</div><div class="cat-type-badge">Film</div></div>
+    <div class="cat-content">
+      <div class="cat-thumb"><div class="placeholder-cover" style="background:linear-gradient(135deg,#1a1c20,#2a2d35);"><div class="work-title-placeholder">Past Lives</div></div></div>
+      <div class="cat-info">
+        <h2 class="cat-title"><em>Past Lives</em></h2>
+        <div class="cat-creator">Celine Song · 2023</div>
+        <p class="cat-reason">다른 삶을 살았을 수도 있는 사람을 마주한다는 건, 지금의 나를 다시 묻는 일이다. 마지막 장면에서 나영이 걸어가는 뒷모습이 오래 남았다.</p>
+      </div>
+      <div class="cat-expand"></div>
+    </div>
+  </div>
+
+  <div class="catalogue-entry reveal" data-entry>
+    <div class="cat-num-col"><div class="cat-num">02</div><div class="cat-type-badge">Album</div></div>
+    <div class="cat-content">
+      <div class="cat-thumb"><div class="placeholder-cover" style="background:linear-gradient(135deg,#1e3a5f,#0d1b2a);"><div class="work-title-placeholder" style="font-size:11px;">For Emma</div></div></div>
+      <div class="cat-info">
+        <h2 class="cat-title"><em>For Emma, Forever Ago</em></h2>
+        <div class="cat-creator">Bon Iver · 2007</div>
+        <p class="cat-reason">겨울 산장에서 혼자 녹음한 앨범이라는 사실을 알고 나면, 소리의 질감이 달라진다. 외로움이 아닌 고요를 선택한 사람의 음악.</p>
+      </div>
+      <div class="cat-expand"></div>
+    </div>
+  </div>
+
+  <div class="catalogue-entry reveal" data-entry>
+    <div class="cat-num-col"><div class="cat-num">03</div><div class="cat-type-badge">Book</div></div>
+    <div class="cat-content">
+      <div class="cat-thumb"><div class="placeholder-cover" style="background:linear-gradient(135deg,#3a2f2f,#1a1615);"><div class="work-title-placeholder" style="font-size:11px;">나의 아름다운 그늘</div></div></div>
+      <div class="cat-info">
+        <h2 class="cat-title">나의 아름다운 그늘</h2>
+        <div class="cat-creator">이석원 · 2021</div>
+        <p class="cat-reason">빛이 강할수록 그늘은 깊어진다. 이 책은 밝은 곳에서는 보이지 않는 감정들을 천천히 펼쳐 보여준다.</p>
+      </div>
+      <div class="cat-expand"></div>
+    </div>
+  </div>
+
+  <div class="catalogue-entry reveal" data-entry>
+    <div class="cat-num-col"><div class="cat-num">04</div><div class="cat-type-badge">Film</div></div>
+    <div class="cat-content">
+      <div class="cat-thumb"><div class="placeholder-cover" style="background:linear-gradient(135deg,#2d3a2d,#141a14);"><div class="work-title-placeholder">Aftersun</div></div></div>
+      <div class="cat-info">
+        <h2 class="cat-title"><em>Aftersun</em></h2>
+        <div class="cat-creator">Charlotte Wells · 2022</div>
+        <p class="cat-reason">아빠와의 마지막 여름. 기억은 늘 빛과 함께 온다. 캠코더 화면 속 아빠의 모습이 점점 멀어지는데, 그래서 더 선명하다.</p>
+      </div>
+      <div class="cat-expand"></div>
+    </div>
+  </div>
+
+  <div class="catalogue-entry reveal" data-entry>
+    <div class="cat-num-col"><div class="cat-num">05</div><div class="cat-type-badge">Book</div></div>
+    <div class="cat-content">
+      <div class="cat-thumb"><div class="placeholder-cover" style="background:linear-gradient(135deg,#2a2440,#110f1e);"><div class="work-title-placeholder" style="font-size:11px;">Gatsby</div></div></div>
+      <div class="cat-info">
+        <h2 class="cat-title"><em>The Great Gatsby</em></h2>
+        <div class="cat-creator">F. Scott Fitzgerald · 1925</div>
+        <p class="cat-reason">닿을 수 없는 것을 향해 손을 뻗는 사람의 이야기. 초록빛 불빛은 가장 아름다운 형태의 그리움이다.</p>
+      </div>
+      <div class="cat-expand"></div>
+    </div>
+  </div>
+
+  <div class="catalogue-entry reveal" data-entry>
+    <div class="cat-num-col"><div class="cat-num">06</div><div class="cat-type-badge">Album</div></div>
+    <div class="cat-content">
+      <div class="cat-thumb"><div class="placeholder-cover" style="background:linear-gradient(135deg,#3d2d1e,#1e150e);"><div class="work-title-placeholder">Blonde</div></div></div>
+      <div class="cat-info">
+        <h2 class="cat-title"><em>Blonde</em></h2>
+        <div class="cat-creator">Frank Ocean · 2016</div>
+        <p class="cat-reason">이별 후에 듣는 Frank Ocean은 다르다. 노래가 끝나도 그 공기가 방 안에 남아 있다.</p>
+      </div>
+      <div class="cat-expand"></div>
+    </div>
+  </div>
+
+  <div class="catalogue-entry reveal" data-entry>
+    <div class="cat-num-col"><div class="cat-num">07</div><div class="cat-type-badge">Drama</div></div>
+    <div class="cat-content">
+      <div class="cat-thumb"><div class="placeholder-cover" style="background:linear-gradient(135deg,#1a2a3a,#0a1520);"><div class="work-title-placeholder" style="font-size:11px;">나의 아저씨</div></div></div>
+      <div class="cat-info">
+        <h2 class="cat-title">나의 아저씨</h2>
+        <div class="cat-creator">박해영 · 2018</div>
+        <p class="cat-reason">위로라는 말을 한 번도 하지 않으면서 가장 큰 위로가 되는 드라마. 걷는 장면이 많은 드라마는 좋은 드라마다.</p>
+      </div>
+      <div class="cat-expand"></div>
+    </div>
+  </div>
+
+  <div class="catalogue-entry reveal" data-entry>
+    <div class="cat-num-col"><div class="cat-num">08</div><div class="cat-type-badge">Album</div></div>
+    <div class="cat-content">
+      <div class="cat-thumb"><div class="placeholder-cover" style="background:linear-gradient(135deg,#2d2d3a,#14141e);"><div class="work-title-placeholder" style="font-size:11px;">Carrie & Lowell</div></div></div>
+      <div class="cat-info">
+        <h2 class="cat-title"><em>Carrie & Lowell</em></h2>
+        <div class="cat-creator">Sufjan Stevens · 2015</div>
+        <p class="cat-reason">떠난 사람에게 바치는 앨범. 기타 한 대와 목소리만으로 이렇게 많은 것을 담을 수 있다는 걸, 이 앨범이 증명한다.</p>
+      </div>
+      <div class="cat-expand"></div>
+    </div>
+  </div>
+</section>
+
+<!-- Index Footer -->
+<section class="index-footer reveal">
+  <div class="index-header">
+    <div class="index-title">Complete Index</div>
+    <div class="index-count">8 Entries</div>
+  </div>
+  <div class="index-grid">
+    <div class="index-item"><span class="idx-num">001</span><span class="idx-title">Past Lives</span><span class="idx-type">Film</span></div>
+    <div class="index-item"><span class="idx-num">002</span><span class="idx-title">For Emma, Forever Ago</span><span class="idx-type">Album</span></div>
+    <div class="index-item"><span class="idx-num">003</span><span class="idx-title">나의 아름다운 그늘</span><span class="idx-type">Book</span></div>
+    <div class="index-item"><span class="idx-num">004</span><span class="idx-title">Aftersun</span><span class="idx-type">Film</span></div>
+    <div class="index-item"><span class="idx-num">005</span><span class="idx-title">The Great Gatsby</span><span class="idx-type">Book</span></div>
+    <div class="index-item"><span class="idx-num">006</span><span class="idx-title">Blonde</span><span class="idx-type">Album</span></div>
+    <div class="index-item"><span class="idx-num">007</span><span class="idx-title">나의 아저씨</span><span class="idx-type">Drama</span></div>
+    <div class="index-item"><span class="idx-num">008</span><span class="idx-title">Carrie & Lowell</span><span class="idx-type">Album</span></div>
+  </div>
+</section>
+
+<footer class="cab-footer reveal">
+  <div class="cab-footer-brand">Lecta</div>
+  <div class="cab-footer-tagline">나의 취향을 한 권의 도록으로</div>
+</footer>
+
+<script>
+// Scroll reveals
+const revEls = document.querySelectorAll('.reveal');
+const revObs = new IntersectionObserver(entries => {
+  entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('vis'); });
+}, { threshold: 0.12, rootMargin: '0px 0px -40px 0px' });
+revEls.forEach(el => revObs.observe(el));
+
+// Catalogue entry expand/collapse
+document.querySelectorAll('[data-entry]').forEach(entry => {
+  entry.addEventListener('click', () => {
+    const wasOpen = entry.classList.contains('open');
+    document.querySelectorAll('[data-entry].open').forEach(e => e.classList.remove('open'));
+    if (!wasOpen) entry.classList.add('open');
+  });
+});
+
+// Overview card click → scroll to catalogue entry
+document.querySelectorAll('.overview-card').forEach(card => {
+  card.addEventListener('click', () => {
+    const idx = parseInt(card.dataset.idx);
+    const entries = document.querySelectorAll('[data-entry]');
+    if (entries[idx]) {
+      entries[idx].scrollIntoView({ behavior: 'smooth', block: 'center' });
+      setTimeout(() => {
+        document.querySelectorAll('[data-entry].open').forEach(e => e.classList.remove('open'));
+        entries[idx].classList.add('open');
+      }, 600);
+    }
+  });
+});
+
+// Staggered reveal for index items
+const idxItems = document.querySelectorAll('.index-item');
+const idxObs = new IntersectionObserver(entries => {
+  entries.forEach((e, i) => {
+    if (e.isIntersecting) {
+      const el = e.target;
+      el.style.opacity = '0';
+      el.style.transform = 'translateX(-16px)';
+      el.style.transition = `opacity 0.4s ${i * 0.05}s, transform 0.4s ${i * 0.05}s`;
+      requestAnimationFrame(() => { el.style.opacity = '1'; el.style.transform = 'translateX(0)'; });
+      idxObs.unobserve(el);
+    }
+  });
+}, { threshold: 0.1 });
+idxItems.forEach(item => idxObs.observe(item));
+</script>
+</body>
+</html>

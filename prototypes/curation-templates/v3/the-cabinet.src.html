@@ -1,0 +1,285 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Lecta, THE CABINET</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,300;0,6..72,400;1,6..72,300;1,6..72,400&family=DM+Serif+Display&family=Noto+Serif+KR:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/gh/sun-typeface/SUIT@2/fonts/variable/woff2/SUIT-Variable.css" rel="stylesheet">
+<style>
+:root{
+  --mute:#5B616B;--faint:#8D929B;
+  --sans:'SUIT Variable','SUIT',-apple-system,'Apple SD Gothic Neo','Noto Sans KR',system-ui,sans-serif;
+  --serif:'Newsreader','Noto Serif KR',serif;
+  --body:'Newsreader','Noto Serif KR','MaruBuri',serif;
+  --brand:'DM Serif Display',serif;
+  --ease:cubic-bezier(.2,.7,.2,1);
+  --sw:clamp(220px,19vw,284px);
+  --mp:clamp(16px,2.2vw,36px);
+  --sh:0 26px 46px -16px rgba(18,24,38,.3),0 8px 16px -8px rgba(18,24,38,.16);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth;-webkit-text-size-adjust:100%}
+body{background:var(--paper);color:var(--ink);font-family:var(--sans);-webkit-font-smoothing:antialiased;overflow-x:hidden;word-break:keep-all;overflow-wrap:break-word}
+a{color:inherit;text-decoration:none}
+ol,ul{list-style:none}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
+
+/* sidebar: the index. fixed, quiet, stacked small caps like a catalogue spine */
+.side{position:fixed;left:0;top:0;bottom:0;width:var(--sw);padding:34px 30px 30px 34px;display:flex;flex-direction:column;z-index:30}
+.brand{font-family:var(--brand);font-size:22px;line-height:1;letter-spacing:.005em}
+.side-title{margin-top:30px;font:500 12px/1.2 var(--sans);text-transform:uppercase;max-width:15ch;display:-webkit-box;-webkit-line-clamp:5;-webkit-box-orient:vertical;overflow:hidden;overflow-wrap:break-word;hyphens:manual}
+.nav{margin-top:clamp(36px,9vh,110px);min-height:0;overflow:auto;scrollbar-width:none;-webkit-mask-image:linear-gradient(180deg,#000 calc(100% - 36px),transparent);mask-image:linear-gradient(180deg,#000 calc(100% - 36px),transparent);padding-bottom:36px}
+.nav::-webkit-scrollbar{display:none}
+.nav li+li{margin-top:15px}
+.nav a{display:flex;gap:10px;font:500 13px/1.15 var(--sans);text-transform:uppercase;color:var(--ink);opacity:.4;transition:opacity .3s,transform .4s var(--ease);max-width:200px}
+.nav a i{font-style:normal;font-variant-numeric:tabular-nums;flex:none;min-width:1.6em}
+.nav a span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
+.nav a:hover{opacity:.85}
+.nav a.on{opacity:1;transform:translateX(8px)}
+.side-foot{margin-top:auto;padding-top:16px;font:400 12px/1.5 var(--sans);color:var(--faint)}
+.menu{display:none}
+
+/* main */
+.main{margin-left:var(--sw);padding:10px var(--mp) 0 0}
+.plate{margin-bottom:clamp(96px,15vh,180px);position:relative}
+.stage{position:relative;height:min(72svh,780px);min-height:380px;background:var(--mat);color:var(--mat-ink);display:flex;align-items:center;justify-content:center;overflow:hidden}
+.tag{position:absolute;top:22px;left:26px;font:500 13px/1 var(--sans);font-variant-numeric:tabular-nums;z-index:3}
+.cv{transition:transform .6s var(--ease),box-shadow .6s var(--ease)}
+.stage .cv{box-shadow:var(--sh);cursor:zoom-in}
+.stage .cv:hover{transform:translateY(-6px) scale(1.01)}
+.st-center .cv{--ch:min(55svh,600px);--cw:70%}
+.st-offset{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,6fr);align-items:center}
+.st-offset .cvc{display:flex;justify-content:center;padding:0 clamp(16px,3vw,56px)}
+.st-offset .cv{--ch:min(55svh,600px);--cw:100%}
+.st-offset .reason{padding:0 clamp(28px,5vw,96px) 0 clamp(8px,2vw,32px);font-family:var(--body);font-size:clamp(22px,2.5vw,38px);line-height:1.5;text-wrap:pretty;max-width:26em}
+.st-offset .reason p+p{margin-top:.8em}
+.st-offset .reason .pq{font-style:italic;font-size:clamp(20px,2vw,30px);margin:1em 0}
+.st-fill{color:#fff}
+.st-fill .bgp{position:absolute;inset:0}
+.st-fill .bgp img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.st-fill .bgp::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(8,10,14,.28),rgba(8,10,14,.04) 40%,rgba(8,10,14,.5))}
+.st-fill .cv{position:absolute;left:clamp(20px,3vw,44px);bottom:clamp(20px,3vw,44px);--ch:min(44svh,440px);--cw:30%;box-shadow:0 30px 56px -16px rgba(0,0,0,.6)}
+
+/* headline row, borrowed from the sidebar-and-hero catalogue layout: heavy title with a small caption on its last baseline */
+.row{margin-top:clamp(10px,1.4vw,18px)}
+.hd{font:800 var(--tb)/.93 var(--sans);--tb:clamp(44px,7vw,120px);letter-spacing:-.04em;text-transform:uppercase;overflow-wrap:anywhere;word-break:normal}
+.hd.t1{font-size:var(--tb)}.hd.t2{font-size:calc(var(--tb)*.82)}.hd.t3{font-size:calc(var(--tb)*.64)}.hd.t4{font-size:calc(var(--tb)*.5)}.hd.t5{font-size:calc(var(--tb)*.38)}
+.hd .cap{display:inline-block;vertical-align:baseline;margin-left:.9rem;font:500 clamp(11px,.95vw,14px)/1.14 var(--sans);letter-spacing:0;text-transform:uppercase;max-width:24ch;white-space:normal;color:var(--ink)}
+.info{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));column-gap:24px;margin-top:clamp(28px,4vw,56px)}
+.meta{grid-column:1/5;font:400 13px/1.45 var(--sans);align-self:start}
+.meta div{display:grid;grid-template-columns:6.4rem minmax(0,1fr);gap:0 12px;padding:3px 0}
+.meta dt{color:var(--faint)}.meta dd{color:var(--ink);overflow-wrap:anywhere}
+.note{grid-column:5/12;font-family:var(--body);font-size:clamp(15px,1.15vw,17px);line-height:1.95;color:#2b3038}
+.note-in{position:relative;overflow:hidden;max-height:none;transition:max-height .6s var(--ease)}
+.note.clamped .note-in{max-height:9.8em}
+.note.clamped:not(.open) .note-in::after{content:"";position:absolute;left:0;right:0;bottom:0;height:3.2em;background:linear-gradient(180deg,transparent,var(--paper))}
+.note p+p{margin-top:1em}
+.note .pq{font-style:italic;font-size:clamp(20px,1.9vw,28px);line-height:1.3;margin:1em 0;color:var(--field);text-wrap:balance}
+.note .pq.kr{font-style:normal;font-size:clamp(17px,1.5vw,22px);line-height:1.6}
+.more{display:none;margin-top:14px;font:500 13px/1 var(--sans);text-decoration:underline;text-underline-offset:5px;text-decoration-thickness:1px}
+.note.clamped .more{display:inline-block}
+
+/* overview plate: all covers on one line of equal widths, vertically centred, soft shadow, caption under each cover */
+.st-ov{height:auto;min-height:min(72svh,780px);align-items:center;justify-content:flex-start;padding:clamp(56px,9vh,96px) clamp(22px,3vw,52px) clamp(40px,6vh,72px)}
+.ovrow{width:100%;display:grid;grid-template-columns:repeat(var(--cols),minmax(0,1fr));gap:clamp(36px,5vh,64px) clamp(20px,2.4vw,40px);align-items:center}
+.ovrow li{display:flex;flex-direction:column;align-items:flex-start;transition:opacity .4s}
+.ovrow a{display:flex;flex-direction:column;align-items:flex-start;width:100%}
+.ovrow .cv{--cw:min(100%,300px);box-shadow:var(--sh);cursor:pointer}
+.ovrow .oc-t{margin-top:16px;font:italic 400 clamp(16px,1.5vw,22px)/1.15 var(--serif);letter-spacing:-.005em;overflow-wrap:anywhere}
+.ovrow .oc-t.hk{font-style:normal;font-weight:500}
+.ovrow .oc-c{margin-top:5px;font:400 13px/1.3 var(--sans);color:var(--mute)}
+.ovrow:hover li:not(:hover){opacity:.5}
+.ovrow li:hover .cv{transform:translateY(-8px)}
+.hk{font-style:normal!important}
+
+/* closing */
+.end{margin:0 0 0 0;padding:6vh var(--mp) 56px 0;display:flex;justify-content:space-between;align-items:flex-end;gap:24px;flex-wrap:wrap}
+.end .chips{display:flex;flex-wrap:wrap;gap:26px 30px}
+.chip{display:flex;flex-direction:column;gap:11px;font:400 12px/1.2 var(--sans);color:var(--mute)}
+.chip i{display:block;width:56px;height:56px;border-radius:50%;box-shadow:0 12px 22px -10px rgba(0,0,0,.4)}
+.end .by{font:400 12px/1.5 var(--sans);color:var(--faint);text-align:right}
+
+/* lightbox */
+.lb{position:fixed;inset:0;z-index:80;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:22px;background:rgba(10,12,16,.93);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);opacity:0;visibility:hidden;transition:opacity .35s,visibility .35s;cursor:zoom-out;color:#fff}
+.lb.on{opacity:1;visibility:visible}
+.lb .cv{--ch:80svh;--cw:90vw;transform:scale(.94);transition:transform .5s var(--ease);box-shadow:0 40px 90px -20px rgba(0,0,0,.7)}
+.lb.on .cv{transform:none}
+.lb .lc{font:400 13px/1.4 var(--sans);opacity:.8;text-align:center}
+.lb .lc b{font-weight:600}
+
+@media (max-width:860px){
+  :root{--sw:0px;--mp:14px}
+  .side{inset:0 0 auto 0;width:auto;height:58px;padding:0 16px 0 18px;flex-direction:row;align-items:center;justify-content:space-between;background:color-mix(in srgb,var(--paper) 86%,transparent);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px)}
+  .side-title,.side-foot{display:none}
+  .menu{display:block;font:600 12px/1 var(--sans);text-transform:uppercase;letter-spacing:.04em;padding:10px 4px}
+  .nav{position:fixed;inset:58px 0 0 0;margin:0;padding:28px 22px 60px;background:var(--paper);display:none;-webkit-mask-image:none;mask-image:none}
+  body.nav-open .nav{display:block}
+  .nav li+li{margin-top:20px}.nav a{max-width:none;font-size:15px;opacity:.7}.nav a.on{transform:none;opacity:1}
+  .main{margin-left:0;padding:66px 10px 0}
+  .stage{height:min(64svh,560px);min-height:360px}
+  .st-center .cv{--ch:min(46svh,420px)}
+  .st-offset{display:flex;flex-direction:column;justify-content:center;gap:24px;padding:48px 0 28px}.st-offset .cv{--ch:min(32svh,300px);--cw:60%}.st-offset .reason{padding:0 22px;font-size:20px}
+  .st-fill .cv{--cw:44%;--ch:min(30svh,260px)}
+  .ovrow{--cols:2!important;--ch:26svh!important}
+  .info{display:block}.meta{margin-bottom:26px}
+  .end{padding-right:0}.end .by{text-align:left}
+}
+@media (prefers-reduced-motion:reduce){.cv,.nav a,.lb,.lb .cv{transition:none!important}}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<script>
+/*@shared*/
+</script>
+<script>
+(function () {
+  'use strict';
+  var L = Lecta, P = LectaPalette, E = L.esc, pad = L.pad;
+
+  var TYPES = {
+    center: { fits: ['none', 'line', 'short', 'medium', 'long'], weight: 'mid' },
+    offset: { fits: ['line', 'short'], weight: 'mid' },
+    fill:   { fits: ['none', 'line', 'short', 'medium', 'long'], weight: 'sparse', feature: true, needs: function (it) { return !!it.photo; } }
+  };
+
+  function dl(rows) {
+    return '<dl class="meta">' + rows.filter(function (r) { return r[1]; }).map(function (r) {
+      return '<div><dt>' + E(r[0]) + '</dt><dd>' + E(r[1]) + '</dd></div>';
+    }).join('') + '</dl>';
+  }
+  /* title row: heavy headline + small caption on the last baseline */
+  function headline(titleText, capLines, tag) {
+    var cap = capLines.filter(Boolean).map(E).join('<br>');
+    return '<div class="row" data-r="up" data-d="60ms"><' + (tag || 'h2') + ' class="hd ' + L.tcls(titleText) + '">' + E(titleText) + (cap ? ' <span class="cap">' + cap + '</span>' : '') + '</' + (tag || 'h2') + '></div>';
+  }
+  /* mat behind a cover: pale tint for dark covers, deep field for light covers, so the cover always separates */
+  function matStyle(it) {
+    var t = it.theme, light = t.coverL > 0.62;
+    return '--mat:' + (light ? t.field : t.tint) + ';--mat-ink:' + (light ? t.onField : t.ink) + ';';
+  }
+  function noteBlock(it) {
+    if (!it.paras.length && !it.quote) return '<div class="note"></div>';
+    var clamp = it.noteLen > 190 || it.paras.length > 1 || (it.quote && it.noteLen > 80);
+    return '<div class="note' + (clamp ? ' clamped' : '') + '" data-r="up" data-d="140ms"><div class="note-in">' + L.bodyHTML(it) + '</div><button class="more" type="button" data-more>더 읽기</button></div>';
+  }
+
+  function overviewHTML(ex) {
+    var items = ex.items, n = items.length, tp = ex.theme.primary;
+    var cols = n <= 5 ? Math.max(1, n) : n <= 8 ? 4 : n <= 12 ? 4 : 6;
+    var lis = items.map(function (it, i) {
+      return '<li data-r="up" data-d="' + Math.min(i, 10) * 60 + 'ms"><a href="#p-' + i + '" data-go="' + i + '">' + L.cover(it, {}) +
+        '<span class="oc-t ' + L.hk(it.title) + '">' + E(it.title) + '</span>' + (it.creator ? '<span class="oc-c">' + E(it.creator) + '</span>' : '') + '</a></li>';
+    }).join('');
+    var rows = [['Curator', ex.curator], ['Works', String(n)], ['Color', tp.name]];
+    return '<section class="plate" id="overview" data-spread="overview" style="' + P.cssVars(tp) + '">' +
+      '<div class="stage st-ov" style="--mat:' + tp.tint + ';--mat-ink:' + tp.ink + '"><span class="tag">00 / Overview</span><ol class="ovrow" style="--cols:' + cols + ';--ch:' + Math.max(15, Math.floor(56 / Math.ceil(n / cols))) + 'svh">' + lis + '</ol></div>' +
+      headline(ex.title, [ex.subtitle], 'h1') +
+      '<div class="info">' + dl(rows) + (ex.intro.length ? '<div class="note" data-r="up" data-d="140ms"><div class="note-in">' + ex.intro.map(function (p) { return '<p>' + L.rich(p) + '</p>'; }).join('') + '</div></div>' : '<div class="note"></div>') + '</div></section>';
+  }
+
+  function plateHTML(it, i, pl) {
+    var vars = L.themeStyle(it) + matStyle(it), tag = '<span class="tag">' + pad(i + 1) + ' / ' + E(it.theme.name) + '</span>';
+    var stage, showNote = true;
+    if (pl.type === 'fill') {
+      stage = '<div class="stage st-fill">' + '<div class="bgp"><img src="' + E(it.photo.src) + '" alt="" aria-hidden="true"></div>' + tag +
+        '<div data-cover="' + i + '">' + L.cover(it, {}) + '</div></div>';
+    } else if (pl.type === 'offset') {
+      showNote = false;
+      stage = '<div class="stage st-offset">' + tag + '<div class="cvc" data-cover="' + i + '">' + L.cover(it, {}) + '</div><div class="reason" data-r="up" data-d="120ms">' + L.bodyHTML(it) + '</div></div>';
+    } else {
+      stage = '<div class="stage st-center">' + tag + '<div data-cover="' + i + '" data-r="scale">' + L.cover(it, {}) + '</div></div>';
+    }
+    var rows = [['Creator', it.creator], ['Medium', L.mediumLabel(it)], ['Year', it.year], ['Color', it.theme.name]];
+    return '<section class="plate" id="p-' + i + '" data-i="' + i + '" data-spread="' + pl.type + ' / ' + pl.bucket + '" style="' + vars + '">' + stage +
+      headline(it.title, [it.creator, L.mediumLabel(it), it.year]) +
+      '<div class="info">' + dl(rows) + (showNote ? noteBlock(it) : '<div class="note"></div>') + '</div></section>';
+  }
+
+  function endHTML(ex) {
+    var chips = ex.theme.chips.slice(0, 7).map(function (c) { return '<div class="chip"><i style="background:' + c.hex + '"></i>' + E(c.name) + '</div>'; }).join('');
+    return '<div class="end"><div class="chips" data-r="up">' + chips + '</div><div class="by" data-r="up" data-d="100ms"><a class="brand" href="#overview">Lecta</a><br>Colors are taken from the covers</div></div>';
+  }
+
+  Lecta.boot({
+    render: function (ex, app) {
+      var items = ex.items, plan = L.plan(items, TYPES);
+      var nav = '<li><a href="#overview" data-nav="-1" class="on"><i>00</i><span>Overview</span></a></li>' + items.map(function (it, i) {
+        return '<li><a href="#p-' + i + '" data-nav="' + i + '"><i>' + pad(i + 1) + '</i><span>' + E(it.title) + '</span></a></li>';
+      }).join('');
+      var side = '<aside class="side"><div><a class="brand" href="#overview">Lecta</a><p class="side-title">' + E(ex.title) + '</p></div>' +
+        '<button class="menu" type="button" data-menu>Index</button>' +
+        '<nav class="nav" aria-label="Works"><ol>' + nav + '</ol></nav>' +
+        '<div class="side-foot">' + (ex.curator ? 'Curated by ' + E(ex.curator) + '<br>' : '') + items.length + (items.length === 1 ? ' work' : ' works') + '</div></aside>';
+      var main = '<main class="main">' + overviewHTML(ex) + items.map(function (it, i) { return plateHTML(it, i, plan[i]); }).join('') + endHTML(ex) + '</main>' +
+        '<div class="lb" id="lb" aria-hidden="true"></div>';
+      app.innerHTML = side + main;
+
+      /* sidebar follows the plate in view */
+      var links = [].slice.call(app.querySelectorAll('[data-nav]'));
+      function setOn(idx) {
+        links.forEach(function (a) { a.classList.toggle('on', +a.getAttribute('data-nav') === idx); });
+        var cur = links.filter(function (a) { return a.classList.contains('on'); })[0], nv = app.querySelector('.nav');
+        if (cur && nv && nv.scrollHeight > nv.clientHeight && window.innerWidth > 860) {
+          var top = cur.parentNode.offsetTop; if (top < nv.scrollTop || top > nv.scrollTop + nv.clientHeight - 60) nv.scrollTo({ top: top - 40, behavior: 'smooth' });
+        }
+      }
+      L.spy([].slice.call(app.querySelectorAll('.plate')), function (el) { setOn(el.id === 'overview' ? -1 : +el.getAttribute('data-i')); }, '-40% 0px -55% 0px');
+
+      /* note clamp: only show the toggle when the text really overflows */
+      var notes = [].slice.call(app.querySelectorAll('.note.clamped'));
+      function measure() {
+        notes.forEach(function (n) {
+          if (n.classList.contains('open')) return;
+          var inner = n.querySelector('.note-in');
+          n.classList.add('clamped');
+          if (inner.scrollHeight <= inner.clientHeight + 6) { n.classList.remove('clamped'); n.setAttribute('data-fits', '1'); }
+        });
+      }
+      notes.forEach(function (n) { n.querySelector('[data-more]').addEventListener('click', function (e) {
+        var inner = n.querySelector('.note-in'), open = !n.classList.contains('open');
+        if (open) { inner.style.maxHeight = inner.scrollHeight + 'px'; n.classList.add('open'); e.target.textContent = '접기'; }
+        else { inner.style.maxHeight = ''; n.classList.remove('open'); e.target.textContent = '더 읽기'; }
+      }); });
+      if (document.fonts && document.fonts.ready) document.fonts.ready.then(measure); else measure();
+      window.addEventListener('load', measure);
+
+      /* lightbox */
+      var lb = document.getElementById('lb');
+      function openLB(i) {
+        var it = items[i];
+        lb.innerHTML = L.cover(it, {}) + '<div class="lc"><b>' + E(it.title) + '</b>' + (it.creator ? ' ' + E(it.creator) : '') + '</div>';
+        lb.classList.add('on'); lb.setAttribute('aria-hidden', 'false');
+      }
+      function closeLB() { lb.classList.remove('on'); lb.setAttribute('aria-hidden', 'true'); }
+      app.addEventListener('click', function (e) {
+        var c = e.target.closest('[data-cover]');
+        if (c && !e.target.closest('a')) { openLB(+c.getAttribute('data-cover')); return; }
+        if (e.target.closest('[data-menu]')) { document.body.classList.toggle('nav-open'); return; }
+        if (e.target.closest('.nav a') || e.target.closest('.ovrow a')) { document.body.classList.remove('nav-open'); }
+      });
+      lb.addEventListener('click', closeLB);
+
+      /* keyboard: arrows, j and k move between plates, escape closes */
+      var plates = [].slice.call(app.querySelectorAll('.plate'));
+      function curIndex() { var y = window.scrollY + window.innerHeight * 0.35, k = 0; plates.forEach(function (p, i) { if (p.offsetTop <= y) k = i; }); return k; }
+      function onKey(e) {
+        if (e.key === 'Escape') { closeLB(); document.body.classList.remove('nav-open'); return; }
+        if (/INPUT|SELECT|TEXTAREA/.test((e.target.tagName || '')) || e.metaKey || e.ctrlKey || e.altKey) return;
+        var d = (e.key === 'ArrowDown' || e.key === 'j') ? 1 : (e.key === 'ArrowUp' || e.key === 'k') ? -1 : 0;
+        if (!d || lb.classList.contains('on')) return;
+        e.preventDefault();
+        var t = plates[Math.max(0, Math.min(plates.length - 1, curIndex() + d))];
+        t.scrollIntoView({ behavior: L.reduced ? 'auto' : 'smooth', block: 'start' });
+      }
+      document.addEventListener('keydown', onKey);
+      L.onCleanup(function () { document.removeEventListener('keydown', onKey); window.removeEventListener('load', measure); document.body.classList.remove('nav-open'); });
+    }
+  });
+})();
+</script>
+</body>
+</html>
