@@ -191,6 +191,10 @@ img { max-width: 100%; }
 
 /* ═════════ discover: the collection ═════════ */
 .page-head { padding-block: clamp(28px, 5vw, 72px) 20px; }
+/* Keep display-font descenders clear of the copy and align each action to the text. */
+.intro-stack { display: grid; grid-template-columns: minmax(0, 1fr); justify-items: start; gap: 24px; }
+.intro-stack > .display { line-height: 1.08; text-wrap: balance; }
+.intro-stack > p { margin: 0; max-width: 38em; word-break: keep-all; text-wrap: pretty; }
 .discover-head { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 360px); gap: 32px; align-items: end; }
 .mood-strip { display: flex; flex-wrap: wrap; gap: 4px 24px; margin: 28px 0 18px; }
 .mood-strip button { font-family: var(--display); font-size: clamp(24px, 2.4vw, 36px); line-height: 1.2; color: #b5b1a9; transition: color .2s; }
@@ -212,7 +216,9 @@ img { max-width: 100%; }
 .select-toggle { flex: none; width: 34px; height: 34px; border-radius: 50%; background: var(--soft); color: var(--ink); font-size: 18px; line-height: 1; display: grid; place-items: center; transition: background .2s, color .2s, transform .2s; }
 .select-toggle:hover { transform: scale(1.06); }
 .select-toggle[aria-pressed="true"] { background: var(--ink); color: var(--wall); }
-.empty { padding: 56px 0 120px; }
+.empty { padding: 56px 0 120px; display: grid; grid-template-columns: minmax(0, 1fr); justify-items: start; gap: 16px; }
+.empty > p { margin: 0; word-break: keep-all; text-wrap: pretty; }
+.empty > .h3 { line-height: 1.4; }
 /* works found outside the catalog, under the catalog results */
 section:has(+ .external) > .catalog { padding-bottom: 56px; }
 section:has(+ .external) > .empty { padding-bottom: 24px; }

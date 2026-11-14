@@ -17,7 +17,7 @@ export default async function MePage() {
   const mine = await listMine(actor);
   return (
     <div className="wrap" style={{ paddingBottom: 120 }}>
-      <header className="page-head">
+      <header className="page-head intro-stack">
         <h1 className="display">My rooms.</h1>
         <p className="muted">
           {actor.kind === "user" ? `${actor.label}님의 전시예요.` : actor.kind === "demo" ? `${actor.label} — 로그인하지 않으면 모든 저장이 하나의 데모 사용자에게 기록돼요.` : "로그인하면 내 전시와 MCP 키를 관리할 수 있어요."}
