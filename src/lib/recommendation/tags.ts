@@ -15,7 +15,7 @@ export interface TagDef {
 
 export const TAGS: TagDef[] = [
   // THEME
-  { key: "memory", category: "THEME", ko: "기억", en: "memory", synonyms: ["memory", "memories", "remember", "remembering", "recollection", "기억", "추억", "회상"] },
+  { key: "memory", category: "THEME", ko: "기억", en: "memory", synonyms: ["memory", "memories", "remember", "remembering", "recollection", "기억", "추억", "회상", "메모리"] },
   { key: "longing", category: "THEME", ko: "그리움", en: "longing", synonyms: ["longing", "yearning", "miss", "missing", "unsaid", "그리움", "그리운", "갈망", "동경"] },
   { key: "love", category: "THEME", ko: "사랑", en: "love", synonyms: ["love", "romance", "romantic", "lovers", "사랑", "연애", "로맨스"] },
   { key: "solitude", category: "THEME", ko: "고독", en: "solitude", synonyms: ["solitude", "alone", "lonely", "loneliness", "quiet", "고독", "혼자", "외로움", "쓸쓸"] },

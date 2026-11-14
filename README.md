@@ -33,6 +33,8 @@ npm test              # unit tests on in-memory PostgreSQL (PGlite), no Docker n
 npm run build         # production build
 ```
 
+If you install PostgreSQL directly on Windows, start its PostgreSQL 17 service and create a local login/database matching the default URL (`lecta` / `lecta` / `lecta`). Then keep `DATABASE_URL=postgres://lecta:lecta@127.0.0.1:5432/lecta` in `.env`, skip `npm run db:up`, and run `npm run db:setup` followed by `npm run dev`.
+
 `.env` variables:
 
 | Variable | |
@@ -133,6 +135,19 @@ score = 0.35*S + 0.25*W + 0.20*C + 0.10*D + 0.10*N   (weights renormalised when 
 - Every reason points to a real `WorkTag`, a seed work (`evidenceWorkId`) or the user's own words.
 - `confidenceLabel` is `editorially_matched` when a recommendation has at least two grounded reasons and a score of 0.4 or higher. Otherwise it is `exploratory`.
 - The output is deterministic, with ties broken by `workId`. No LLM or API key is involved.
+
+### Curation recommendations in Discover
+
+Discover also recommends exhibitions while a visitor searches for a work or has works on the selection shelf. Results are grouped in this order: selected work included, keyword match, then embedding cosine similarity. The API only loads public exhibitions and exhibitions owned by the current user. With no embedding service configured or when it is unavailable, direct and keyword results continue to work.
+
+Meaning based ranking is optional and uses a local Ollama server. Pull an embedding model such as `nomic-embed-text`, then set these server only variables:
+
+```bash
+LECTA_EMBEDDING_URL=http://127.0.0.1:11434
+LECTA_EMBEDDING_MODEL=nomic-embed-text
+```
+
+The adapter calls Ollama's `/api/embed`, batches the query and exhibition text, and keeps a bounded 500-text in-memory embedding cache. It does not persist vectors to the database; a process restart rebuilds the cache. Requests time out after five seconds and fall back to direct and keyword matches. Keep the endpoint local or on a trusted private network because exhibition text is sent to it.
 
 ## MCP server
 
