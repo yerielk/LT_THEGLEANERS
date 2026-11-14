@@ -6,6 +6,7 @@
  */
 import { sql } from "drizzle-orm";
 import { boolean, index, integer, jsonb, pgEnum, pgTable, real, text, timestamp, uniqueIndex } from "drizzle-orm/pg-core";
+import type { CurationDocument } from "./curation/document";
 
 const ts = (name: string) => timestamp(name, { withTimezone: true, mode: "date" });
 
@@ -127,6 +128,7 @@ export const exhibitions = pgTable("exhibitions", {
   description: text("description"),
   visibility: visibilityEnum("visibility").notNull(),
   layoutTemplate: text("layout_template").notNull().default("EDITORIAL_01"),
+  curationData: jsonb("curation_data").$type<CurationDocument>(),
   isEditorial: boolean("is_editorial").notNull().default(false),
   number: integer("number").notNull(),
   requestKey: text("request_key"),
@@ -149,6 +151,16 @@ export const exhibitionItems = pgTable("exhibition_items", {
   uniqueIndex("exhibition_items_uq").on(t.exhibitionId, t.workId),
   index("exhibition_items_pos_idx").on(t.exhibitionId, t.position),
 ]);
+
+/** Small, re-encoded editorial images are durable alongside the curation in PostgreSQL. */
+export const curationAssets = pgTable("curation_assets", {
+  id: text("id").primaryKey(),
+  exhibitionId: text("exhibition_id").notNull().references(() => exhibitions.id, { onDelete: "cascade" }),
+  data: text("data").notNull(),
+  mime: text("mime").notNull(),
+  palette: jsonb("palette").$type<{ hex: string; weight: number }[]>().notNull(),
+  createdAt: ts("created_at").notNull().defaultNow(),
+}, (t) => [index("curation_assets_exhibition_idx").on(t.exhibitionId)]);
 
 // ── signals and logs ──────────────────────────────────────────────────────
 export const signalTypeEnum = pgEnum("signal_type", ["SAVED", "LIKED", "DISLIKED", "CURATED", "RECOMMENDATION_ADDED"]);

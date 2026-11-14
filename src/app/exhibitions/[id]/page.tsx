@@ -7,6 +7,8 @@ import { ExhibitionRoom } from "@/components/ExhibitionRoom";
 import { wallFor } from "@/lib/design";
 import type { CSSProperties } from "react";
 import { RecommendationPanel } from "@/components/RecommendationPanel";
+import { CurationReader } from "@/components/curation/CurationReader";
+import { curationView } from "@/lib/curation/view";
 
 export const dynamic = "force-dynamic";
 
@@ -33,7 +35,14 @@ export default async function ExhibitionPage({ params, searchParams }: { params:
   return (
     <>
       {saved && ex.isOwner && <div className="wrap"><p className="notice" role="status" style={{ margin: "12px 0" }}>초안을 저장했어요. 새로고침해도 그대로 남아 있어요.</p></div>}
-      <ExhibitionRoom ex={ex} />
+      {ex.curationData ? <>
+        <div className="wrap curation-reader-actions">
+          <Link className="btn-ghost" href="/me">My rooms</Link>
+          <span className="caption">{ex.visibility === "PUBLIC" ? "Public curation" : "Private draft"}</span>
+          {ex.isOwner && <Link className="btn-ghost" href={`/exhibitions/${ex.id}/edit`}>Edit curation</Link>}
+        </div>
+        <CurationReader document={curationView(ex)} />
+      </> : <ExhibitionRoom ex={ex} />}
       <div className="wrap" style={{ "--room": wallFor(ex.number).hex } as CSSProperties}>
         <RecommendationPanel exhibitionId={ex.id} canAdd={ex.isOwner} />
         {!ex.isOwner && <p className="muted" style={{ fontSize: 13, margin: "-64px 0 96px" }}>읽기 전용 전시예요. 추천 작품을 추가하려면 직접 전시를 만들어 보세요.</p>}

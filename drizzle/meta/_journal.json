@@ -15,6 +15,13 @@
       "when": 1794472205086,
       "tag": "0001_external_works",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1794627791147,
+      "tag": "0002_curation_editor",
+      "breakpoints": true
     }
   ]
 }

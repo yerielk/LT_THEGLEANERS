@@ -1,10 +1,11 @@
 import type { Metadata } from "next";
-import { ExhibitionEditor } from "@/components/ExhibitionEditor";
+import { CurationEditor } from "@/components/curation/CurationEditor";
 import { webActor } from "@/lib/services/web-actor";
 
 export const dynamic = "force-dynamic";
-export const metadata: Metadata = { title: "New exhibition" };
+export const metadata: Metadata = { title: "New curation" };
 
 export default async function NewExhibitionPage() {
-  return <ExhibitionEditor mode="new" canWrite={!!(await webActor()).userId} />;
+  const actor = await webActor();
+  return <CurationEditor canWrite={!!actor.userId} curator={actor.label} />;
 }

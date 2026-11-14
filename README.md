@@ -59,6 +59,10 @@ npm run test:e2e      # browser walkthrough of UAT-01/02 at 1440px and 390px (ne
 npm run agent:demo    # real LLM agent over MCP — only with ANTHROPIC_API_KEY or OPENAI_API_KEY in .env
 ```
 
+## Curation templates and editor
+
+My rooms now opens the v5 editor with THE SPREAD, THE EDIT and AFTERIMAGE. It searches the real catalog, saves account-owned drafts and scene uploads to PostgreSQL, and restores the same document across templates. Run `npm run db:setup` for the new migration before starting. See [docs/curation-editor.md](docs/curation-editor.md) for the integration, limits and verification.
+
 ## How it is built
 
 ```text

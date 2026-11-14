@@ -1,0 +1,1529 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Lecta, Edit curation</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Serif+Display&family=Noto+Serif+KR:wght@300;400;500&display=swap" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/gh/sun-typeface/SUIT@2/fonts/variable/woff2/SUIT-Variable.css" rel="stylesheet">
+<link href="https://hangeul.pstatic.net/hangeul_static/css/maru-buri.css" rel="stylesheet">
+<style>
+/* ==========================================================================
+   Curation Editor v5. An editorial writing desk, not a dashboard.
+   Editor chrome is square: border-radius 0 everywhere in this file.
+   Templates inside the iframe keep their own shapes.
+   ========================================================================== */
+:root{
+  --ink:#14171C;--mute:#5B616B;--faint:#8A8F98;--ghost:#B3B8BF;
+  --line:#E3E5E9;--line2:#CDD1D7;--tone:#F7F8F9;--tone2:#EEF0F2;--warn:#9B3426;
+  --serif:'Instrument Serif','MaruBuri','Noto Serif KR',serif;
+  --kr:'MaruBuri','Noto Serif KR',serif;
+  --sans:'SUIT Variable','SUIT',-apple-system,'Apple SD Gothic Neo','Noto Sans KR',system-ui,sans-serif;
+  --brand:'DM Serif Display',serif;
+  --bar:56px;--wbar:48px;
+  --rail:240px;--det:0px;
+}
+*{box-sizing:border-box;margin:0;padding:0;border-radius:0}
+html,body{height:100%}
+body{background:#fff;color:var(--ink);font:400 14px/1.5 var(--sans);-webkit-font-smoothing:antialiased;word-break:keep-all;overflow:hidden}
+button,input,textarea,select{font:inherit;color:inherit;border-radius:0}
+button{background:none;border:0;cursor:pointer;-webkit-tap-highlight-color:transparent}
+button:disabled{cursor:default;color:var(--ghost)}
+ol,ul{list-style:none}
+a{color:inherit;text-decoration:none}
+[hidden]{display:none!important}
+:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+::selection{background:#D5DCE6}
+
+/* text buttons and the one boxed action */
+.tx{font-size:13.5px;color:var(--mute);padding:8px 2px;min-height:36px;display:inline-flex;align-items:center;gap:6px}
+.tx:hover{color:var(--ink)}
+.tx.on{color:var(--ink)}
+.box{display:inline-flex;align-items:center;justify-content:center;min-height:36px;padding:0 18px;background:var(--ink);color:#fff;font-size:13.5px;font-weight:500;border:1px solid var(--ink)}
+.box:hover{background:#2A2F37}
+.box.line{background:#fff;color:var(--ink)}
+.box.line:hover{background:var(--tone)}
+.lnk{text-decoration:underline;text-underline-offset:5px;text-decoration-thickness:1px}
+
+/* ---------- top bar ---------- */
+.bar{height:var(--bar);display:flex;align-items:center;justify-content:space-between;gap:16px;padding:0 20px 0 24px;border-bottom:1px solid var(--line)}
+.bar .l{display:flex;align-items:baseline;gap:18px;min-width:0}
+.brand{font:400 26px/1 var(--brand);letter-spacing:-.01em}
+.crumb{font-size:13.5px;color:var(--faint);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+.crumb b{font-weight:400;color:var(--ink)}
+.crumb .sl{margin:0 8px;color:var(--line2)}
+.acts{display:flex;align-items:center;gap:18px;flex:none}
+.status{font-size:12.5px;color:var(--faint);font-variant-numeric:tabular-nums;white-space:nowrap}
+.status.warn{color:var(--warn)}
+
+/* ---------- three panes ---------- */
+.ws{display:grid;grid-template-columns:var(--rail) minmax(0,1fr) var(--det);height:calc(100svh - var(--bar));min-height:0}
+body.mode-design{--det:288px}
+/* panes keep their columns even when a neighbour is display:none */
+.rail{grid-column:1;grid-row:1}.wsp{grid-column:2;grid-row:1}.det{grid-column:3;grid-row:1}
+.rail,.det{min-height:0;overflow:auto;scrollbar-width:thin;scrollbar-color:var(--line2) transparent}
+.rail{border-right:1px solid var(--line);position:relative}
+.det{border-left:1px solid var(--line);padding:0 24px 64px}
+body:not(.mode-design) .det{display:none}
+.cap{font:500 11px/1 var(--sans);letter-spacing:.08em;text-transform:uppercase;color:var(--faint)}
+
+/* ---------- sequence rail ---------- */
+.rail-h{display:flex;align-items:center;justify-content:space-between;padding:22px 16px 12px 20px}
+.seq{position:relative;padding:0 0 4px}
+.row{position:relative;display:grid;grid-template-columns:24px minmax(0,1fr) 28px;align-items:center;min-height:60px;padding-right:6px;transition:transform .12s ease}
+.row::after{content:"";position:absolute;left:20px;right:12px;bottom:0;height:1px;background:var(--line);opacity:.0}
+.row:hover{background:var(--tone)}
+.row.on{background:var(--tone2)}
+.grip{width:24px;height:44px;display:grid;place-items:center;color:var(--ghost);opacity:0;cursor:grab;touch-action:none;transition:opacity .12s}
+.grip svg{width:8px;height:14px;fill:currentColor}
+.row:hover .grip,.row:focus-within .grip,.grip:focus-visible,.row.lifted .grip{opacity:1}
+.grip:hover{color:var(--ink)}
+.grip:focus-visible{outline-offset:-2px}
+.pick{display:grid;grid-template-columns:22px 34px minmax(0,1fr);column-gap:10px;align-items:center;text-align:left;padding:8px 0;min-width:0;width:100%}
+.pick:focus-visible{outline-offset:-2px}
+.pick .n{font:400 11.5px/1 var(--sans);font-variant-numeric:tabular-nums;color:var(--faint)}
+.pick .th{width:34px;height:44px;display:flex;align-items:center;justify-content:center}
+.pick .th img{max-width:100%;max-height:100%;display:block}
+.pick .th.ct{font:400 17px/1 var(--brand);color:var(--ink)}
+.pick .tt{min-width:0}
+.pick .tt b{display:block;font:400 17px/1.15 var(--serif);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pick .tt b.hk{font:300 14.5px/1.3 var(--kr);letter-spacing:-.02em}
+.row.on .pick .tt b{font-weight:400;text-decoration:underline;text-decoration-thickness:1px;text-underline-offset:4px}
+.row.on .pick .tt b.hk{font-weight:500}
+.pick .tt small{display:block;margin-top:3px;font-size:11.5px;color:var(--faint);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rmore{width:28px;height:36px;display:grid;place-items:center;color:var(--faint);opacity:0}
+.rmore svg{width:14px;height:4px;fill:currentColor}
+.row:hover .rmore,.row:focus-within .rmore,.rmore[aria-expanded="true"]{opacity:1}
+.rmore:hover{color:var(--ink)}
+.row.cover{grid-template-columns:24px minmax(0,1fr) 28px}
+.row.cover .grip{visibility:hidden}
+.row.dragging{opacity:.32}
+.row.lifted{background:var(--tone2);outline:1px solid var(--ink);outline-offset:-1px}
+.dropline{position:fixed;height:2px;background:var(--ink);pointer-events:none;z-index:85;display:none}
+.dropline.on{display:block}
+.ghostrow{position:fixed;z-index:80;pointer-events:none;background:#fff;border:1px solid var(--ink);padding:8px 14px;font:400 16px/1.2 var(--serif);max-width:240px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ghostrow.hk{font:400 14px/1.3 var(--kr)}
+body.dragging-seq,body.dragging-seq *{cursor:grabbing!important;user-select:none;-webkit-user-select:none}
+.addw{display:flex;align-items:center;gap:10px;width:100%;padding:16px 20px 24px;font-size:13.5px;color:var(--mute);text-align:left}
+.addw:hover{color:var(--ink)}
+.addw i{font-style:normal;font-size:18px;width:22px;text-align:left;line-height:1}
+.rail-help{padding:0 20px 24px;font-size:11.5px;line-height:1.6;color:var(--faint)}
+
+/* ---------- workspace ---------- */
+.wsp{display:flex;flex-direction:column;min-width:0;min-height:0}
+.wbar{height:var(--wbar);flex:none;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:0 24px 0 32px;border-bottom:1px solid var(--line)}
+.wbar .grp{display:flex;align-items:center;gap:18px;min-width:0}
+.tabs{display:flex;gap:22px}
+.tabs button{position:relative;height:var(--wbar);font-size:13.5px;color:var(--faint)}
+.tabs button:hover{color:var(--ink)}
+.tabs button[aria-selected="true"]{color:var(--ink);font-weight:600}
+.tabs button[aria-selected="true"]::after{content:"";position:absolute;left:0;right:0;bottom:-1px;height:2px;background:var(--ink)}
+.counts{font-size:12px;color:var(--faint);font-variant-numeric:tabular-nums;white-space:nowrap}
+.pn{display:flex;align-items:center;gap:2px;font-size:12.5px;font-variant-numeric:tabular-nums;color:var(--ink)}
+.pn button{width:30px;height:32px;display:grid;place-items:center;color:var(--mute)}
+.pn button:hover{color:var(--ink)}
+.pn svg{width:12px;height:12px;stroke:currentColor;fill:none;stroke-width:1.6}
+.pn span{min-width:5.6em;text-align:center}
+.seg{display:flex;gap:14px}
+.seg button{font-size:12.5px;color:var(--faint);padding:6px 0}
+.seg button.on{color:var(--ink);text-decoration:underline;text-underline-offset:6px;text-decoration-thickness:1px}
+.only-narrow{display:none}
+.wbody{position:relative;flex:1;min-height:0;overflow:hidden}
+
+/* write surface */
+.write{position:absolute;inset:0;overflow:auto;scrollbar-width:thin;scrollbar-color:var(--line2) transparent}
+.col{max-width:720px;margin:0 auto;padding:56px 40px 40vh}
+.w-meta{display:flex;flex-wrap:wrap;gap:4px 14px;font-size:12px;color:var(--faint);font-variant-numeric:tabular-nums;letter-spacing:.02em}
+.w-meta b{font-weight:500;color:var(--ink)}
+.w-title{display:block;width:100%;margin-top:18px;border:0;background:transparent;outline:none;resize:none;overflow:hidden;font:400 clamp(30px,3.2vw,44px)/1.1 var(--serif);letter-spacing:-.015em;padding:0}
+.w-title.hk{font:300 clamp(26px,2.7vw,38px)/1.3 var(--kr);letter-spacing:-.035em}
+.w-title::placeholder,.w-in::placeholder,.w-note::placeholder,.ul::placeholder{color:var(--ghost)}
+.w-lab{display:block;margin-top:40px;font:500 11px/1 var(--sans);letter-spacing:.08em;text-transform:uppercase;color:var(--faint)}
+.w-in{display:block;width:100%;margin-top:12px;border:0;border-bottom:1px solid var(--line2);background:transparent;outline:none;resize:none;overflow:hidden;padding:4px 0 10px;font:400 19px/1.6 var(--kr);letter-spacing:-.01em}
+.w-in:focus{border-bottom-color:var(--ink)}
+.w-in.small{font:400 16px/1.6 var(--kr)}
+.fmt{position:sticky;top:0;z-index:2;display:flex;align-items:center;gap:4px;margin-top:40px;padding:10px 0 8px;background:#fff;border-bottom:1px solid var(--line)}
+.fmt .w-lab{margin:0 auto 0 0}
+.fmt button{min-width:34px;height:30px;padding:0 8px;font-size:13px;color:var(--mute)}
+.fmt button:hover{color:var(--ink);background:var(--tone)}
+.fmt .q{font-size:12.5px}
+.fmt .keys{font-size:11px;color:var(--ghost);margin-left:8px}
+.w-note{display:block;width:100%;min-height:60vh;margin-top:20px;border:0;background:transparent;outline:none;resize:none;overflow:hidden;padding:0;font:400 18px/1.9 var(--kr);letter-spacing:-.005em;tab-size:2}
+.w-foot{margin-top:28px;padding-top:14px;border-top:1px solid var(--line);font-size:12px;line-height:1.7;color:var(--faint)}
+.w-foot b{font-weight:500;color:var(--mute)}
+.w-hint{margin-top:10px;font-size:12px;color:var(--faint);line-height:1.6}
+
+/* stage */
+.stage{position:absolute;inset:0;background:var(--tone);overflow:hidden}
+.stage iframe{position:absolute;border:0;background:#fff;transform-origin:0 0;outline:1px solid var(--line)}
+/* while writing, the preview keeps rendering off stage. fixed, so a scrollIntoView inside the iframe cannot scroll the workspace */
+body.mode-write .stage{position:fixed;inset:auto;left:0;top:0;width:1100px;height:720px;visibility:hidden;pointer-events:none;z-index:-1}
+body:not(.mode-write) .write{display:none}
+body.mode-preview .stage{background:#fff}
+body.mode-preview .stage iframe{outline:0}
+body.mode-preview.dev-mobile .stage{background:var(--tone)}
+
+/* details */
+.d-h{padding:26px 0 0}
+.d-title{margin-top:10px;font:400 26px/1.1 var(--serif);letter-spacing:-.01em;overflow-wrap:anywhere}
+.d-title.hk{font:300 21px/1.35 var(--kr);letter-spacing:-.03em}
+.d-sec{margin-top:36px}
+.d-sec>.cap{display:block;margin-bottom:14px}
+.lay{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));column-gap:4px;row-gap:6px}
+.lay button{display:flex;flex-direction:column;align-items:flex-start;gap:6px;padding:8px 6px 8px 0;font-size:12.5px;color:var(--faint);text-align:left}
+.lay button svg{width:30px;height:40px;stroke:currentColor;fill:none;stroke-width:1.1}
+.lay button svg .f{fill:currentColor;stroke:none}
+.lay button:hover{color:var(--ink)}
+.lay button.on{color:var(--ink);font-weight:600}
+.lay button.on span{text-decoration:underline;text-underline-offset:4px;text-decoration-thickness:1px}
+.lay button.off{color:var(--line2)}
+.hint{margin-top:10px;font-size:12px;line-height:1.6;color:var(--mute)}
+.hint.warn{color:var(--warn)}
+.wr-sum{font:400 14.5px/1.75 var(--kr);color:var(--mute);display:-webkit-box;-webkit-line-clamp:4;-webkit-box-orient:vertical;overflow:hidden;overflow-wrap:anywhere}
+.wr-sum.empty{font:400 13px/1.6 var(--sans);color:var(--faint)}
+.sc{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px 12px;align-items:end}
+.sc .t{min-width:0}
+.sc .im{display:block;width:100%;height:auto;max-height:180px;object-fit:contain;object-position:left bottom}
+.sc .ctl{display:flex;gap:10px;margin-top:6px;font-size:11.5px;color:var(--faint);min-height:20px}
+.sc .ctl button{color:var(--faint);padding:2px 0}
+.sc .ctl button:hover{color:var(--ink);text-decoration:underline;text-underline-offset:3px}
+.sc .ghostcover{opacity:.5}
+.addtile{display:flex;align-items:center;justify-content:center;min-height:88px;border:1px dashed var(--line2);font-size:12.5px;color:var(--mute);cursor:pointer;text-align:center;padding:10px}
+.addtile:hover,.addtile.drag{border-color:var(--ink);color:var(--ink)}
+.addtile:focus-within{outline:2px solid var(--ink)}
+.ul{display:block;width:100%;border:0;border-bottom:1px solid var(--line2);background:transparent;padding:6px 0 8px;font:400 14px/1.4 var(--sans);outline:none;min-height:36px}
+.ul:focus{border-bottom-color:var(--ink)}
+.ul.kr{font:400 15px/1.4 var(--kr)}
+.cap-in{font-size:12px;padding:4px 0 6px;min-height:28px;color:var(--mute)}
+.fl{display:grid;grid-template-columns:1fr 1fr;gap:14px 16px}
+.fl .full{grid-column:1/3}
+.fl label{display:block}
+.fl label>span{display:block;font-size:11px;color:var(--faint);margin-bottom:2px}
+select.ul{appearance:none;-webkit-appearance:none;background:transparent url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M1 1l4 4 4-4' fill='none' stroke='%235B616B'/%3E%3C/svg%3E") no-repeat right 2px center;padding-right:18px}
+.chk{display:flex;align-items:center;gap:12px;font-size:13.5px;color:var(--ink);cursor:pointer;min-height:36px}
+.chk input{appearance:none;-webkit-appearance:none;width:16px;height:16px;border:1px solid var(--ink);display:grid;place-items:center;flex:none;cursor:pointer;background:#fff}
+.chk input:checked{background:var(--ink)}
+.chk input:checked::after{content:"";width:8px;height:4px;border-left:1.5px solid #fff;border-bottom:1.5px solid #fff;transform:translateY(-1px) rotate(-45deg)}
+.rm{margin-top:44px;padding-top:16px;border-top:1px solid var(--line)}
+.rm button{font-size:12.5px;color:var(--faint)}
+.rm button:hover{color:var(--warn)}
+.tpl{display:flex;flex-direction:column}
+.tpl button{display:grid;grid-template-columns:56px minmax(0,1fr) 16px;column-gap:14px;align-items:center;text-align:left;padding:12px 0;border-bottom:1px solid var(--line);color:var(--faint)}
+.tpl button:first-child{border-top:1px solid var(--line)}
+.tpl button:hover{color:var(--ink)}
+.tpl button.on{color:var(--ink)}
+.tpl svg{width:56px;height:30px;stroke:currentColor;fill:none;stroke-width:1.1}.tpl svg .f{fill:currentColor;stroke:none}
+.tpl b{display:block;font:400 19px/1.1 var(--serif);color:inherit}
+.tpl small{display:block;margin-top:3px;font-size:11.5px;line-height:1.45;color:var(--faint)}
+.tpl .ck{font-size:13px;color:var(--ink)}
+.chips{display:flex;flex-wrap:wrap;gap:4px 16px}
+.chips button{display:flex;align-items:center;gap:8px;padding:6px 0;font-size:12.5px;color:var(--mute)}
+.chips button.on{color:var(--ink);font-weight:600}
+.chips button.on span{text-decoration:underline;text-underline-offset:4px;text-decoration-thickness:1px}
+.chips i{width:16px;height:16px;flex:none;outline:1px solid rgba(20,23,28,.12);outline-offset:-1px}
+.chip-s{font-size:12px;color:var(--faint);line-height:1.6}
+
+/* ---------- menu, dialog, toast, drawers ---------- */
+.menu{position:fixed;z-index:90;min-width:200px;background:#fff;border:1px solid var(--ink);padding:6px 0}
+.menu button{display:flex;justify-content:space-between;gap:20px;width:100%;text-align:left;padding:9px 16px;font-size:13px;color:var(--ink)}
+.menu button:hover,.menu button:focus-visible{background:var(--tone2);outline:0}
+.menu button:disabled{color:var(--ghost);background:none}
+.menu button kbd{font:inherit;font-size:11px;color:var(--faint)}
+.menu hr{border:0;border-top:1px solid var(--line);margin:6px 0}
+dialog.add{margin:auto;width:min(720px,calc(100vw - 32px));max-height:min(86svh,820px);border:1px solid var(--ink);padding:0;background:#fff;color:var(--ink)}
+dialog.add::backdrop{background:rgba(20,23,28,.38)}
+dialog.add[open]{display:flex;flex-direction:column}
+.add-h{display:flex;align-items:baseline;justify-content:space-between;padding:28px 32px 0}
+.add-h h2{font:400 34px/1 var(--serif);letter-spacing:-.01em}
+.add-q{margin:22px 32px 0;width:calc(100% - 64px);font-size:16px;padding:8px 0 12px}
+.add-res{flex:1;overflow:auto;margin-top:8px;padding:0 32px;min-height:160px}
+.add-res li{border-bottom:1px solid var(--line)}
+.add-res li button{display:grid;grid-template-columns:44px minmax(0,1fr) auto;gap:16px;align-items:center;width:100%;text-align:left;padding:12px 0}
+.add-res li button:hover b,.add-res li button:focus-visible b{text-decoration:underline;text-underline-offset:4px;text-decoration-thickness:1px}
+.add-res .cv{width:44px;height:60px;display:flex;align-items:center;justify-content:center}
+.add-res .cv img{max-width:100%;max-height:100%;display:block}
+.add-res b{display:block;font:400 20px/1.15 var(--serif)}
+.add-res b.hk{font:400 16px/1.3 var(--kr)}
+.add-res small{font-size:12.5px;color:var(--faint)}
+.add-res .go{font-size:12.5px;color:var(--mute)}
+.add-res .none{padding:24px 0;color:var(--faint);font-size:14px;border:0}
+.manual{padding:8px 32px 0}
+.add-f{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:18px 32px 24px;border-top:1px solid var(--line);margin-top:12px}
+.toast{position:fixed;left:50%;bottom:24px;transform:translate(-50%,12px);background:var(--ink);color:#fff;padding:12px 18px 12px 20px;font-size:13.5px;opacity:0;pointer-events:none;transition:opacity .2s,transform .2s;z-index:95;display:flex;gap:20px;align-items:center;max-width:calc(100vw - 32px)}
+.toast.on{opacity:1;transform:translate(-50%,0);pointer-events:auto}
+.toast button{text-decoration:underline;text-underline-offset:4px;color:#fff;font-size:13.5px;min-height:28px}
+.scrim{position:fixed;inset:0;z-index:40;background:rgba(20,23,28,.28);display:none}
+.focus-exit{position:fixed;top:14px;right:20px;z-index:30;display:none;align-items:center;gap:18px}
+body.focus .focus-exit{display:flex}
+
+/* focus writing: only the page and the words */
+body.focus{--rail:0px;--det:0px}
+body.focus .bar,body.focus .rail,body.focus .wbar{display:none}
+body.focus .ws{height:100svh}
+body.focus .col{padding-top:88px}
+body.focus .fmt{top:0}
+
+/* preview: no editor chrome */
+body.mode-preview{--rail:0px;--det:0px}
+body.mode-preview .bar,body.mode-preview .rail{display:none}
+body.mode-preview .ws{height:100svh}
+body.mode-preview .w-only,body.mode-preview .d-only{display:none!important}
+body.mode-write .d-only,body.mode-write .p-only{display:none!important}
+body.mode-design .w-only,body.mode-design .p-only{display:none!important}
+
+.only-phone{display:none!important}
+@media (max-width:1279px){:root{--rail:224px}body.mode-design{--det:272px}.det{padding:0 20px 64px}}
+/* narrow: Details becomes a drawer over the stage */
+@media (max-width:1099px){
+  body.mode-design{--det:0px}
+  body.mode-design .det{display:none}
+  body.mode-design.det-open .det{display:block;position:fixed;right:0;top:var(--bar);bottom:0;width:min(320px,88vw);z-index:45;background:#fff;box-shadow:none}
+  body.mode-design.det-open .scrim{display:block}
+  .only-narrow{display:inline-flex}
+}
+/* phone and small tablet: Sequence becomes a drawer too */
+@media (max-width:859px){
+  :root{--rail:0px;--bar:52px}
+  .rail{display:none}
+  body.rail-open .rail{display:block;position:fixed;left:0;top:var(--bar);bottom:0;width:min(320px,88vw);z-index:45;background:#fff}
+  body.rail-open .scrim{display:block}
+  .only-phone{display:inline-flex!important}
+  .bar{padding:0 14px 0 16px;gap:10px}
+  .brand{font-size:22px}
+  .bar .l{gap:10px}
+  .crumb .rooms{display:none}
+  .acts{gap:12px}
+  .acts .hide-phone{display:none}
+  .wbar{padding:0 12px 0 16px;gap:8px}
+  .wbar .grp{gap:12px}
+  .tabs{gap:16px}
+  .col{padding:32px 20px 40vh}
+  .w-lab,.fmt{margin-top:32px}
+  .w-note{font-size:17px;line-height:1.85}
+  .fmt .keys{display:none}
+  .counts{display:none}
+  .pn span{min-width:4em}
+  .row{min-height:64px}
+  .grip{opacity:1;width:32px;height:48px}
+  .row{grid-template-columns:32px minmax(0,1fr) 36px}
+  .rmore{opacity:1;width:36px;height:44px}
+  .add-h,.add-f,.manual{padding-left:20px;padding-right:20px}
+  .add-q{margin-left:20px;margin-right:20px;width:calc(100% - 40px)}
+  .add-res{padding:0 20px}
+}
+@media (max-width:420px){.seg{gap:10px}.wbar .status-m{display:none}.status{max-width:84px;overflow:hidden;text-overflow:ellipsis}}
+@media (hover:none){.grip,.rmore{opacity:1}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body class="mode-write">
+<a class="sr" href="#workspace">Skip to workspace</a>
+<header class="bar">
+  <div class="l"><a class="brand" href="/me" target="_top" aria-label="My rooms">Lecta</a><span class="crumb"><a class="rooms" href="/me" target="_top">My rooms<span class="sl">/</span></a><b id="crumb-t">Untitled</b></span></div>
+  <div class="acts">
+    <span class="status" id="saved" role="status" aria-live="polite">Draft</span>
+    <a id="service-view" class="tx hide-phone" target="_top" hidden>View</a>
+    <button class="tx hide-phone" type="button" data-act="mode" data-v="preview">Preview</button>
+    <button class="tx" type="button" data-act="more" aria-haspopup="menu" aria-expanded="false" id="more-btn">More</button>
+    <button class="box" type="button" data-act="save">Save</button>
+  </div>
+</header>
+
+<main class="ws">
+  <nav class="rail" id="rail" aria-label="Sequence">
+    <div class="rail-h"><span class="cap">Sequence</span><button class="tx only-phone" type="button" data-act="rail-close" aria-label="Close sequence">Close</button></div>
+    <ol class="seq" id="seq" aria-describedby="seq-help"></ol>
+    <button class="addw" type="button" data-act="add"><i aria-hidden="true">+</i>Add a work</button>
+    <p class="rail-help" id="seq-help">핸들을 끌어 순서를 바꿔요. 키보드로는 핸들에서 Space를 누르고 화살표로 옮긴 뒤 Space로 놓아요. Esc는 취소예요.</p>
+  </nav>
+
+  <section class="wsp" id="workspace" aria-label="Workspace">
+    <div class="wbar">
+      <div class="grp">
+        <button class="tx only-phone" type="button" data-act="rail-open" aria-label="Open sequence" id="rail-btn">Sequence</button>
+        <div class="tabs" role="tablist" aria-label="Workspace mode">
+          <button type="button" role="tab" data-act="mode" data-v="write" id="tab-write">Write</button>
+          <button type="button" role="tab" data-act="mode" data-v="design" id="tab-design">Design</button>
+          <button type="button" role="tab" data-act="mode" data-v="preview" id="tab-preview">Preview</button>
+        </div>
+      </div>
+      <div class="grp">
+        <span class="counts w-only" id="counts" aria-live="off"></span>
+        <button class="tx w-only" type="button" data-act="focus" id="focus-btn" aria-pressed="false">Focus</button>
+        <div class="pn d-only p-only" id="pn"><button type="button" data-act="prev" aria-label="Previous page"><svg viewBox="0 0 12 12"><path d="M8 1L3 6l5 5"/></svg></button><span id="pn-t"></span><button type="button" data-act="next" aria-label="Next page"><svg viewBox="0 0 12 12"><path d="M4 1l5 5-5 5"/></svg></button></div>
+        <div class="seg d-only p-only" id="seg" role="group" aria-label="Preview device"><button type="button" data-mode="desktop">Desktop</button><button type="button" data-mode="mobile">Mobile</button></div>
+        <button class="tx d-only only-narrow" type="button" data-act="det-open" id="det-btn">Details</button>
+      </div>
+    </div>
+    <div class="wbody">
+      <div class="write" id="write" aria-label="Writing surface"></div>
+      <div class="stage" id="stage"><iframe id="frame" title="Curation preview"></iframe></div>
+    </div>
+  </section>
+
+  <aside class="det" id="det" aria-label="Details"></aside>
+</main>
+
+<div class="focus-exit"><span class="status" id="saved-f"></span><span class="counts" id="counts-f"></span><button class="tx" type="button" data-act="focus">Exit focus <span style="color:var(--ghost)">Esc</span></button></div>
+<div class="scrim" id="scrim" data-act="scrim"></div>
+<div class="dropline" id="dropline" aria-hidden="true"></div>
+<div class="menu" id="menu" role="menu" hidden></div>
+<p class="sr" id="live" aria-live="assertive"></p>
+
+<dialog class="add" id="add" aria-labelledby="add-title">
+  <div class="add-h"><h2 id="add-title">Add a work</h2><button class="tx" type="button" data-act="close-add">Close</button></div>
+  <input class="ul add-q" id="q" type="search" placeholder="제목이나 만든 사람으로 찾기" autocomplete="off" aria-label="Search works">
+  <ul class="add-res" id="res"></ul>
+  <div class="manual" id="manual" hidden>
+    <div class="fl">
+      <label class="full"><span>제목</span><input class="ul kr" data-m="title"></label>
+      <label><span>만든 사람</span><input class="ul kr" data-m="creator"></label>
+      <label><span>연도</span><input class="ul" data-m="year" inputmode="numeric"></label>
+      <label><span>매체</span><select class="ul" data-m="medium"><option value="film">영화</option><option value="series">시리즈</option><option value="book">책</option><option value="album">앨범</option></select></label>
+      <label class="addtile" style="min-height:44px">표지 이미지 올리기<input type="file" accept="image/*" data-m-file class="sr"></label>
+      <span class="full chip-s" id="m-file-name"></span>
+    </div>
+  </div>
+  <div class="add-f"><button class="tx lnk" type="button" data-act="manual" aria-expanded="false" id="manual-btn">Add by hand</button><button class="box" type="button" data-act="add-manual" id="add-manual" hidden>Add</button></div>
+</dialog>
+<div class="toast" id="toast" role="status"><span id="toast-t"></span><button type="button" id="toast-u" hidden>Undo</button></div>
+
+<script src="lecta-sequence.js"></script>
+<script src="service.js"></script>
+<script>
+/* ==========================================================================
+   Sample data for the template prototypes.
+   Covers are procedurally drawn placeholders (original artwork, not real covers).
+   In the product these are replaced by the real cover URL from the work record.
+   ========================================================================== */
+(function (root) {
+  'use strict';
+
+  function escX(s) { return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
+  function svgUri(svg) { return 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg); }
+  function fit(len, w, max, min, sp) { return Math.max(min, Math.min(max, w / (Math.max(1, len) * (0.64 + (sp || 0))))); }
+  function wrapLines(t, n) {
+    var words = String(t).split(/\s+/), lines = [], cur = '';
+    words.forEach(function (w) {
+      if ((cur + ' ' + w).trim().length > n && cur) { lines.push(cur); cur = w; } else { cur = (cur + ' ' + w).trim(); }
+    });
+    if (cur) lines.push(cur);
+    if (lines.length > 4) { lines = lines.slice(0, 4); lines[3] += '…'; }
+    return lines;
+  }
+  function head(w, h) { return '<svg xmlns="http://www.w3.org/2000/svg" width="' + w + '" height="' + h + '" viewBox="0 0 ' + w + ' ' + h + '">'; }
+  function lg(id, a, b, vertical) {
+    return '<linearGradient id="' + id + '" x1="0" y1="0" x2="' + (vertical === false ? 1 : 0) + '" y2="' + (vertical === false ? 0 : 1) + '"><stop offset="0" stop-color="' + a + '"/><stop offset="1" stop-color="' + b + '"/></linearGradient>';
+  }
+
+  var ART = {
+    /* film, dusk sea, two figures. 2:3 */
+    sea: function (c, t) {
+      var s = escX(String(t).toUpperCase()), fs = fit(s.length, 340, 34, 7, 0.28);
+      return head(400, 600) + '<defs>' + lg('a', c[0], c[1]) + lg('b', c[2], c[3]) + '</defs>' +
+        '<rect width="400" height="600" fill="url(#a)"/><circle cx="270" cy="338" r="74" fill="' + c[4] + '" opacity=".6"/>' +
+        '<rect y="372" width="400" height="228" fill="url(#b)"/>' +
+        '<rect y="384" width="400" height="2" fill="' + c[4] + '" opacity=".25"/><rect y="404" width="400" height="2" fill="' + c[4] + '" opacity=".15"/>' +
+        '<g fill="' + c[3] + '"><circle cx="152" cy="446" r="17"/><rect x="130" y="460" width="44" height="76" rx="22"/><circle cx="214" cy="480" r="12"/><rect x="198" y="490" width="32" height="46" rx="16"/></g>' +
+        '<text x="200" y="568" text-anchor="middle" font-family="Helvetica,Arial,sans-serif" font-weight="700" font-size="' + fs + '" letter-spacing="' + (fs * 0.28) + '" fill="#fff" opacity=".92">' + s + '</text></svg>';
+    },
+    /* film or series, night hills and a moon. 2:3 */
+    night: function (c, t) {
+      var s = escX(String(t).toUpperCase()), fs = fit(s.length, 340, 30, 7, 0.3);
+      return head(400, 600) + '<defs>' + lg('a', c[0], c[2]) + '</defs>' +
+        '<rect width="400" height="600" fill="url(#a)"/><circle cx="286" cy="150" r="48" fill="' + c[4] + '" opacity=".88"/>' +
+        '<path d="M0 410 C80 350 170 372 250 402 S360 392 400 372 V600 H0Z" fill="' + c[1] + '" opacity=".92"/>' +
+        '<path d="M0 500 C100 452 230 484 400 442 V600 H0Z" fill="' + c[2] + '"/>' +
+        '<rect x="96" y="470" width="46" height="34" fill="' + c[2] + '"/><rect x="108" y="482" width="9" height="12" fill="' + c[4] + '"/><rect x="124" y="482" width="9" height="12" fill="' + c[3] + '"/>' +
+        '<text x="200" y="566" text-anchor="middle" font-family="Helvetica,Arial,sans-serif" font-weight="600" font-size="' + fs + '" letter-spacing="' + (fs * 0.3) + '" fill="#fff" opacity=".88">' + s + '</text></svg>';
+    },
+    /* album, orbs. 1:1 */
+    orb: function (c, t) {
+      var s = escX(String(t).toUpperCase()), fs = fit(s.length, 300, 20, 11);
+      return head(400, 400) + '<rect width="400" height="400" fill="' + c[0] + '"/>' +
+        '<circle cx="196" cy="214" r="150" fill="' + c[1] + '"/><circle cx="268" cy="150" r="92" fill="' + c[3] + '" opacity=".92"/>' +
+        '<circle cx="132" cy="262" r="46" fill="' + c[2] + '"/><path d="M60 330 A150 150 0 0 0 340 330" fill="none" stroke="' + c[4] + '" stroke-width="3" opacity=".9"/>' +
+        '<text x="28" y="372" font-family="Georgia,serif" font-style="italic" font-size="' + fs + '" letter-spacing="2" fill="' + c[4] + '">' + s + '</text></svg>';
+    },
+    /* album, blocks. 1:1 */
+    blocks: function (c, t) {
+      var s = escX(String(t).toUpperCase()), fs = fit(s.length, 300, 18, 11);
+      return head(400, 400) + '<rect width="400" height="400" fill="' + c[0] + '"/>' +
+        '<rect width="200" height="260" fill="' + c[1] + '"/><rect x="200" width="200" height="160" fill="' + c[2] + '"/>' +
+        '<rect x="200" y="160" width="200" height="240" fill="' + c[3] + '"/><rect y="260" width="200" height="140" fill="' + c[4] + '"/>' +
+        '<circle cx="200" cy="200" r="64" fill="' + c[0] + '"/>' +
+        '<text x="22" y="378" font-family="Helvetica,Arial,sans-serif" font-weight="700" font-size="' + fs + '" letter-spacing="3" fill="' + c[0] + '">' + s + '</text></svg>';
+    },
+    /* book, framed typographic cover. 5:8 */
+    type: function (c, t, a) {
+      var lines = wrapLines(t, 11), longest = lines.reduce(function (m, l) { return Math.max(m, l.length); }, 1);
+      var fs = fit(longest, 300, 46, 20), y0 = 250 - (lines.length - 1) * fs * 0.6;
+      var tx = lines.map(function (l, i) { return '<text x="200" y="' + (y0 + i * fs * 1.2) + '" text-anchor="middle" font-family="Georgia,serif" font-weight="700" font-size="' + fs + '" fill="' + c[2] + '">' + escX(l) + '</text>'; }).join('');
+      return head(400, 640) + '<rect width="400" height="640" fill="' + c[0] + '"/>' +
+        '<rect x="24" y="24" width="352" height="592" fill="none" stroke="' + c[1] + '" stroke-width="2"/>' +
+        '<rect x="34" y="34" width="332" height="572" fill="none" stroke="' + c[1] + '" stroke-width="1" opacity=".6"/>' + tx +
+        '<circle cx="200" cy="470" r="14" fill="' + c[1] + '"/>' +
+        '<text x="200" y="582" text-anchor="middle" font-family="Helvetica,Arial,sans-serif" font-size="13" letter-spacing="4" fill="' + c[2] + '">' + escX(String(a || '').toUpperCase()) + '</text></svg>';
+    },
+    /* book, color band with a disc. ~2:3 */
+    band: function (c, t, a) {
+      var lines = wrapLines(t, 12), longest = lines.reduce(function (m, l) { return Math.max(m, l.length); }, 1);
+      var fs = fit(longest, 300, 38, 18);
+      var tx = lines.map(function (l, i) { return '<text x="36" y="' + (468 + i * fs * 1.2) + '" font-family="Georgia,serif" font-weight="700" font-size="' + fs + '" fill="' + c[3] + '">' + escX(l) + '</text>'; }).join('');
+      return head(400, 620) + '<rect width="400" height="620" fill="' + c[2] + '"/><rect width="400" height="380" fill="' + c[0] + '"/>' +
+        '<circle cx="270" cy="360" r="112" fill="' + c[1] + '"/>' + tx +
+        '<text x="36" y="596" font-family="Helvetica,Arial,sans-serif" font-size="12" letter-spacing="3" fill="' + c[3] + '" opacity=".8">' + escX(String(a || '').toUpperCase()) + '</text></svg>';
+    },
+    /* series still. 3:4 */
+    still: function (c, t) {
+      var lines = wrapLines(String(t).toUpperCase(), 10), longest = lines.reduce(function (m, l) { return Math.max(m, l.length); }, 1);
+      var fs = fit(longest, 300, 46, 18);
+      var tx = lines.map(function (l, i) { return '<text x="30" y="' + (440 + i * fs * 1.05) + '" font-family="Helvetica,Arial,sans-serif" font-weight="800" font-size="' + fs + '" fill="' + c[2] + '">' + escX(l) + '</text>'; }).join('');
+      return head(390, 520) + '<defs>' + lg('a', c[0], c[1], false) + '</defs><rect width="390" height="520" fill="url(#a)"/>' +
+        '<rect x="96" y="60" width="200" height="270" rx="100" fill="' + c[3] + '" opacity=".4"/><circle cx="196" cy="168" r="38" fill="' + c[2] + '" opacity=".9"/>' + tx + '</svg>';
+    },
+    /* landscape cover. 16:10 */
+    wide: function (c, t) {
+      var s = escX(String(t).toUpperCase()), fs = fit(s.length, 560 - 4 * s.length, 34, 8);
+      return head(640, 400) + '<defs>' + lg('a', c[0], c[1], false) + '</defs><rect width="640" height="400" fill="url(#a)"/>' +
+        '<circle cx="470" cy="170" r="84" fill="' + c[3] + '" opacity=".85"/><rect y="250" width="640" height="150" fill="' + c[2] + '" opacity=".85"/>' +
+        '<text x="36" y="364" font-family="Helvetica,Arial,sans-serif" font-weight="800" font-size="' + fs + '" letter-spacing="4" fill="#fff">' + s + '</text></svg>';
+    },
+    /* extremely tall cover. ~0.43 */
+    tall: function (c, t) {
+      var s = escX(String(t).toUpperCase());
+      return head(300, 700) + '<rect width="300" height="700" fill="' + c[0] + '"/><rect x="0" y="0" width="100" height="700" fill="' + c[1] + '"/><rect x="200" y="0" width="100" height="700" fill="' + c[2] + '"/>' +
+        '<text x="150" y="640" text-anchor="middle" font-family="Helvetica,Arial,sans-serif" font-weight="700" font-size="' + fit(s.length, 270, 20, 7, 0.3) + '" letter-spacing="' + (fit(s.length, 270, 20, 7, 0.3) * 0.3) + '" fill="#fff">' + s + '</text></svg>';
+    },
+    /* decorative photo, user supplied image stand in. 16:10 */
+    photo: function (c) {
+      return head(1600, 1000) + '<defs>' + lg('a', c[0], c[1]) + lg('b', c[3], c[0]) +
+        '<radialGradient id="r" cx=".68" cy=".52" r=".34"><stop offset="0" stop-color="' + c[2] + '" stop-opacity=".95"/><stop offset="1" stop-color="' + c[2] + '" stop-opacity="0"/></radialGradient></defs>' +
+        '<rect width="1600" height="1000" fill="url(#a)"/><rect width="1600" height="1000" fill="url(#r)"/>' +
+        '<rect y="560" width="1600" height="440" fill="url(#b)"/><rect y="590" width="1600" height="3" fill="' + c[2] + '" opacity=".25"/><rect y="640" width="1600" height="3" fill="' + c[2] + '" opacity=".12"/></svg>';
+    }
+  };
+
+  var LONG = '문장 하나가 오래 남는 이유는 대개 그 문장이 쓰인 방식 때문이 아니라, 그것을 읽던 때의 내가 어디에 있었는지 때문이다. 같은 작품을 다른 시간에 다시 보면 다른 장면이 먼저 떠오른다. ';
+  function long(n) { var s = ''; for (var i = 0; i < n; i++) s += LONG; return s.trim(); }
+
+  function W(id, medium, title, creator, year, kind, colors, note, extra) {
+    var o = { id: id, medium: medium, title: title, creator: creator, year: year, art: { kind: kind, colors: colors }, note: note || '' };
+    if (extra) for (var k in extra) o[k] = extra[k];
+    return o;
+  }
+
+  var SETS = {
+    A: {
+      label: 'A  이야기가 끝난 뒤 (붉은 계열 포함 8편)',
+      ex: {
+        title: 'After the Last Scene',
+        subtitle: '기억과, 잃은 사람과, 이야기가 끝난 뒤에 남는 것에 대한 여덟 편',
+        curator: '예은',
+        intro: '한 장면이 끝나도 우리는 그 방에 한참 서 있습니다. 이 큐레이션은 떠난 사람과 떠난 시간을 오래 바라보게 만든 작품들을 모았습니다. 순서대로 걸어도 되고, 마음 가는 방부터 들어가도 됩니다.',
+        heroId: 'a3',
+        items: [
+          W('a1', 'film', 'Aftersun', 'Charlotte Wells', 2022, 'sea', ['#2F5D8A', '#E0875A', '#1F3F63', '#0F2540', '#F2B27A'],
+            '영화가 끝나도 끝나지 않는 장면이 있다. 이 영화에서 나는 아버지의 뒷모습을 오래 보았다.\n\n> 기억은 사진보다 느리게 도착한다.\n\n그날의 햇빛과 호텔 수영장, 캠코더 속의 얼굴이 한꺼번에 떠오르는 순간까지, 영화는 아무것도 설명하지 않고 기다려 준다. 그 기다림이 이 전시의 첫 장면이다.',
+            { featured: true, scenes: [{ kind: 'photo', colors: ['#233B63', '#E58B5E', '#F6C58F', '#10233F'], caption: '수영장 장면' }, { kind: 'photo', colors: ['#1B2F4F', '#C97A55', '#E8B98A', '#0B1A30'], caption: '캠코더 속 마지막 날' }] }),
+          W('a2', 'album', 'Carrie & Lowell', 'Sufjan Stevens', 2015, 'blocks', ['#3E5A74', '#8FA3A6', '#2B3948', '#C7D2D0', '#1B2430'],
+            '기타 한 대와 낮은 목소리만으로, 떠난 사람에게 말을 거는 방법을 알려 주는 앨범. 듣고 나면 방 안의 공기가 조금 달라져 있다. 가사를 몰라도 슬픔의 온도는 정확히 전해진다.'),
+          W('a3', 'book', 'The Years', 'Annie Ernaux', 2008, 'type', ['#9E2B25', '#E6E2DC', '#F4F0EA', '#6E1A17'],
+            '한 사람의 기억이 한 세대의 기록이 되는 방식을, 나는 이 책에서 처음 배웠다.'),
+          W('a4', 'album', 'Pink Moon', 'Nick Drake', 1972, 'orb', ['#173F3A', '#E8873A', '#0B1F1D', '#5FA39A', '#F2C36B'], ''),
+          W('a5', 'film', 'Past Lives', 'Celine Song', 2023, 'night', ['#2B2350', '#8A5CA8', '#141029', '#E6A0B8', '#F5D0A0'],
+            '스쳐 지나간 사람을 다시 만난다는 건, 그 사람을 만나는 일이기보다 그때의 나를 다시 만나는 일에 가깝다. 영화는 두 사람이 서로를 바라보는 몇 장면에 대부분의 시간을 쓰고, 나머지는 말하지 않는다. 말하지 않는 것이 이 영화의 가장 큰 문장이다.\n\n나영이 어릴 적 살던 동네의 골목을 떠올리는 장면에서 오래 멈춰 있었다. 이민이라는 사건이 한 사람의 이름을 둘로 나누고, 그 둘이 서로를 모른 채 한 몸에 산다는 것. 그 둘을 다 이해해 주는 사람이 이 세상에 한 명이라도 있다면 얼마나 다행일까. 영화는 그 사람이 누구인지 끝까지 정하지 않는다.\n\n> 우리가 스친 건 아주 짧은 시간이었지만, 그 시간은 아직 어딘가에 남아 있다.\n\n마지막 택시 장면은 몇 번을 다시 봐도 같은 자리에서 숨이 막힌다. 이별은 대부분 큰 소리를 내지 않고, 그래서 더 오래 남는다. 엔딩 크레딧이 올라가는 동안 극장 안의 사람들이 아무도 일어나지 않았다. 그 침묵이 이 영화에 대한 가장 정확한 감상문이었다고 생각한다. 이 큐레이션의 방들 중 가장 조용한 방을 이 영화에게 주고 싶었다.\n\n개봉하고 한참 뒤에야 이 영화를 봤다. 그사이 나는 이 영화에 대한 말을 너무 많이 들어서 오히려 조심스러웠는데, 막상 보고 나니 말들이 전부 영화 바깥에 있었다. 영화 안에는 두 사람과 침묵이 있을 뿐이었다.'),
+          W('a6', 'book', '작별하지 않는다', '한강', 2021, 'type', ['#DCE5EB', '#7E96A8', '#22313F', '#9FB4C2'],
+            '눈이 내리는 장면을 읽을 때마다 책장 넘기는 속도가 느려졌다. 이 소설은 애도가 끝나지 않는 사람이 어떻게 계속 걸어가는지를 보여 준다. 읽는 동안 추운 방에서 촛불 하나를 사이에 두고 누군가와 마주 앉아 있는 기분이었다. 슬픔을 설명하지 않고 풍경으로 건네는 문장들 덕분에, 이 책은 읽는 사람의 기억까지 같이 불러낸다.'),
+          W('a7', 'album', 'Blonde', 'Frank Ocean', 2016, 'blocks', ['#1B1B1D', '#E0485A', '#F0B0B8', '#3A3A40', '#7A2B3A'],
+            '이별한 뒤에 듣는 Frank Ocean은 다르다. 노래가 끝나도 그 공기가 방 안에 남아 있다. 가장 사적인 소리가 가장 멀리 간다는 걸 이 앨범으로 알았다.'),
+          W('a8', 'series', 'Fleabag', 'Phoebe Waller-Bridge', 2016, 'still', ['#C9304A', '#1A1216', '#F2B8C0', '#7A1A2A'],
+            '웃다가 갑자기 아픈 드라마. 카메라를 향해 던지는 농담이 사실은 가장 솔직한 고백이라는 걸 마지막 화에서야 알게 된다.\n\n> 웃기다가, 갑자기 아프다.')
+        ]
+      }
+    },
+    B: {
+      label: 'B  푸른 시간 (차가운 계열 7편)',
+      ex: {
+        title: 'Blue Hour',
+        subtitle: '해가 지고 밤이 오기 전, 모든 것이 푸르게 가라앉는 시간에 보고 읽고 들은 것',
+        curator: '민재',
+        intro: '',
+        heroId: 'b5',
+        items: [
+          W('b1', 'film', 'Lost in Translation', 'Sofia Coppola', 2003, 'night', ['#1B2A4A', '#3B5C99', '#0D1526', '#7FA6D9', '#C9DDF5'],
+            '말이 통하지 않는 도시에서 말이 통하는 단 한 사람을 만나는 이야기. 새벽의 호텔 로비와 네온이 번진 택시 창이 오래 남았다. 마지막 귓속말은 끝내 들리지 않아서 더 좋다.'),
+          W('b2', 'album', 'Blue', 'Joni Mitchell', 1971, 'orb', ['#16355E', '#2F6CB5', '#0C1E3A', '#8DB6E8', '#D4E6FA'],
+            '가장 낮은 온도로 가장 깊이 찌르는 노래들.'),
+          W('b3', 'book', 'Norwegian Wood', 'Haruki Murakami', 1987, 'type', ['#1F4E52', '#7FB5B0', '#E8F1EF', '#12302F'],
+            '스무 살 무렵의 쓸쓸함을 이렇게 정확하게 적은 책은 드물다. 읽는 내내 비가 내렸고, 책을 덮고 나서도 한동안 우산을 펴지 않았다.\n\n> 죽음은 삶의 반대편이 아니라 그 일부로서 존재한다.\n\n그 문장을 몇 번이나 소리 내어 읽었다.', { featured: false }),
+          W('b4', 'album', 'For Emma, Forever Ago', 'Bon Iver', 2007, 'blocks', ['#34506B', '#9CB4C8', '#5B7893', '#DCE7F0', '#1F3246'], ''),
+          W('b5', 'film', 'Chungking Express', 'Wong Kar-wai', 1994, 'night', ['#0F3B45', '#1F7A7A', '#06191F', '#F06A8A', '#9FE0D8'],
+            '유통기한이 있는 사랑에 대한 영화. 두 번째 이야기에서 흘러나오는 노래를 지금도 같은 속도로 따라 걷는다. 도시의 새벽이 이렇게 다정할 수 있다는 걸 이 영화가 알려 줬다.',
+            { featured: true, photo: { kind: 'photo', colors: ['#0B2E38', '#1E7B80', '#F06A8A', '#041216'] } }),
+          W('b6', 'book', 'Never Let Me Go', 'Kazuo Ishiguro', 2005, 'band', ['#3B4A68', '#A9B8D6', '#232C42', '#EEF2FA'],
+            '아주 조용한 목소리로 아주 잔인한 이야기를 하는 소설. 읽는 사람이 먼저 알아채게 만든다는 점에서 가장 정직하다.'),
+          W('b7', 'series', 'Normal People', 'Lenny Abrahamson', 2020, 'still', ['#2A4B8D', '#0E1B3A', '#CFE0FA', '#6F8FD0'],
+            '대사보다 침묵이 많은 연애 드라마. 같은 방에 있는 두 사람 사이의 거리를 이렇게 오래 찍어도 지루하지 않다.')
+        ]
+      }
+    },
+    C: {
+      label: 'C  흑백 (색이 없는 6편, 단색 대응 확인)',
+      ex: {
+        title: 'Grayscale',
+        subtitle: '색이 없어서 더 선명하게 남은 것들',
+        curator: '지안',
+        intro: '컬러를 빼고 나면 구도와 빛과 침묵이 남습니다. 오래 기억에 남은 흑백의 작품들입니다.',
+        heroId: 'c1',
+        items: [
+          W('c1', 'film', 'Ida', 'Paweł Pawlikowski', 2013, 'night', ['#222222', '#555555', '#0E0E0E', '#BDBDBD', '#EDEDED'],
+            '화면의 아래쪽 절반을 비워 두는 구도가 이야기의 무게를 대신 말해 준다. 흑백이 아니었다면 이렇게 조용할 수 없었을 것이다.\n\n> 비어 있는 곳이 가장 많은 것을 말한다.', { featured: true, photo: { kind: 'photo', colors: ['#2B2B2B', '#8A8A8A', '#E4E4E4', '#0F0F0F'] } }),
+          W('c2', 'album', 'Kind of Blue', 'Miles Davis', 1959, 'orb', ['#1C1C1C', '#4A4A4A', '#8E8E8E', '#D0D0D0', '#F2F2F2'], '말 없이 오래 듣는 법을 알려 준 앨범.'),
+          W('c3', 'book', 'The Stranger', 'Albert Camus', 1942, 'type', ['#D7D7D7', '#6C6C6C', '#1B1B1B', '#9A9A9A'],
+            '감정을 설명하지 않는 문장이 감정을 가장 크게 만든다는 걸 처음 알았다. 읽고 나서 햇빛이 조금 무서워졌다.'),
+          W('c4', 'album', 'Unknown Pleasures', 'Joy Division', 1979, 'blocks', ['#101010', '#2C2C2C', '#5E5E5E', '#9C9C9C', '#F0F0F0'], ''),
+          W('c5', 'film', 'Stalker', 'Andrei Tarkovsky', 1979, 'sea', ['#303030', '#7A7A7A', '#1E1E1E', '#0C0C0C', '#CFCFCF'],
+            '세 시간 동안 물과 풀과 사람의 뒷모습만 본다. 그런데도 지나가는 시간이 아깝지 않고, 끝나면 오래 말을 잃는다.'),
+          W('c6', 'book', "Giovanni's Room", 'James Baldwin', 1956, 'band', ['#2E2E2E', '#8C8C8C', '#141414', '#E6E6E6'],
+            '한 번의 선택이 한 사람의 방을 닫아 버린다. 문장이 아름다워서 더 아프다.')
+        ]
+      }
+    },
+    D: {
+      label: 'D  스트레스 테스트 (긴 제목, 빈 값, 노란 표지, 특수문자 12편)',
+      ex: {
+        title: 'A Collection of Things I Could Not Stop Thinking About for an Entire Year',
+        subtitle: '',
+        curator: '',
+        intro: '',
+        heroId: 'd4',
+        items: [
+          W('d1', 'film', 'The Unbearable Lightness of Being and Other Very Long Titles That Test Wrapping', 'Sample Creator With A Very Long Credit Name', 1988, 'type', ['#E9D8A6', '#BB9457', '#3A2E1C', '#8A6D2A'],
+            long(5)),
+          W('d2', 'book', '아주아주 긴 한국어 제목이 줄바꿈과 균형을 어떻게 처리하는지 확인하기 위한 작품명', '이름이 아주 긴 작가 이름입니다', '', 'band', ['#D9A21B', '#111111', '#F2C94C', '#111111'], ''),
+          W('d3', 'album', 'No Cover Available', 'Unknown', 2011, 'orb', ['#000000', '#000000', '#000000', '#000000', '#000000'], '표지 이미지가 없는 작품도 같은 품질로 보여야 합니다.', { noCover: true }),
+          W('d4', 'film', 'Landscape Cover Test', 'Wide Format', 2019, 'wide', ['#17324D', '#3E7CB1', '#0B1A2A', '#F2A65A'], '가로로 긴 표지는 잘리지 않고 그대로 놓여야 합니다. 비율이 달라도 같은 크기의 판 위에서 균형이 맞는지 확인합니다.', { featured: true }),
+          W('d5', 'book', 'Very Tall Cover', 'Tall Format', 2020, 'tall', ['#2B2B3B', '#C74B50', '#E8E8F0'], '세로로 아주 긴 표지. 화면 높이를 넘지 않는지 확인합니다. 한 문단이 조금 길어졌을 때 본문과 표지가 어떻게 어울리는지도 같이 봅니다. 문장은 몇 줄 더 이어질 수 있습니다.'),
+          W('d6', 'film', '<img src=x onerror=alert(1)> & "quotes"', '', 2000, 'sea', ['#444444', '#aaaaaa', '#222222', '#111111', '#eeeeee'], '**굵게**와 *기울임*과 <script>alert(1)<\/script> 같은 문자열이 그대로 글자로 보여야 합니다.'),
+          W('d7', 'album', '🌙 Moon', 'Artist', 2023, 'orb', ['#1B1340', '#6A4CFF', '#2A1F66', '#C9B8FF', '#FFFFFF'], '한 줄짜리 이유가 한 장을 혼자 채울 수 있는지 확인합니다.'),
+          W('d8', 'series', 'Neon', 'Saturated', 2024, 'still', ['#00F5D4', '#F15BB5', '#111111', '#FEE440'],
+            '> Only a quote and nothing else.'),
+          W('d9', 'film', 'Featured With Photo', 'Photographer', 2021, 'sea', ['#2D5F7C', '#F0A875', '#1B3D52', '#0E2433', '#FFD9B0'], '직접 올린 사진이 있으면 화면을 가득 채웁니다.',
+            { featured: true, photo: { kind: 'photo', colors: ['#2D5F7C', '#F0A875', '#FFD9B0', '#0E2433'] } }),
+          W('d10', 'book', 'Short', 'A', 1999, 'type', ['#294D3A', '#98C1A6', '#F2F7F3', '#183024'], '짧다.'),
+          W('d11', 'series', 'Eleven', 'Creator Eleven', 2022, 'night', ['#4A1F3D', '#9C3F7C', '#240F1E', '#F5A3CF', '#FFD6EA'], long(2) + '\n\n> 중간에 끼어 있는 인용문도 같은 규칙으로 처리됩니다.\n\n' + long(1)),
+          W('d12', 'album', 'Twelve', 'Creator Twelve', 2018, 'blocks', ['#0F2F2B', '#2A9D8F', '#E9C46A', '#F4A261', '#264653'], '')
+        ]
+      }
+    }
+  };
+
+  root.LectaSamples = { SETS: SETS, ART: ART, svgUri: svgUri, long: long };
+})(window);
+
+</script>
+<script>
+/* ==========================================================================
+   Curation Editor v5
+   Data model and template protocol are the v4 ones (handoff sections 2 and 5).
+   What changed: stable work ids, drag reorder, Write / Design / Preview,
+   Focus writing, square editorial chrome, explicit storage state.
+   ========================================================================== */
+(function () {
+  'use strict';
+  var SM = window.LectaSamples, SEQ = window.LectaSequence;
+  var $ = function (s, r) { return (r || document).querySelector(s); };
+  var $$ = function (s, r) { return [].slice.call((r || document).querySelectorAll(s)); };
+  var esc = function (s) { return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;'); };
+  var hk = function (s) { return /[ᄀ-ᇿ㄰-㆏가-힯]/.test(s || '') ? 'hk' : ''; };
+  var pad = function (n) { return String(n).padStart(2, '0'); };
+  var cap1 = function (k) { return k ? k.charAt(0).toUpperCase() + k.slice(1) : ''; };
+  var MEDIUM = { film: '영화', series: '시리즈', book: '책', album: '앨범' };
+  var TEMPLATES = [
+    { id: 'the-spread', name: 'The Spread', desc: '잡지 내지처럼. 단 나눈 글 사이에 장면이 놓여요', svg: '<svg viewBox="0 0 84 44"><rect class="f" x="3" y="3" width="20" height="4"/><path d="M3 14h34M3 19h34M3 24h22M46 3h35v17H46z"/><path d="M46 27h35M46 32h28M46 37h32"/></svg>' },
+    { id: 'the-edit', name: 'The Edit', desc: '큰 활자의 에세이. 한 작품이 한 장을 써요', svg: '<svg viewBox="0 0 84 44"><rect class="f" x="3" y="4" width="42" height="9"/><path d="M3 22h30M3 27h22M3 32h28M58 3h24v38H58z"/></svg>' },
+    { id: 'afterimage', name: 'Afterimage', desc: '어두운 방에서 한 작품씩 천천히', svg: '<svg viewBox="0 0 84 44"><rect class="f" x="28" y="3" width="28" height="26"/><path d="M20 35h44M30 40h24"/></svg>' }
+  ];
+  var LAYOUTS = [
+    { id: 'auto', name: 'Auto', svg: '<svg viewBox="0 0 44 58"><rect x="4" y="5" width="36" height="48" stroke-dasharray="3 3"/><path d="M22 21v16M14 29h16"/></svg>' },
+    { id: 'page', name: 'Page', svg: '<svg viewBox="0 0 44 58"><rect class="f" x="4" y="5" width="22" height="5"/><path d="M4 22h12M4 28h12M4 34h10M22 22h18M22 28h18M22 34h18M22 40h14"/></svg>' },
+    { id: 'inset', name: 'Inset', svg: '<svg viewBox="0 0 44 58"><path d="M4 6h36M4 11h28"/><rect x="4" y="18" width="36" height="14"/><path d="M4 38h36M4 43h30M4 48h22"/></svg>' },
+    { id: 'full', name: 'Full', svg: '<svg viewBox="0 0 44 58"><rect x="2" y="4" width="40" height="32"/><rect class="f" x="4" y="43" width="22" height="5"/><path d="M30 46h10"/></svg>' },
+    { id: 'plate', name: 'Plate', svg: '<svg viewBox="0 0 44 58"><rect class="f" x="4" y="6" width="14" height="5"/><path d="M4 48h12"/><rect x="24" y="12" width="16" height="32"/></svg>' },
+    { id: 'quote', name: 'Quote', svg: '<svg viewBox="0 0 44 58"><rect class="f" x="2" y="4" width="40" height="50"/><path stroke="#fff" d="M8 24h28M8 31h22"/></svg>' }
+  ];
+  var GRIP = '<svg viewBox="0 0 8 14" aria-hidden="true"><circle cx="2" cy="2" r="1.25"/><circle cx="6" cy="2" r="1.25"/><circle cx="2" cy="7" r="1.25"/><circle cx="6" cy="7" r="1.25"/><circle cx="2" cy="12" r="1.25"/><circle cx="6" cy="12" r="1.25"/></svg>';
+  var DOTS = '<svg viewBox="0 0 14 4" aria-hidden="true"><circle cx="2" cy="2" r="1.3"/><circle cx="7" cy="2" r="1.3"/><circle cx="12" cy="2" r="1.3"/></svg>';
+  var BUCKET = { none: '없음', line: '한 줄', short: '짧은 글', medium: '보통', long: '긴 글' };
+  var BUCKET_MSG = {
+    none: '글이 없으면 장면이나 표지가 한 장을 채워요.',
+    line: '한 줄이에요. 큼직한 한 문장으로 놓여요.',
+    short: '짧은 글이에요. 장면과 함께 한 호흡으로 읽혀요.',
+    medium: '적당한 길이예요. 단을 나눠 잡지 지면처럼 놓여요.',
+    long: '긴 글이에요. 여러 단으로 흐르고, 장면이 글 사이에 들어가요.'
+  };
+  /* raster data URLs are uploads; svg data URLs are the small sample drawings */
+  var RASTER = /^data:image\/(jpeg|jpg|png|webp|gif)/i;
+  var UI_KEY = 'lecta.curation.ui.v5';
+  var SERVICE = /[?&]service=1/.test(location.search);
+  var FRESH = /[?&]fresh=1/.test(location.search);
+  /* postMessage: same origin when served over http(s). file:// has an opaque origin, so it falls back to '*' */
+  var ORIGIN = /^https?:$/.test(location.protocol) ? location.origin : '*';
+
+  /* ---------- works ---------- */
+  var idSeq = 0;
+  function makeId() { return 'w' + Date.now().toString(36).slice(-5) + (++idSeq).toString(36) + Math.random().toString(36).slice(2, 5); }
+  function sceneOf(s) {
+    if (!s) return null; if (typeof s === 'string') s = { src: s };
+    var src = s.src || (s.kind && SM.ART.photo ? SM.svgUri(SM.ART.photo(s.colors)) : null);
+    return src ? { src: src, caption: String(s.caption || ''), ar: s.ar || null } : null;
+  }
+  function newWork(o) {
+    var scenes = (o.scenes || []).map(sceneOf).filter(Boolean);
+    if (!scenes.length && o.photo) { var p = sceneOf(o.photo); if (p) scenes = [p]; }
+    return {
+      id: o.id ? String(o.id) : makeId(),
+      title: String(o.title || ''), creator: String(o.creator || ''), year: o.year != null ? String(o.year) : '', medium: o.medium || 'film',
+      reason: String(o.reason || ''), note: String(o.note || ''),
+      layout: o.layout && o.layout !== '' ? o.layout : 'auto', featured: !!o.featured,
+      cover: o.cover && o.cover.src ? { src: o.cover.src } : null, art: o.noCover ? null : (o.art || null),
+      scenes: scenes, palette: o.palette || null, ar: o.ar || 0.667
+    };
+  }
+  var CATALOG = [];
+  ['A', 'B', 'C'].forEach(function (k) { SM.SETS[k].ex.items.forEach(function (it) { if (it.art) CATALOG.push({ title: it.title, creator: it.creator, year: it.year, medium: it.medium, art: it.art }); }); });
+  function artSrc(a, t, c) { return SM.svgUri(SM.ART[a.kind](a.colors, t, c)); }
+  function coverSrc(w) { return w.cover ? w.cover.src : (w.art ? artSrc(w.art, w.title, w.creator) : ''); }
+
+  var S = {
+    title: 'Longing & Other Quiet Things', subtitle: '', intro: '', curator: '', template: 'the-spread', accent: null,
+    sel: 'cover', device: 'desktop', chips: [], accentIndex: 0, plan: [], kinds: null, focusPending: false,
+    mode: 'write', prevMode: 'write', focus: false, writeStale: false, previewDirty: false, store: { ok: true, dropped: 0 }, warned: false,
+    works: [
+      newWork({ title: 'Aftersun', creator: 'Charlotte Wells', year: '2022', medium: 'film', art: { kind: 'sea', colors: ['#2F5D8A', '#E0875A', '#1F3F63', '#0F2540', '#F2B27A'] },
+        reason: '영화가 끝나도 끝나지 않는 장면이 있다.',
+        note: '이 영화에서 나는 아버지의 뒷모습을 오래 보았다.\n\n> 기억은 사진보다 느리게 도착한다.\n\n그날의 햇빛과 호텔 수영장, 캠코더 속의 얼굴이 한참 뒤에야 의미를 갖는다. 영화는 아무것도 설명하지 않고 그 기다림이 이 영화의 첫 장면이다.',
+        scenes: [{ src: SM.svgUri(SM.ART.photo(['#233B63', '#E58B5E', '#F6C58F', '#10233F'])), caption: '수영장 장면', ar: 1.6 }, { src: SM.svgUri(SM.ART.photo(['#1B2F4F', '#C97A55', '#E8B98A', '#0B1A30'])), caption: '', ar: 1.6 }] }),
+      newWork({ title: 'Come Away With Me', creator: 'Norah Jones', year: '2002', medium: 'album', art: { kind: 'orb', colors: ['#173F3A', '#E8873A', '#0B1F1D', '#5FA39A', '#F2C36B'] }, reason: '낮은 목소리 하나로 방 안의 온도가 달라진다.' }),
+      newWork({ title: 'The Years', creator: 'Annie Ernaux', year: '2008', medium: 'book', art: { kind: 'type', colors: ['#9E2B25', '#E6E2DC', '#F4F0EA', '#6E1A17'] }, reason: '한 사람의 기억이 한 세대의 기록이 되는 방식을 이 책에서 처음 배웠다.' })
+    ]
+  };
+  var frame = $('#frame'), frameReady = false, saveTimer = 0, pushTimer = 0, viewMuteUntil = 0;
+
+  function byId(id) { for (var i = 0; i < S.works.length; i++) if (S.works[i].id === id) return S.works[i]; return null; }
+  function indexOfId(id) { for (var i = 0; i < S.works.length; i++) if (S.works[i].id === id) return i; return -1; }
+  function selIndex() { return S.sel === 'cover' ? -1 : indexOfId(S.sel); }
+  function selWork() { return S.sel === 'cover' ? null : byId(S.sel); }
+  function planOf(w) { return S.plan.filter(function (p) { return p.id === w.id; })[0]; }
+  function phone() { return window.matchMedia('(max-width:859px)').matches; }
+  function narrow() { return window.matchMedia('(max-width:1099px)').matches; }
+
+  /* ---------- data out (v4 shape; scenes also keep ar) ---------- */
+  function curation() {
+    return {
+      title: S.title, subtitle: S.subtitle, curator: S.curator, intro: S.intro, accentIndex: S.accent, heroId: S.works[0] && S.works[0].id,
+      focus: S.focusPending ? selIndex() : null,
+      items: S.works.map(function (w) {
+        return { id: w.id, title: w.title, creator: w.creator, year: w.year, medium: w.medium, reason: w.reason, note: w.note, layout: w.layout === 'auto' ? '' : w.layout, featured: w.featured,
+          cover: w.cover ? { src: w.cover.src } : null, art: w.art, noCover: !w.cover && !w.art,
+          scenes: w.scenes.map(function (s) { var o = { src: s.src, caption: s.caption }; if (s.ar) o.ar = s.ar; return o; }), palette: w.palette };
+      })
+    };
+  }
+  function getData() { return Object.assign(curation(), { template: S.template }); }
+  window.LectaEditor = {
+    getData: getData,
+    setData: function (d) { load(d); loadFrame(); S.writeStale = true; renderAll(); if (S.mode === 'write') { renderWrite(); } },
+    onSave: null,
+    /* v5 addition: the same reorder the drag UI uses, by stable id */
+    reorder: function (id, to) { return reorderTo(id, to, 'api'); }
+  };
+
+  /* ==========================================================================
+     Rendering. Each area renders on its own; typing never rebuilds the field
+     being typed in.
+     ========================================================================== */
+  function rowKind(w) {
+    var plan = planOf(w);
+    var k = w.layout !== 'auto' ? cap1(w.layout) + ' fixed' : (plan && plan.kind ? cap1(plan.kind) + ' auto' : 'Auto');
+    return k + (w.scenes.length ? ', ' + w.scenes.length + (w.scenes.length === 1 ? ' scene' : ' scenes') : ', cover');
+  }
+  var railPending = false;
+  function renderRail() {
+    if (drag || lift) { railPending = true; return; }
+    railPending = false;
+    var seq = $('#seq'), a = document.activeElement, keep = null;
+    if (a && seq.contains(a)) { var r0 = a.closest('.row'); keep = r0 && { id: r0.getAttribute('data-id'), part: a.classList.contains('grip') ? 'grip' : a.classList.contains('rmore') ? 'rmore' : 'pick' }; }
+    var html = '<li class="row cover' + (S.sel === 'cover' ? ' on' : '') + '" data-id="cover"><span class="grip" aria-hidden="true"></span>' +
+      '<button class="pick" type="button" data-sel="cover"' + (S.sel === 'cover' ? ' aria-current="true"' : '') + '><span class="n">00</span><span class="th ct" aria-hidden="true">L</span><span class="tt"><b class="' + hk(S.title) + '">' + esc(S.title || 'Untitled') + '</b><small>Cover and settings</small></span></button><span></span></li>';
+    html += S.works.map(function (w, i) {
+      var src = coverSrc(w), t = w.title || 'Untitled', on = S.sel === w.id;
+      return '<li class="row' + (on ? ' on' : '') + '" data-id="' + esc(w.id) + '">' +
+        '<button class="grip" type="button" aria-label="' + esc(t) + ' 순서 바꾸기, 지금 ' + (i + 1) + '번째" aria-describedby="seq-help">' + GRIP + '</button>' +
+        '<button class="pick" type="button" data-sel="' + esc(w.id) + '"' + (on ? ' aria-current="true"' : '') + '><span class="n">' + pad(i + 1) + '</span><span class="th">' + (src ? '<img src="' + esc(src) + '" alt="">' : '') + '</span>' +
+        '<span class="tt"><b class="' + hk(w.title) + '">' + esc(t) + '</b><small>' + esc(rowKind(w)) + '</small></span></button>' +
+        '<button class="rmore" type="button" data-act="row-more" aria-haspopup="menu" aria-expanded="false" aria-label="' + esc(t) + ' 더보기">' + DOTS + '</button></li>';
+    }).join('');
+    seq.innerHTML = html;
+    if (keep) { var el = seq.querySelector('.row[data-id="' + cssq(keep.id) + '"] .' + keep.part); if (el) el.focus({ preventScroll: true }); }
+  }
+  function cssq(s) { return window.CSS && CSS.escape ? CSS.escape(s) : String(s).replace(/"/g, '\\"'); }
+
+  /* ---------- write surface ---------- */
+  function writeCover() {
+    return '<div class="col">' +
+      '<div class="w-meta"><b>00</b><span>Cover</span><span>' + esc(TEMPLATES.filter(function (t) { return t.id === S.template; })[0].name) + '</span></div>' +
+      '<textarea class="w-title grow ' + hk(S.title) + '" data-g="title" data-oneline rows="1" maxlength="120" placeholder="큐레이션 제목" aria-label="큐레이션 제목"></textarea>' +
+      '<label class="w-lab" for="w-sub">Subtitle</label><textarea id="w-sub" class="w-in grow" data-g="subtitle" data-oneline rows="1" maxlength="160" placeholder="한 줄 부제 (선택)"></textarea>' +
+      '<label class="w-lab" for="w-cur">Curated by</label><input id="w-cur" class="w-in small" data-g="curator" maxlength="60" placeholder="큐레이터 이름 (선택)">' +
+      '<div class="fmt"><label class="w-lab" for="w-intro">Introduction</label></div>' +
+      '<textarea id="w-intro" class="w-note grow" data-g="intro" maxlength="50000" style="min-height:36vh" placeholder="이 큐레이션을 소개해 주세요. 빈 줄로 문단을 나눠요."></textarea>' +
+      '<p class="w-foot">템플릿과 벽 색은 <button class="lnk" type="button" data-act="mode" data-v="design" style="color:var(--ink)">Design</button>에서 골라요.</p></div>';
+  }
+  function writeWork(w) {
+    return '<div class="col">' +
+      '<div class="w-meta" id="w-meta">' + metaHtml(w) + '</div>' +
+      '<textarea class="w-title grow ' + hk(w.title) + '" data-f="title" data-oneline rows="1" maxlength="200" placeholder="작품 제목" aria-label="작품 제목"></textarea>' +
+      '<label class="w-lab" for="w-reason">Why this work</label>' +
+      '<textarea id="w-reason" class="w-in grow" data-f="reason" data-oneline rows="1" maxlength="400" placeholder="왜 이 작품인가요? 한 문장이면 충분해요"></textarea>' +
+      '<div class="fmt" role="toolbar" aria-label="Formatting" aria-controls="w-note"><label class="w-lab" for="w-note">Writing</label>' +
+        '<button type="button" data-fmt="b" aria-label="굵게 (Cmd/Ctrl+B)" title="굵게 (Cmd/Ctrl+B)"><b>B</b></button>' +
+        '<button type="button" data-fmt="i" aria-label="기울임 (Cmd/Ctrl+I)" title="기울임 (Cmd/Ctrl+I)"><i style="font-family:var(--serif);font-size:15px">I</i></button>' +
+        '<button type="button" class="q" data-fmt="q" aria-label="인용문으로 바꾸기" title="줄 앞에 > 를 붙여 인용문으로">Quote</button><span class="keys" aria-hidden="true">⌘B  ⌘I</span></div>' +
+      '<textarea id="w-note" maxlength="50000" class="w-note grow" data-f="note" spellcheck="false" placeholder="이 작품에 대해 마음껏 써 보세요.&#10;&#10;빈 줄로 문단을 나누고, 줄 맨 앞에 > 를 쓰면 인용문이 돼요."></textarea>' +
+      '<p class="w-foot" id="w-foot"></p></div>';
+  }
+  function metaHtml(w) {
+    var parts = [MEDIUM[w.medium] || w.medium, [w.creator, w.year].filter(Boolean).join(', ')].filter(Boolean);
+    return '<b id="w-num">' + pad(selIndex() + 1) + '</b>' + parts.map(function (p) { return '<span>' + esc(p) + '</span>'; }).join('');
+  }
+  function renderWrite() {
+    var el = $('#write'), w = selWork();
+    el.innerHTML = w ? writeWork(w) : writeCover();
+    $$('[data-f],[data-g]', el).forEach(function (t) { var g = t.getAttribute('data-g'), f = t.getAttribute('data-f'); t.value = g ? (S[g] || '') : (w[f] || ''); });
+    $$('textarea.grow', el).forEach(grow);
+    el.setAttribute('data-for', S.sel);
+    el.scrollTop = 0;
+    S.writeStale = false;
+    updateCounts();
+    lockCatalogFields();
+  }
+  function grow(t) {
+    var sc = t.closest('.write'), top = sc ? sc.scrollTop : 0;
+    t.style.height = 'auto'; t.style.height = t.scrollHeight + 'px';
+    if (sc && sc.scrollTop !== top) sc.scrollTop = top;
+  }
+  function updateWriteMeta() { var n = $('#w-num'); if (n) n.textContent = pad(selIndex() + 1); }
+  function updateCounts() {
+    var w = selWork(), txt = '', foot = $('#w-foot');
+    if (w) {
+      var st = SEQ.textStats(w.reason, w.note);
+      txt = st.chars.toLocaleString('ko-KR') + '자  ' + st.paras + '문단';
+      if (foot) foot.innerHTML = '길이 구간 <b>' + BUCKET[st.bucket] + '</b>. ' + esc(BUCKET_MSG[st.bucket]) + ' 본문은 50,000자까지 저장할 수 있어요.';
+    } else {
+      txt = String(S.intro || '').replace(/\s/g, '').length.toLocaleString('ko-KR') + '자';
+    }
+    $('#counts').textContent = txt; $('#counts-f').textContent = txt;
+  }
+  /* caret, selection and scroll per page, so switching modes returns to the same spot */
+  var memo = {};
+  function rememberWrite(from) {
+    var el = $('#write'), id = el.getAttribute('data-for'); if (!id) return;
+    var a = from || document.activeElement, m = memo[id] || {};
+    m.top = el.scrollTop;
+    if (a && el.contains(a) && (a.getAttribute('data-f') || a.getAttribute('data-g'))) { m.key = a.getAttribute('data-f') ? '[data-f="' + a.getAttribute('data-f') + '"]' : '[data-g="' + a.getAttribute('data-g') + '"]'; m.s = a.selectionStart; m.e = a.selectionEnd; }
+    memo[id] = m;
+  }
+  function restoreWrite(withFocus) {
+    var el = $('#write'), m = memo[S.sel]; if (!m) return;
+    if (withFocus && m.key) { var t = el.querySelector(m.key); if (t) { t.focus({ preventScroll: true }); try { t.setSelectionRange(m.s, m.e); } catch (e) { } } }
+    el.scrollTop = m.top || 0;
+  }
+
+  /* ---------- details ---------- */
+  function tplRows() {
+    return TEMPLATES.map(function (t) {
+      var on = S.template === t.id;
+      return '<button type="button" role="radio" aria-checked="' + on + '" data-act="tpl" data-v="' + t.id + '" class="' + (on ? 'on' : '') + '">' + t.svg + '<span><b>' + t.name + '</b><small>' + t.desc + '</small></span><span class="ck" aria-hidden="true">' + (on ? '✓' : '') + '</span></button>';
+    }).join('');
+  }
+  function chipRow() {
+    if (!S.chips.length) return '<span class="chip-s">작품을 담으면 표지에서 색을 뽑아 보여드려요.</span>';
+    return S.chips.map(function (c, i) { var on = i === S.accentIndex; return '<button type="button" role="radio" aria-checked="' + on + '" data-act="chip" data-v="' + i + '" class="' + (on ? 'on' : '') + '"><i style="background:' + esc(c.hex) + '"></i><span>' + esc(c.name) + '</span></button>'; }).join('');
+  }
+  function excerpt(s, n) { s = String(s || '').replace(/^>\s*/gm, '').replace(/\*+/g, '').replace(/\s+/g, ' ').trim(); return s.length > n ? s.slice(0, n) + '…' : s; }
+  function detCover() {
+    var ex = excerpt(S.intro, 160);
+    return '<div class="d-h"><span class="cap">00 / Cover</span><h2 class="d-title ' + hk(S.title) + '">' + esc(S.title || 'Untitled') + '</h2></div>' +
+      '<section class="d-sec"><span class="cap" id="lab-tpl">Template</span><div class="tpl" role="radiogroup" aria-labelledby="lab-tpl">' + tplRows() + '</div></section>' +
+      '<section class="d-sec"><span class="cap" id="lab-wall">Wall color</span><div class="chips" id="chips" role="radiogroup" aria-labelledby="lab-wall">' + chipRow() + '</div><p class="hint">표지에서 뽑은 색이에요. 고르지 않으면 첫 작품의 색을 따라요.</p></section>' +
+      '<section class="d-sec"><span class="cap">Introduction</span><p class="wr-sum' + (ex ? '' : ' empty') + '">' + esc(ex || '소개가 아직 없어요.') + '</p><p style="margin-top:6px"><button class="tx lnk" type="button" data-act="mode" data-v="write">Write에서 제목과 소개 쓰기</button></p></section>';
+  }
+  function detWork(w) {
+    var plan = planOf(w), kinds = S.kinds, i = selIndex();
+    var lay = LAYOUTS.map(function (l) {
+      var off = l.id !== 'auto' && kinds && kinds.indexOf(l.id) < 0, on = w.layout === l.id;
+      return '<button type="button" role="radio" aria-checked="' + on + '" data-act="layout" data-v="' + l.id + '" class="' + (on ? 'on' : '') + (off ? ' off' : '') + '"' + (off ? ' title="이 템플릿에는 없어서 Auto로 놓여요"' : '') + '>' + l.svg + '<span>' + l.name + '</span></button>';
+    }).join('');
+    var now = plan && plan.kind ? plan.kind : '';
+    var layHint = w.layout === 'auto' ? 'Auto는 글의 길이와 장면에 맞춰 정해요' + (now ? '. 지금은 ' + cap1(now) : '') + '.' :
+      (kinds && kinds.indexOf(w.layout) < 0 ? '이 템플릿에는 ' + cap1(w.layout) + ' 구성이 없어서 Auto로 놓여요.' : '이 작품만 이 구성으로 고정해요.');
+    var scenes = w.scenes.map(function (s, k) {
+      return '<div class="t" data-k="' + k + '"><img class="im" src="' + esc(s.src) + '" alt="장면 ' + (k + 1) + '">' +
+        '<input class="ul cap-in" data-f="caption" value="' + esc(s.caption) + '" placeholder="장면 설명" maxlength="120" aria-label="장면 ' + (k + 1) + ' 설명">' +
+        '<div class="ctl">' + (k > 0 ? '<button type="button" data-act="sc-left">앞으로</button>' : '') + (k < w.scenes.length - 1 ? '<button type="button" data-act="sc-right">뒤로</button>' : '') + '<button type="button" data-act="sc-del">삭제</button></div></div>';
+    }).join('');
+    var cs = coverSrc(w);
+    var ghost = !w.scenes.length && cs ? '<div class="t ghostcover"><img class="im" src="' + esc(cs) + '" alt="표지"><p class="ctl">표지가 대신 놓여요</p></div>' : '';
+    var lost = S.store.dropped ? '<p class="hint warn">이 브라우저 저장 공간이 부족해서 올린 이미지 ' + S.store.dropped + '개는 임시 저장에 들어가지 않았어요. 새로고침 전에 More의 Download JSON으로 보관하세요.</p>' : '';
+    var ex = excerpt([w.reason, w.note].filter(Boolean).join(' '), 150);
+    var med = Object.keys(MEDIUM).map(function (k) { return '<option value="' + k + '"' + (w.medium === k ? ' selected' : '') + '>' + MEDIUM[k] + '</option>'; }).join('');
+    return '<div class="d-h"><span class="cap" id="d-num">' + pad(i + 1) + ' / ' + pad(S.works.length) + '</span><h2 class="d-title ' + hk(w.title) + '" id="d-title">' + esc(w.title || 'Untitled') + '</h2></div>' +
+      '<section class="d-sec"><span class="cap" id="lab-lay">Layout</span><div class="lay" role="radiogroup" aria-labelledby="lab-lay">' + lay + '</div><p class="hint">' + esc(layHint) + '</p></section>' +
+      '<section class="d-sec"><span class="cap">Scenes</span><div class="sc">' + scenes + ghost + '<label class="addtile" data-drop>+ 장면 추가<input type="file" accept="image/*" multiple class="sr" data-scenes></label></div><p class="hint">작품 속 장면이나 직접 찍은 사진. 비율은 그대로 써요.</p>' + lost + '</section>' +
+      '<section class="d-sec"><span class="cap">Emphasis</span><label class="chk"><input type="checkbox" data-f="featured"' + (w.featured ? ' checked' : '') + '>이 작품을 크게 보여주기</label>' + (S.template === 'the-spread' ? '<p class="hint">THE SPREAD에서는 이 설정을 사용하지 않아요.</p>' : '') + '</section>' +
+      '<section class="d-sec"><span class="cap">Writing</span><p class="wr-sum' + (ex ? '' : ' empty') + '">' + esc(ex || '아직 쓴 글이 없어요.') + '</p><p style="margin-top:6px"><button class="tx lnk" type="button" data-act="mode" data-v="write">Write에서 이어 쓰기</button></p></section>' +
+      '<section class="d-sec"><span class="cap">Work</span><div class="fl">' +
+        '<label class="full"><span>제목</span><input class="ul kr" data-f="title" value="' + esc(w.title) + '"></label>' +
+        '<label><span>만든 사람</span><input class="ul kr" data-f="creator" value="' + esc(w.creator) + '"></label>' +
+        '<label><span>연도</span><input class="ul" data-f="year" value="' + esc(w.year) + '" inputmode="numeric"></label>' +
+        '<label class="full"><span>매체</span><select class="ul" data-f="medium">' + med + '</select></label></div></section>' +
+      '<div class="rm"><button type="button" data-act="remove">Remove this work</button></div>';
+  }
+  function detFocusedField() { var a = document.activeElement; return a && $('#det').contains(a) && /^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName); }
+  function renderDetails() {
+    if (S.mode !== 'design') return;
+    var el = $('#det'), w = selWork(), same = el.getAttribute('data-for') === S.sel, top = el.scrollTop, a = document.activeElement, key = null;
+    if (a && el.contains(a)) key = a.getAttribute('data-act') ? '[data-act="' + a.getAttribute('data-act') + '"]' + (a.getAttribute('data-v') ? '[data-v="' + a.getAttribute('data-v') + '"]' : '') : (a.getAttribute('data-f') ? '[data-f="' + a.getAttribute('data-f') + '"]' : null);
+    el.innerHTML = w ? detWork(w) : detCover(); lockCatalogFields();
+    el.setAttribute('data-for', S.sel);
+    el.scrollTop = same ? top : 0;
+    if (key && same) { var t = el.querySelector(key); if (t) t.focus({ preventScroll: true }); }
+  }
+
+  /* ---------- bars ---------- */
+  function renderBars() {
+    $('#crumb-t').textContent = S.title || 'Untitled';
+    var b = document.body;
+    ['write', 'design', 'preview'].forEach(function (m) { b.classList.toggle('mode-' + m, S.mode === m); var t = $('#tab-' + m); t.setAttribute('aria-selected', String(S.mode === m)); t.tabIndex = S.mode === m ? 0 : -1; });
+    b.classList.toggle('focus', S.focus && S.mode === 'write');
+    b.classList.toggle('dev-mobile', S.device === 'mobile');
+    $('#focus-btn').setAttribute('aria-pressed', String(S.focus));
+    var i = selIndex(), n = S.works.length;
+    $('#pn-t').textContent = i < 0 ? 'Cover' : pad(i + 1) + ' / ' + pad(n);
+    $$('#seg button').forEach(function (x) { x.classList.toggle('on', x.getAttribute('data-mode') === S.device); x.setAttribute('aria-pressed', String(x.getAttribute('data-mode') === S.device)); });
+  }
+  function lockCatalogFields() { if (!SERVICE) return; $$('[data-f=title], [data-f=creator], [data-f=year], [data-f=medium]').forEach(function (el) { if (el.tagName === 'SELECT') el.disabled = true; else el.readOnly = true; }); }
+  function renderAll() { renderRail(); renderDetails(); renderBars(); push(); autosave(); }
+
+  /* ==========================================================================
+     Stage and template protocol (unchanged message types and payloads)
+     ========================================================================== */
+  function fitFrame() {
+    var st = $('#stage'), W = st.clientWidth, H = st.clientHeight, m = S.device === 'mobile', w, h, s;
+    if (!W || !H) return;
+    if (S.mode === 'preview') {
+      if (m) { w = Math.min(390, W); h = W > 430 ? H - 32 : H; s = 1; }
+      else { w = W; h = H; s = 1; }
+    } else {
+      w = m ? 390 : 1280; h = m ? 844 : 800; s = Math.min((W - 32) / w, (H - 32) / h);
+    }
+    if (!(s > 0)) return;
+    frame.style.cssText = 'width:' + w + 'px;height:' + h + 'px;left:' + Math.max(0, (W - w * s) / 2) + 'px;top:' + Math.max(0, (H - h * s) / 2) + 'px;transform:scale(' + s + ')';
+  }
+  function post(win, msg) { try { win.postMessage(msg, ORIGIN); } catch (e) { } }
+  function loadFrame() { frameReady = false; frame.setAttribute('src', S.template + '.html?embed=1'); }
+  function push(now) {
+    clearTimeout(pushTimer);
+    S.previewDirty = true;
+    var go = function () { if (!frameReady) return; post(frame.contentWindow, { type: 'lecta:curation', data: curation() }); S.focusPending = false; S.previewDirty = false; };
+    /* the preview is off stage while writing, so it can wait a little longer */
+    if (now) go(); else pushTimer = setTimeout(go, S.mode === 'write' ? 700 : 260);
+  }
+  function goto(i) { if (frameReady) { viewMuteUntil = Date.now() + 500; post(frame.contentWindow, { type: 'lecta:goto', index: i }); } }
+  window.addEventListener('message', function (e) {
+    if (e.source !== frame.contentWindow) return;
+    if (ORIGIN !== '*' && e.origin !== ORIGIN) return;
+    var d = e.data || {};
+    if (d.type === 'lecta:ready') { frameReady = true; S.focusPending = true; push(true); }
+    else if (d.type === 'lecta:state') {
+      S.chips = d.chips || []; S.accentIndex = S.accent != null ? S.accent : (d.accentIndex || 0); S.plan = d.plan || []; S.kinds = d.kinds && d.kinds.length ? d.kinds : null;
+      var beforePalettes = SERVICE ? JSON.stringify(S.works.map(function (w) { return w.palette; })) : '';
+      (d.palettes || []).forEach(function (p) { var w = byId(p.id); if (w) { w.palette = p.palette; w.ar = p.ar || w.ar; } });
+      if (SERVICE && beforePalettes !== JSON.stringify(S.works.map(function (w) { return w.palette; }))) autosave();
+      renderRail();
+      if (S.mode === 'design' && !detFocusedField()) renderDetails();
+    }
+    else if (d.type === 'lecta:view') {
+      /* scrolling the preview moves the selection, unless the author is typing or dragging */
+      if (S.mode === 'write' || drag || lift || S.focusPending || Date.now() < viewMuteUntil) return;
+      var target = d.index < 0 ? 'cover' : (S.works[d.index] && S.works[d.index].id);
+      if (!target || target === S.sel || detFocusedField()) return;
+      S.sel = target; S.writeStale = true; renderRail(); renderDetails(); renderBars(); saveUi();
+    }
+  });
+
+  /* ==========================================================================
+     Modes and selection
+     ========================================================================== */
+  function setMode(m) {
+    if (m === S.mode) return;
+    if (S.mode === 'write') rememberWrite();
+    if (m === 'preview') S.prevMode = S.mode;
+    S.mode = m;
+    if (m !== 'write') S.focus = false;
+    closeDrawers(true);
+    renderBars();
+    if (m === 'write') {
+      if (S.writeStale || $('#write').getAttribute('data-for') !== S.sel) renderWrite();
+      lockCatalogFields(); restoreWrite(true);
+    }
+    if (m === 'design') renderDetails();
+    if (m !== 'write') { fitFrame(); if (S.previewDirty) push(true); setTimeout(function () { fitFrame(); goto(selIndex()); }, 60); }
+    else fitFrame();
+    saveUi();
+  }
+  function setFocus(on) {
+    if (on && S.mode !== 'write') setMode('write');
+    S.focus = !!on; renderBars();
+    if (on) { var t = $('#w-note') || $('#w-intro'); if (t && !$('#write').contains(document.activeElement)) { if (memo[S.sel] && memo[S.sel].key) restoreWrite(true); else t.focus({ preventScroll: true }); } }
+    else { $('#focus-btn').focus({ preventScroll: true }); }
+  }
+  function select(id) {
+    if (id !== 'cover' && !byId(id)) return;
+    if (id === S.sel) { if (phone()) closeDrawers(); return; }
+    if (S.mode === 'write') rememberWrite();
+    S.sel = id;
+    renderRail(); renderBars();
+    if (S.mode === 'write') { renderWrite(); restoreWrite(false); } else { S.writeStale = true; renderDetails(); }
+    goto(selIndex()); saveUi();
+    if (phone()) closeDrawers();
+  }
+
+  /* ==========================================================================
+     Reorder. One function for drag, keyboard, menu and API.
+     ========================================================================== */
+  var hist = [];
+  function remember(label, undo) { var en = { label: label, undo: undo }; hist.push(en); if (hist.length > 60) hist.shift(); return en; }
+  function undoEntry(en) { var k = hist.indexOf(en); if (k < 0) return; hist.splice(k, 1); en.undo(); toast('Undone: ' + en.label); }
+  function undoLast() { var h = hist.pop(); if (!h) { toast('되돌릴 변경이 없어요'); return; } h.undo(); toast('Undone: ' + h.label); }
+  function afterStructure() { S.focusPending = true; renderRail(); updateWriteMeta(); renderDetails(); renderBars(); push(true); autosave(); }
+  function reorderTo(id, to, how) {
+    var from = indexOfId(id); if (from < 0) return false;
+    to = Math.max(0, Math.min(S.works.length - 1, to));
+    if (to === from) return false;
+    var before = SEQ.idsOf(S.works), w = byId(id), t = w.title || 'Untitled';
+    S.works = SEQ.move(S.works, from, to);
+    var en = remember('move ' + t, function () { S.works = SEQ.applyOrder(S.works, before); afterStructure(); });
+    afterStructure();
+    announce(t + ', ' + (to + 1) + '번째로 옮겼어요');
+    if (how !== 'api') toast('Moved ' + t + ' to ' + pad(to + 1), function () { undoEntry(en); });
+    return true;
+  }
+
+  /* ---------- pointer drag (mouse, pen, touch). Starts only from the handle. ---------- */
+  var drag = null;
+  var seqEl = $('#seq'), lineEl = $('#dropline');
+  function railScroller() { return $('#rail'); }
+  seqEl.addEventListener('pointerdown', function (e) {
+    var g = e.target.closest('.grip'); if (!g || g.tagName !== 'BUTTON' || e.button > 0 || lift) return;
+    var row = g.closest('.row'), id = row.getAttribute('data-id'), from = indexOfId(id); if (from < 0) return;
+    e.preventDefault();
+    try { g.setPointerCapture(e.pointerId); } catch (err) { }
+    drag = { id: id, from: from, gap: from, startY: e.clientY, y: e.clientY, started: false, grip: g, row: row, pid: e.pointerId, raf: 0 };
+  });
+  seqEl.addEventListener('pointermove', function (e) {
+    if (!drag || e.pointerId !== drag.pid) return;
+    drag.y = e.clientY;
+    if (!drag.started) { if (Math.abs(e.clientY - drag.startY) < 4) return; startDrag(); }
+    e.preventDefault(); updateDrag();
+  });
+  seqEl.addEventListener('pointerup', function (e) {
+    if (!drag || e.pointerId !== drag.pid) return;
+    if (drag.started) finishDrag(true); else { var g = drag.grip; drag = null; g.focus({ preventScroll: true }); }
+  });
+  seqEl.addEventListener('pointercancel', function () { if (drag) finishDrag(false); });
+  seqEl.addEventListener('lostpointercapture', function () { if (drag && drag.started) finishDrag(false); else if (drag) drag = null; });
+  function startDrag() {
+    drag.started = true;
+    drag.rows = $$('.row:not(.cover)', seqEl);
+    drag.row.classList.add('dragging');
+    document.body.classList.add('dragging-seq');
+    var w = byId(drag.id), gh = document.createElement('div');
+    gh.className = 'ghostrow ' + hk(w.title); gh.textContent = w.title || 'Untitled'; gh.setAttribute('aria-hidden', 'true');
+    document.body.appendChild(gh); drag.ghost = gh;
+    drag.raf = requestAnimationFrame(autoScroll);
+  }
+  function gapFromY(y) {
+    var rows = drag.rows, top = seqEl.getBoundingClientRect().top;
+    for (var i = 0; i < rows.length; i++) { if (y < top + rows[i].offsetTop + rows[i].offsetHeight / 2) return i; }
+    return rows.length;
+  }
+  function paintGap(gap, from, rows) {
+    var noop = SEQ.isNoopGap(gap, from), sr = seqEl.getBoundingClientRect(), rr = railScroller().getBoundingClientRect();
+    rows.forEach(function (r, i) { r.style.transform = !noop && i >= gap && i !== from ? 'translateY(6px)' : ''; });
+    if (noop) { lineEl.classList.remove('on'); return; }
+    var y = gap < rows.length ? sr.top + rows[gap].offsetTop + 2 : sr.top + rows[rows.length - 1].offsetTop + rows[rows.length - 1].offsetHeight + 2;
+    if (y < rr.top || y > rr.bottom) { lineEl.classList.remove('on'); return; }
+    lineEl.style.cssText = 'top:' + y + 'px;left:' + (sr.left + 20) + 'px;width:' + Math.max(40, sr.width - 30) + 'px';
+    lineEl.classList.add('on');
+  }
+  function updateDrag() {
+    drag.gap = gapFromY(drag.y);
+    paintGap(drag.gap, drag.from, drag.rows);
+    var sr = seqEl.getBoundingClientRect();
+    drag.ghost.style.left = (sr.left + 28) + 'px'; drag.ghost.style.top = (drag.y - 18) + 'px';
+  }
+  function autoScroll() {
+    if (!drag || !drag.started) return;
+    var sc = railScroller(), r = sc.getBoundingClientRect(), y = drag.y, d = 0, edge = 48;
+    if (y < r.top + edge) d = -Math.ceil((r.top + edge - y) / 4); else if (y > r.bottom - edge) d = Math.ceil((y - (r.bottom - edge)) / 4);
+    if (d) { var b = sc.scrollTop; sc.scrollTop += Math.max(-16, Math.min(16, d)); if (sc.scrollTop !== b) updateDrag(); }
+    drag.raf = requestAnimationFrame(autoScroll);
+  }
+  function clearDragPaint(rows) { (rows || []).forEach(function (r) { r.style.transform = ''; r.classList.remove('dragging', 'lifted'); }); lineEl.classList.remove('on'); }
+  function finishDrag(commit) {
+    var d = drag; drag = null;
+    cancelAnimationFrame(d.raf);
+    clearDragPaint(d.rows);
+    if (d.ghost) d.ghost.remove();
+    document.body.classList.remove('dragging-seq');
+    try { d.grip.releasePointerCapture(d.pid); } catch (e) { }
+    var moved = commit && !SEQ.isNoopGap(d.gap, d.from) && reorderTo(d.id, SEQ.dropIndex(d.gap, d.from), 'drag');
+    if (!moved) { if (!commit) announce('순서 바꾸기를 취소했어요'); if (railPending) renderRail(); }
+  }
+
+  /* ---------- keyboard: Space lifts, arrows choose, Space drops, Esc cancels. Alt+arrows move at once. ---------- */
+  var lift = null;
+  function liftStart(id) {
+    var from = indexOfId(id); if (from < 0) return;
+    var rows = $$('.row:not(.cover)', seqEl);
+    lift = { id: id, from: from, to: from, rows: rows };
+    rows[from].classList.add('lifted');
+    announce((byId(id).title || 'Untitled') + '을 들었어요. 위아래 화살표로 자리를 고르고 Space로 놓아요. Esc는 취소예요.');
+  }
+  function liftPaint() {
+    var gap = lift.to > lift.from ? lift.to + 1 : lift.to;
+    paintGap(gap, lift.from, lift.rows);
+    var r = lift.rows[lift.to]; if (r) r.scrollIntoView({ block: 'nearest' });
+    announce((lift.to + 1) + '번째 자리');
+  }
+  function liftEnd(commit) {
+    var l = lift; lift = null; clearDragPaint(l.rows);
+    var moved = commit && reorderTo(l.id, l.to, 'kbd');
+    if (!moved) { if (!commit) announce('순서 바꾸기를 취소했어요'); if (railPending) renderRail(); }
+    var g = seqEl.querySelector('.row[data-id="' + cssq(l.id) + '"] .grip'); if (g) g.focus({ preventScroll: true });
+  }
+  seqEl.addEventListener('keydown', function (e) {
+    var row = e.target.closest('.row'); if (!row || row.classList.contains('cover')) return;
+    var id = row.getAttribute('data-id'), onGrip = e.target.classList.contains('grip');
+    if (lift) {
+      var n = S.works.length;
+      if (e.key === 'ArrowUp' || e.key === 'ArrowLeft') { e.preventDefault(); lift.to = Math.max(0, lift.to - 1); liftPaint(); }
+      else if (e.key === 'ArrowDown' || e.key === 'ArrowRight') { e.preventDefault(); lift.to = Math.min(n - 1, lift.to + 1); liftPaint(); }
+      else if (e.key === 'Home') { e.preventDefault(); lift.to = 0; liftPaint(); }
+      else if (e.key === 'End') { e.preventDefault(); lift.to = n - 1; liftPaint(); }
+      else if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); liftEnd(true); }
+      else if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); liftEnd(false); }
+      else if (e.key === 'Tab') { liftEnd(false); }
+      return;
+    }
+    if (onGrip && (e.key === ' ' || e.key === 'Enter')) { e.preventDefault(); liftStart(id); return; }
+    if (e.altKey && (e.key === 'ArrowUp' || e.key === 'ArrowDown')) {
+      e.preventDefault();
+      var to = SEQ.step(S.works.length, indexOfId(id), e.key === 'ArrowUp' ? 'up' : 'down');
+      if (to != null) reorderTo(id, to, 'kbd');
+    }
+  });
+  seqEl.addEventListener('focusout', function (e) { if (lift && !seqEl.contains(e.relatedTarget)) liftEnd(false); });
+
+  /* ==========================================================================
+     Menus (top More and per-row). Only working actions.
+     ========================================================================== */
+  var menuEl = $('#menu'), menuAnchor = null;
+  function openMenu(anchor, items) {
+    closeMenu();
+    menuAnchor = anchor; anchor.setAttribute('aria-expanded', 'true');
+    menuEl.innerHTML = items.map(function (it, i) {
+      if (it === '-') return '<hr>';
+      return '<button type="button" role="menuitem" data-mi="' + i + '"' + (it.disabled ? ' disabled' : '') + '>' + esc(it.label) + (it.kbd ? '<kbd>' + esc(it.kbd) + '</kbd>' : '') + '</button>';
+    }).join('');
+    menuEl.hidden = false;
+    menuEl._items = items;
+    var r = anchor.getBoundingClientRect(), mw = menuEl.offsetWidth, mh = menuEl.offsetHeight;
+    var left = Math.min(window.innerWidth - mw - 8, Math.max(8, r.right - mw)), top = r.bottom + 4;
+    if (top + mh > window.innerHeight - 8) top = Math.max(8, r.top - mh - 4);
+    menuEl.style.left = left + 'px'; menuEl.style.top = top + 'px';
+    var first = menuEl.querySelector('button:not(:disabled)'); if (first) first.focus();
+  }
+  function closeMenu(refocus) {
+    if (menuEl.hidden) return;
+    menuEl.hidden = true;
+    var a = menuAnchor; menuAnchor = null;
+    if (a) { a.setAttribute('aria-expanded', 'false'); if (refocus && document.body.contains(a)) a.focus({ preventScroll: true }); }
+  }
+  menuEl.addEventListener('click', function (e) {
+    var b = e.target.closest('[data-mi]'); if (!b || b.disabled) return;
+    var it = menuEl._items[+b.getAttribute('data-mi')]; closeMenu(true); it.run();
+  });
+  menuEl.addEventListener('keydown', function (e) {
+    var bs = $$('button:not(:disabled)', menuEl), i = bs.indexOf(document.activeElement);
+    if (e.key === 'ArrowDown') { e.preventDefault(); bs[(i + 1) % bs.length].focus(); }
+    else if (e.key === 'ArrowUp') { e.preventDefault(); bs[(i - 1 + bs.length) % bs.length].focus(); }
+    else if (e.key === 'Home') { e.preventDefault(); bs[0].focus(); }
+    else if (e.key === 'End') { e.preventDefault(); bs[bs.length - 1].focus(); }
+    else if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); closeMenu(true); }
+    else if (e.key === 'Tab') { closeMenu(false); }
+  });
+  document.addEventListener('pointerdown', function (e) { if (!menuEl.hidden && !menuEl.contains(e.target) && e.target !== menuAnchor && !(menuAnchor && menuAnchor.contains(e.target))) closeMenu(false); });
+  function moreMenu(anchor) {
+    openMenu(anchor, [
+      { label: 'Open preview in new window', run: openFull },
+      { label: 'Download JSON', run: downloadJson },
+      '-',
+      { label: hist.length ? 'Undo ' + hist[hist.length - 1].label : 'Undo', kbd: '⌘Z', disabled: !hist.length, run: undoLast },
+      { label: 'Add a work', run: function () { openAdd(anchor); } }
+    ]);
+  }
+  function rowMenu(anchor, id) {
+    var i = indexOfId(id), n = S.works.length, mv = function (k) { return function () { var to = SEQ.step(n, indexOfId(id), k); if (to != null) reorderTo(id, to, 'menu'); var b = seqEl.querySelector('.row[data-id="' + cssq(id) + '"] .rmore'); if (b) b.focus({ preventScroll: true }); }; };
+    openMenu(anchor, [
+      { label: '맨 위로', disabled: i === 0, run: mv('top') },
+      { label: '한 칸 앞으로', kbd: 'Alt ↑', disabled: i === 0, run: mv('up') },
+      { label: '한 칸 뒤로', kbd: 'Alt ↓', disabled: i === n - 1, run: mv('down') },
+      { label: '맨 아래로', disabled: i === n - 1, run: mv('bottom') },
+      '-',
+      { label: 'Write에서 열기', run: function () { select(id); setMode('write'); } },
+      { label: '이 작품 빼기', run: function () { removeWork(byId(id)); } }
+    ]);
+  }
+
+  /* ==========================================================================
+     Actions
+     ========================================================================== */
+  function toast(msg, undo) {
+    var t = $('#toast'), u = $('#toast-u'); $('#toast-t').textContent = msg; u.hidden = !undo;
+    u.onclick = function () { t.classList.remove('on'); undo(); };
+    t.classList.add('on'); clearTimeout(toast.t); toast.t = setTimeout(function () { t.classList.remove('on'); }, undo ? 6000 : 3600);
+  }
+  function announce(msg) { var l = $('#live'); l.textContent = ''; setTimeout(function () { l.textContent = msg; }, 30); }
+  function removeWork(w) {
+    if (!w) return;
+    var i = S.works.indexOf(w), nx = S.works[i + 1] || S.works[i - 1], wasSel = S.sel === w.id;
+    S.works.splice(i, 1);
+    if (wasSel) { S.sel = nx ? nx.id : 'cover'; S.writeStale = true; if (S.mode === 'write') renderWrite(); }
+    var restore = function () { if (byId(w.id)) return; S.works.splice(Math.min(i, S.works.length), 0, w); S.sel = w.id; S.writeStale = true; if (S.mode === 'write') renderWrite(); afterStructure(); };
+    var en = remember('remove ' + (w.title || 'work'), restore);
+    afterStructure();
+    toast('Removed ' + (w.title || 'work'), function () { undoEntry(en); });
+  }
+  function closeDrawers(silent) {
+    var b = document.body, was = b.classList.contains('rail-open') || b.classList.contains('det-open');
+    b.classList.remove('rail-open', 'det-open');
+    if (was && !silent && closeDrawers.opener && document.body.contains(closeDrawers.opener)) closeDrawers.opener.focus({ preventScroll: true });
+  }
+  function openDrawer(cls, opener) {
+    closeDrawers(true); closeDrawers.opener = opener;
+    document.body.classList.add(cls);
+    var first = cls === 'rail-open' ? $('#rail .row.on .pick') || $('#rail .pick') : $('#det button, #det input');
+    if (first) first.focus({ preventScroll: true });
+  }
+
+  document.addEventListener('click', function (e) {
+    var pick = e.target.closest('.pick[data-sel]');
+    if (pick) { select(pick.getAttribute('data-sel')); return; }
+    var a = e.target.closest('[data-act]'); if (!a) return;
+    var act = a.getAttribute('data-act'), w = selWork(), v = a.getAttribute('data-v');
+    if (act === 'mode') setMode(v);
+    else if (act === 'focus') setFocus(!S.focus);
+    else if (act === 'more') { if (menuAnchor === a) closeMenu(true); else moreMenu(a); }
+    else if (act === 'row-more') { if (menuAnchor === a) closeMenu(true); else rowMenu(a, a.closest('.row').getAttribute('data-id')); }
+    else if (act === 'remove' && w) removeWork(w);
+    else if (act === 'prev' || act === 'next') { var idx = selIndex() + (act === 'next' ? 1 : -1); if (idx < -1 || idx >= S.works.length) return; select(idx < 0 ? 'cover' : S.works[idx].id); }
+    else if (act === 'layout' && w) { w.layout = v; S.focusPending = true; renderDetails(); renderRail(); push(); autosave(); }
+    else if (act === 'sc-del' && w) { w.scenes.splice(+a.closest('.t').getAttribute('data-k'), 1); S.focusPending = true; renderDetails(); renderRail(); push(); autosave(); }
+    else if ((act === 'sc-left' || act === 'sc-right') && w) { var k = +a.closest('.t').getAttribute('data-k'), j = k + (act === 'sc-left' ? -1 : 1), t = w.scenes[k]; w.scenes[k] = w.scenes[j]; w.scenes[j] = t; S.focusPending = true; renderDetails(); push(); autosave(); }
+    else if (act === 'tpl') { if (S.template === v) return; S.template = v; S.kinds = null; S.accent = null; S.plan = []; S.chips = []; renderDetails(); renderRail(); loadFrame(); autosave(); }
+    else if (act === 'chip') { S.accent = +v; S.accentIndex = S.accent; renderDetails(); push(); autosave(); }
+    else if (act === 'add') openAdd(a);
+    else if (act === 'close-add') $('#add').close();
+    else if (act === 'manual') { var m = $('#manual'); m.hidden = !m.hidden; $('#add-manual').hidden = m.hidden; a.setAttribute('aria-expanded', String(!m.hidden)); if (!m.hidden) m.querySelector('input').focus(); }
+    else if (act === 'add-manual') addManual();
+    else if (act === 'save') save(true);
+    else if (act === 'rail-open') openDrawer('rail-open', a);
+    else if (act === 'rail-close') closeDrawers();
+    else if (act === 'det-open') openDrawer('det-open', a);
+    else if (act === 'scrim') closeDrawers();
+  });
+
+  /* ---------- writing: model updates only, never a re-render of the field ---------- */
+  document.addEventListener('input', function (e) {
+    var t = e.target; if (!t.getAttribute) return;
+    var g = t.getAttribute('data-g'), f = t.getAttribute('data-f');
+    if (t.hasAttribute('data-oneline') && /\n/.test(t.value) && !e.isComposing) { var p = t.selectionStart; t.value = t.value.replace(/\s*\r?\n+\s*/g, ' '); try { t.setSelectionRange(p, p); } catch (er) { } }
+    if (t.classList.contains('grow')) grow(t);
+    if (g) {
+      S[g] = t.value;
+      if (g === 'title') { t.classList.toggle('hk', !!hk(t.value)); renderBars(); renderRail(); }
+      if (g === 'intro') updateCounts();
+      push(); autosave();
+    } else if (f) {
+      var w = selWork(); if (!w) return;
+      var inDet = $('#det').contains(t);
+      if (f === 'caption') w.scenes[+t.closest('.t').getAttribute('data-k')].caption = t.value;
+      else if (f === 'featured') w.featured = t.checked;
+      else w[f] = t.value;
+      if (f === 'reason' || f === 'note') updateCounts();
+      if (f === 'title') { t.classList.toggle('hk', !!hk(t.value)); renderRail(); var dt = $('#d-title'); if (dt && !inDet) { dt.textContent = w.title || 'Untitled'; } if (inDet && dt) { dt.textContent = w.title || 'Untitled'; dt.className = 'd-title ' + hk(w.title); } }
+      if (inDet && (f === 'title' || f === 'creator' || f === 'year' || f === 'medium')) S.writeStale = true;
+      if (f === 'medium') renderRail();
+      push(); autosave();
+    } else if (t.id === 'q') renderResults(t.value);
+  });
+
+  /* formatting: execCommand keeps the native undo stack and IME state; setRangeText is the fallback */
+  function insertText(ta, start, end, text, s2, e2) {
+    ta.focus({ preventScroll: true });
+    ta.setSelectionRange(start, end);
+    var before = ta.value, ok = false;
+    try { ok = document.execCommand('insertText', false, text); } catch (er) { ok = false; }
+    if (!ok || ta.value === before && text !== before.slice(start, end)) { ta.setRangeText(text, start, end, 'end'); ta.dispatchEvent(new Event('input', { bubbles: true })); }
+    ta.setSelectionRange(s2, e2);
+  }
+  function fmt(kind) {
+    var ta = $('#w-note'); if (!ta) return;
+    var s = ta.selectionStart, e = ta.selectionEnd, v = ta.value, sel = v.slice(s, e);
+    if (kind === 'q') {
+      var ls = v.lastIndexOf('\n', s - 1) + 1, le = v.indexOf('\n', e > s && v.charAt(e - 1) === '\n' ? e - 1 : e); if (le < 0) le = v.length;
+      var lines = v.slice(ls, le).split('\n'), filled = lines.filter(function (l) { return l.trim(); });
+      var quoted = filled.length && filled.every(function (l) { return /^>\s?/.test(l); });
+      var out = lines.map(function (l) { return quoted ? l.replace(/^>\s?/, '') : (l.trim() ? '> ' + l : l); }).join('\n');
+      var pre = '', post = '';
+      if (!quoted) {
+        if (ls > 1 && v.charAt(ls - 2) !== '\n') pre = '\n';
+        if (le < v.length - 1 && v.charAt(le + 1) !== '\n') post = '\n';
+      }
+      insertText(ta, ls, le, pre + out + post, ls + pre.length, ls + pre.length + out.length);
+      return;
+    }
+    var m = kind === 'b' ? '**' : '*';
+    var wrapped = sel && v.slice(s - m.length, s) === m && v.slice(e, e + m.length) === m && (kind === 'b' || !(v.charAt(s - 2) === '*' && v.charAt(e + 1) === '*'));
+    if (wrapped) { insertText(ta, s - m.length, e + m.length, sel, s - m.length, e - m.length); return; }
+    if (!sel) { var ph = kind === 'b' ? '굵게' : '기울임'; insertText(ta, s, e, m + ph + m, s + m.length, s + m.length + ph.length); return; }
+    var body = sel.split(/(\n{2,})/).map(function (part) { return /^\n+$/.test(part) || !part.trim() ? part : m + part + m; }).join('');
+    var single = body === m + sel + m;
+    insertText(ta, s, e, body, single ? s + m.length : s, single ? s + m.length + sel.length : s + body.length);
+  }
+  document.addEventListener('mousedown', function (e) { if (e.target.closest('[data-fmt]')) e.preventDefault(); });
+  document.addEventListener('click', function (e) { var b = e.target.closest('[data-fmt]'); if (b) fmt(b.getAttribute('data-fmt')); });
+  $('#write').addEventListener('focusout', function (e) { rememberWrite(e.target); });
+
+  document.addEventListener('keydown', function (e) {
+    var t = e.target, mod = e.metaKey || e.ctrlKey;
+    if (e.key === 'Enter' && t.hasAttribute && t.hasAttribute('data-oneline') && !e.isComposing) { e.preventDefault(); return; }
+    if (mod && !e.shiftKey && !e.altKey && t.id === 'w-note' && !e.isComposing && (e.key === 'b' || e.key === 'i' || e.key === 'B' || e.key === 'I')) { e.preventDefault(); fmt(e.key.toLowerCase()); return; }
+    if (mod && (e.key === 's' || e.key === 'S')) { e.preventDefault(); save(true); return; }
+    var editable = t.closest && t.closest('input,textarea,select,[contenteditable]');
+    if (mod && !e.shiftKey && (e.key === 'z' || e.key === 'Z') && !editable && !$('#add').open) { e.preventDefault(); undoLast(); return; }
+    if (e.key === 'Escape') {
+      if (drag) { e.preventDefault(); finishDrag(false); return; }
+      if ($('#add').open) return;
+      if (document.body.classList.contains('rail-open') || document.body.classList.contains('det-open')) { closeDrawers(); return; }
+      if (S.focus) { setFocus(false); return; }
+      if (S.mode === 'preview') { setMode(S.prevMode === 'preview' ? 'design' : S.prevMode); return; }
+    }
+    /* tablist arrow keys */
+    if (t.getAttribute && t.getAttribute('role') === 'tab' && (e.key === 'ArrowRight' || e.key === 'ArrowLeft')) {
+      var order = ['write', 'design', 'preview'], i = order.indexOf(S.mode) + (e.key === 'ArrowRight' ? 1 : -1);
+      var m = order[(i + 3) % 3]; setMode(m); $('#tab-' + m).focus();
+    }
+  });
+
+  /* ---------- images ---------- */
+  function readImage(file, max) {
+    if (SERVICE) return window.LectaService.upload(file).catch(function (e) { toast(e.message); return null; });
+    return new Promise(function (res) {
+      var fr = new FileReader();
+      fr.onload = function () {
+        var im = new Image();
+        im.onload = function () {
+          var r = Math.min(1, max / Math.max(im.width, im.height)), c = document.createElement('canvas'); c.width = Math.round(im.width * r); c.height = Math.round(im.height * r);
+          var x = c.getContext('2d'); x.fillStyle = '#fff'; x.fillRect(0, 0, c.width, c.height); x.drawImage(im, 0, 0, c.width, c.height);
+          res({ src: c.toDataURL('image/jpeg', 0.86), ar: im.width / im.height });
+        };
+        im.onerror = function () { res(null); }; im.src = fr.result;
+      };
+      fr.onerror = function () { res(null); }; fr.readAsDataURL(file);
+    });
+  }
+  function addScenes(w, files) {
+    var list = [].slice.call(files || []).filter(function (f) { return /^image\//.test(f.type); });
+    if (!list.length) return;
+    Promise.all(list.map(function (f) { return readImage(f, 1800); })).then(function (rs) {
+      rs.filter(Boolean).forEach(function (r) { w.scenes.push({ src: r.src, caption: '', ar: r.ar }); });
+      S.focusPending = true; renderDetails(); renderRail(); push(); autosave();
+    });
+  }
+  var manualFile = null;
+  document.addEventListener('change', function (e) {
+    var t = e.target;
+    if (t.matches && t.matches('[data-scenes]') && selWork()) { addScenes(selWork(), t.files); t.value = ''; }
+    if (t.matches && t.matches('[data-m-file]')) { $('#m-file-name').textContent = t.files[0] ? t.files[0].name : ''; manualFile = t.files[0] || null; }
+  });
+  document.addEventListener('dragover', function (e) { var d = e.target.closest && e.target.closest('[data-drop]'); if (d) { e.preventDefault(); d.classList.add('drag'); } });
+  document.addEventListener('dragleave', function (e) { var d = e.target.closest && e.target.closest('[data-drop]'); if (d) d.classList.remove('drag'); });
+  document.addEventListener('drop', function (e) { var d = e.target.closest && e.target.closest('[data-drop]'); if (!d || !selWork()) return; e.preventDefault(); d.classList.remove('drag'); addScenes(selWork(), e.dataTransfer.files); });
+
+  /* ---------- add a work (native modal dialog: focus trap, Esc, inert page) ---------- */
+  var addOpener = null, dlg = $('#add');
+  function openAdd(opener) {
+    addOpener = opener || document.activeElement; closeDrawers(true);
+    $('#q').value = ''; $('#manual').hidden = true; $('#add-manual').hidden = true; $('#manual-btn').setAttribute('aria-expanded', 'false'); if (SERVICE) $('#manual-btn').hidden = true;
+    renderResults('');
+    dlg.showModal(); $('#q').focus();
+  }
+  dlg.addEventListener('close', function () { if (addOpener && document.body.contains(addOpener)) addOpener.focus({ preventScroll: true }); });
+  dlg.addEventListener('click', function (e) { if (e.target === dlg) dlg.close(); });
+  var searchGeneration = 0;
+  function renderResults(q) {
+    if (SERVICE) { renderServiceResults(q); return; }
+    q = String(q || '').trim().toLowerCase();
+    var have = S.works.map(function (w) { return w.title + '|' + w.creator; });
+    var list = CATALOG.filter(function (c) { return have.indexOf(c.title + '|' + c.creator) < 0 && (!q || (c.title + ' ' + c.creator).toLowerCase().indexOf(q) > -1); }).slice(0, 40);
+    $('#res').innerHTML = list.length ? list.map(function (c) {
+      return '<li><button type="button" data-pick="' + CATALOG.indexOf(c) + '"><span class="cv"><img src="' + esc(artSrc(c.art, c.title, c.creator)) + '" alt=""></span><span><b class="' + hk(c.title) + '">' + esc(c.title) + '</b><small>' + esc(MEDIUM[c.medium] || '') + ' / ' + esc(c.creator) + ', ' + esc(c.year) + '</small></span><span class="go">Add</span></button></li>';
+    }).join('') : '<li class="none">찾는 작품이 없어요. 아래 Add by hand로 직접 담을 수 있어요.</li>';
+  }
+  function renderServiceResults(q) {
+    var generation = ++searchGeneration;
+    $('#res').innerHTML = '<li class="none">찾는 중…</li>';
+    window.LectaService.search(q).then(function (list) {
+      if (generation !== searchGeneration) return;
+      CATALOG = list.filter(function (c) { return !byId(c.id); });
+      $('#res').innerHTML = CATALOG.length ? CATALOG.map(function (c, i) {
+        return '<li><button type="button" data-pick="' + i + '"><span class="cv">' + (c.cover ? '<img src="' + esc(c.cover.src) + '" alt="">' : '') + '</span><span><b class="' + hk(c.title) + '">' + esc(c.title) + '</b><small>' + esc(c.creator) + ' / ' + esc(c.year) + (c.external ? ' / ' + esc(c.external.source) : '') + '</small></span><span class="go">Add</span></button></li>';
+      }).join('') : '<li class="none">찾는 작품이 없어요. 다른 제목이나 만든 사람으로 검색해 주세요.</li>';
+    }).catch(function (e) { if (generation === searchGeneration) $('#res').innerHTML = '<li class="none">' + esc(e.message) + '</li>'; });
+  }
+  $('#res').addEventListener('click', async function (e) {
+    var b = e.target.closest('[data-pick]'); if (!b || b.disabled) return;
+    if (S.works.length >= 64) { toast('큐레이션에는 작품 64개까지 담을 수 있어요.'); return; }
+    var c = CATALOG[+b.getAttribute('data-pick')]; if (!c) return;
+    b.disabled = true;
+    try {
+      if (SERVICE && c.external) c = await window.LectaService.saveExternal(c.external);
+      var nw = SERVICE ? newWork(c) : newWork({ title: c.title, creator: c.creator, year: String(c.year || ''), medium: c.medium, art: c.art });
+      if (!byId(nw.id)) { addWork(nw); toast('Added ' + c.title); }
+    } catch (err) { toast(err.message); } finally { b.disabled = false; }
+  });
+  function addWork(nw) {
+    if (S.mode === 'write') rememberWrite();
+    S.works.push(nw); S.sel = nw.id; S.focusPending = true; addOpener = null; dlg.close();
+    remember('add ' + (nw.title || 'work'), function () { var i = S.works.indexOf(nw); if (i > -1) S.works.splice(i, 1); if (S.sel === nw.id) { S.sel = 'cover'; S.writeStale = true; if (S.mode === 'write') renderWrite(); } afterStructure(); });
+    if (S.mode === 'write') renderWrite(); else S.writeStale = true;
+    renderAll();
+    var p = seqEl.querySelector('.row.on .pick'); if (p) { p.scrollIntoView({ block: 'nearest' }); }
+    var title = $('#write [data-f="title"]'); if (S.mode === 'write' && title && !nw.title) title.focus();
+  }
+  function addManual() {
+    var v = {}; $$('#manual [data-m]').forEach(function (el) { v[el.getAttribute('data-m')] = el.value.trim(); });
+    if (!v.title) { toast('제목을 적어 주세요'); $('#manual [data-m="title"]').focus(); return; }
+    var mk = function (cover) {
+      var nw = newWork({ title: v.title, creator: v.creator, year: v.year, medium: v.medium, cover: cover ? { src: cover.src } : null, ar: cover ? cover.ar : 0.667 });
+      $$('#manual [data-m]').forEach(function (el) { if (el.tagName !== 'SELECT') el.value = ''; }); manualFile = null; $('#m-file-name').textContent = '';
+      addWork(nw);
+    };
+    if (manualFile) readImage(manualFile, 900).then(mk); else mk(null);
+  }
+
+  /* ==========================================================================
+     Save, restore, export
+     ========================================================================== */
+  function stamp() { var t = new Date(); return pad(t.getHours()) + ':' + pad(t.getMinutes()); }
+  function setStatus(txt, warn, title) { [$('#saved'), $('#saved-f')].forEach(function (el) { el.textContent = txt; el.classList.toggle('warn', !!warn); if (title) el.title = title; else el.removeAttribute('title'); }); }
+  function autosave() { clearTimeout(saveTimer); setStatus('Editing'); saveTimer = setTimeout(function () { saveTimer = 0; save(false); }, 900); }
+  function save(manual) {
+    if (SERVICE) { clearTimeout(saveTimer); saveTimer = 0; window.LectaService.save(getData(), manual); return; }
+    clearTimeout(saveTimer); saveTimer = 0;
+    var d = getData(), ok = true, dropped = 0;
+    d.focus = null;
+    try { localStorage.setItem(SEQ.KEY_V3, JSON.stringify(SEQ.wrapDraft(d, 0))); }
+    catch (err) {
+      var d2 = JSON.parse(JSON.stringify(d));
+      d2.items.forEach(function (it) {
+        it.scenes = (it.scenes || []).filter(function (s) { if (RASTER.test(s.src || '')) { dropped++; return false; } return true; });
+        if (it.cover && RASTER.test(it.cover.src || '')) { dropped++; it.cover = null; }
+      });
+      try { localStorage.setItem(SEQ.KEY_V3, JSON.stringify(SEQ.wrapDraft(d2, dropped))); } catch (e2) { ok = false; }
+    }
+    var prevDropped = S.store.dropped;
+    S.store = { ok: ok, dropped: ok ? dropped : 0 };
+    saveUi();
+    if (manual && typeof window.LectaEditor.onSave === 'function') { var out = getData(); out.focus = null; window.LectaEditor.onSave(out); }
+    if (!ok) setStatus('Not saved', true, '브라우저 저장 공간이 가득 찼어요. Download JSON으로 보관하세요.');
+    else if (dropped) setStatus('Saved without ' + dropped + (dropped === 1 ? ' image ' : ' images ') + stamp(), true, '저장 공간이 부족해 올린 이미지를 뺀 글과 구성만 이 브라우저에 저장했어요. 이미지는 Download JSON에 들어 있어요.');
+    else setStatus('Saved ' + stamp());
+    if (dropped && (manual || !S.warned || dropped !== prevDropped)) { S.warned = true; toast('이미지 ' + dropped + '개는 브라우저에 저장되지 않았어요. More에서 JSON으로 보관하세요.'); }
+    else if (!ok) toast('저장 공간이 부족해요. More에서 JSON으로 보관하세요.');
+    else if (manual) toast('Saved');
+    if (dropped !== prevDropped) renderDetails();
+  }
+  function saveUi() { if (SERVICE) return; try { localStorage.setItem(UI_KEY, JSON.stringify({ sel: S.sel, mode: S.mode === 'preview' ? S.prevMode : S.mode, device: S.device })); } catch (e) { } }
+  function downloadJson() {
+    var d = getData(); d.focus = null;
+    var blob = new Blob([JSON.stringify(d, null, 2)], { type: 'application/json' }), a = document.createElement('a');
+    a.href = URL.createObjectURL(blob); a.download = (S.title || 'curation').replace(/[^\wㄱ-힣]+/g, '-') + '.json'; document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(function () { URL.revokeObjectURL(a.href); }, 4000);
+  }
+  function openFull() {
+    var w = window.open(S.template + '.html?feed=1', '_blank'); if (!w) { toast('팝업이 막혀 있어요'); return; }
+    var h = function (e) {
+      if (e.source !== w || (ORIGIN !== '*' && e.origin !== ORIGIN)) return;
+      if (e.data && e.data.type === 'lecta:ready') { var d = curation(); d.focus = null; post(w, { type: 'lecta:curation', data: d }); window.removeEventListener('message', h); }
+    };
+    window.addEventListener('message', h);
+  }
+  function load(d) {
+    S.title = d.title || ''; S.subtitle = d.subtitle || ''; S.intro = d.intro || ''; S.curator = d.curator || ''; S.accent = d.accentIndex != null ? d.accentIndex : null;
+    if (d.template && TEMPLATES.some(function (t) { return t.id === d.template; })) S.template = d.template;
+    var items = d.items || [], ids = SEQ.ensureIds(items, makeId);
+    S.works = items.map(function (it, i) { return newWork(Object.assign({}, it, { id: ids[i] })); });
+    S.plan = []; S.kinds = null; S.chips = [];
+    if (S.sel !== 'cover' && !byId(S.sel)) S.sel = 'cover';
+  }
+  window.addEventListener('pagehide', function () { if (saveTimer) save(false); });
+
+  /* ---------- boot ---------- */
+  $('#seg').addEventListener('click', function (e) { var b = e.target.closest('button[data-mode]'); if (!b) return; S.device = b.getAttribute('data-mode'); renderBars(); fitFrame(); saveUi(); setTimeout(function () { goto(selIndex()); }, 120); });
+  window.addEventListener('resize', function () { fitFrame(); if (!phone()) document.body.classList.remove('rail-open'); if (!narrow()) document.body.classList.remove('det-open'); });
+  if (window.ResizeObserver) new ResizeObserver(fitFrame).observe($('#stage'));
+  /* the template's scrollIntoView can reach parent scrollers; the workspace frame itself never scrolls */
+  $('.wbody').addEventListener('scroll', function () { this.scrollLeft = 0; this.scrollTop = 0; });
+  $('.ws').addEventListener('scroll', function () { this.scrollLeft = 0; this.scrollTop = 0; });
+  var draft = SERVICE || FRESH ? null : SEQ.readDraft(localStorage);
+  if (SERVICE) { S.works = []; S.title = ''; document.body.style.visibility = 'hidden'; }
+  if (draft && draft.data.items.length) { load(draft.data); if (draft.dropped) S.store = { ok: true, dropped: draft.dropped }; }
+  S.device = window.innerWidth < 760 ? 'mobile' : 'desktop';
+  if (!SERVICE && !FRESH) { try { var ui = JSON.parse(localStorage.getItem(UI_KEY) || 'null'); if (ui) { if (ui.sel && (ui.sel === 'cover' || byId(ui.sel))) S.sel = ui.sel; if (ui.mode === 'write' || ui.mode === 'design') S.mode = ui.mode; if (ui.device && window.innerWidth >= 760) S.device = ui.device; } } catch (e) { } }
+  renderBars(); renderRail(); renderWrite(); renderDetails(); fitFrame(); loadFrame();
+  if (draft) setStatus(draft.from === 'v2' ? 'Opened v2 draft' : (draft.dropped ? 'Opened without ' + draft.dropped + ' images' : 'Opened draft'), !!draft.dropped);
+  if (SERVICE) {
+    window.LectaService.connect({
+      setStatus: setStatus, toast: toast, getData: getData,
+      initialize: function (d) { window.LectaEditor.setData(d); lockCatalogFields(); document.body.style.visibility = ''; },
+      saved: function (id) {
+        var crumb = document.querySelector('.crumb a'); if (crumb) { crumb.href = '/me'; crumb.target = '_top'; }
+        var view = document.getElementById('service-view'); view.href = '/exhibitions/' + id; view.hidden = false;
+      }
+    });
+    document.querySelectorAll('a.brand, .crumb a').forEach(function (a) { a.href = '/me'; a.target = '_top'; });
+    document.addEventListener('beforeinput', function (e) { var t = e.target; if (t && t.hasAttribute && t.hasAttribute('data-f') && ['title', 'creator', 'year', 'medium'].indexOf(t.getAttribute('data-f')) >= 0) e.preventDefault(); });
+  }
+})();
+</script>
+</body>
+</html>
