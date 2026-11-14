@@ -3,7 +3,7 @@ import { Link } from "next-view-transitions";
 import { useEffect, useState } from "react";
 import { WorkImage } from "@/components/WorkImage";
 import type { CoverWork } from "@/components/WorkCover";
-import { CurationCover } from "@/components/CurationCover";
+import { CurationCover, curationDisplayTitle } from "@/components/CurationCover";
 
 type CurationResult = { id: string; number: number; title: string; description: string | null; items?: { workId: string; work: CoverWork & { id: string } }[] };
 type Item = CurationResult & { items: { workId: string; work: CoverWork & { id: string } }[] };
@@ -84,7 +84,7 @@ export function CurationResultList({ items, medium, query, showWorks = true }: {
       <Link className="curation-search-main" href={`/exhibitions/${item.id}`}>
         <CurationCover number={item.number} title={item.title} />
         <span className="curation-search-copy">
-          <span className="curation-search-title">{item.title}</span>
+          <span className="curation-search-title">{curationDisplayTitle(item.title)}</span>
           {item.description && <span className="curation-search-description">{item.description}</span>}
         </span>
       </Link>
