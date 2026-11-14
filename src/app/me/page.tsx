@@ -3,7 +3,8 @@ import type { CSSProperties } from "react";
 import { Link } from "next-view-transitions";
 import { listMine } from "@/lib/services/exhibitions";
 import { webActor } from "@/lib/services/web-actor";
-import { WorkImage } from "@/components/WorkImage";
+import { CurationWorkShelf } from "@/components/CurationWorkShelf";
+import { curationDisplayTitle } from "@/components/CurationCover";
 import { EmptyState } from "@/components/States";
 import { AuthButton } from "@/components/AuthButton";
 import { ApiKeys } from "@/components/ApiKeys";
@@ -34,15 +35,13 @@ export default async function MePage() {
             const wall = wallFor(ex.number);
             return (
               <article key={ex.id} className="me-row" style={{ "--room": wall.hex, "--room-ink": wall.ink } as CSSProperties}>
-                <Link href={`/exhibitions/${ex.id}`} className="me-swatch" style={{ viewTransitionName: `room-${ex.id}` }} aria-label={`${ex.title}, open`}>
+                <Link href={`/exhibitions/${ex.id}`} className="me-swatch" style={{ viewTransitionName: `room-${ex.id}` }} aria-label={`${curationDisplayTitle(ex.title)}, open`}>
                   {String(ex.number).padStart(2, "0")}
                 </Link>
                 <div>
                   <p className="caption" style={{ margin: 0 }}><span className="nobr">{ex.visibility === "PUBLIC" ? "Public" : "Private draft"}</span> / <span className="nobr">{new Date(ex.createdAt).toLocaleDateString("ko-KR")}</span> / <span className="nobr">{ex.items.length} works</span></p>
-                  <Link href={`/exhibitions/${ex.id}`} className="h3" style={{ display: "block", margin: "6px 0 10px" }}>{ex.title}</Link>
-                  <div style={{ display: "flex", gap: 10, alignItems: "center" }} aria-hidden>
-                    {ex.items.slice(0, 6).map((i) => <span key={i.workId} style={{ height: 52, display: "block", aspectRatio: i.work.artwork ? `${i.work.artwork.width} / ${i.work.artwork.height}` : "2 / 3" }}><WorkImage work={i.work} /></span>)}
-                  </div>
+                  <Link href={`/exhibitions/${ex.id}`} className="h3" style={{ display: "block", margin: "6px 0 10px" }}>{curationDisplayTitle(ex.title)}</Link>
+                  <CurationWorkShelf items={ex.items} maxItems={4} className="me-work-shelf" ariaLabel="Works in this curation" />
                 </div>
                 <div style={{ display: "flex", gap: 18, alignItems: "center" }}>
                   <Link className="btn-ghost" href={`/exhibitions/${ex.id}/edit`}>Edit</Link>

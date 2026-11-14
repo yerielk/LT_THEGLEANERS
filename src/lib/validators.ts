@@ -1,6 +1,7 @@
 import { z } from "zod";
+import { MEDIA } from "./media";
 
-export const MEDIA = ["FILM", "SERIES", "BOOK", "ALBUM"] as const;
+export { MEDIA };
 export const mediumSchema = z.enum(MEDIA);
 
 const id = z.string().trim().min(3).max(64).regex(/^[A-Za-z0-9_\-]+$/, "invalid id");

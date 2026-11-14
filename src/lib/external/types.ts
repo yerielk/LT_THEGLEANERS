@@ -19,7 +19,7 @@ export const EXTERNAL_SOURCES = [
 ] as const;
 export type ExternalSource = (typeof EXTERNAL_SOURCES)[number];
 
-/** Wider than the `medium` enum in the DB: TRACK, PERFORMANCE and EXHIBITION are not stored yet. */
+/** Media values accepted by the external catalog providers and stored work records. */
 export const EXTERNAL_MEDIA = ["FILM", "SERIES", "BOOK", "ALBUM", "TRACK", "PERFORMANCE", "EXHIBITION"] as const;
 export type ExternalMedium = (typeof EXTERNAL_MEDIA)[number];
 

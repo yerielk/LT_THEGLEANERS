@@ -1,30 +1,22 @@
 import type { Metadata } from "next";
-import { Link } from "next-view-transitions";
-import { searchCurations } from "@/lib/services/curations";
-import { webActor } from "@/lib/services/web-actor";
+import { TAGS } from "@/lib/recommendation/tags";
 import { SearchTabs } from "@/components/SearchTabs";
-import { CurationsClient } from "./CurationsClient";
+import { DiscoverClient } from "@/app/discover/DiscoverClient";
 
 export const dynamic = "force-dynamic";
-export const metadata: Metadata = { title: "큐레이션 검색" };
+export const metadata: Metadata = { title: "Curation" };
 
-export default async function CurationsPage({ searchParams }: { searchParams: Promise<{ q?: string }> }) {
+export default async function CurationPage({ searchParams }: { searchParams: Promise<{ q?: string }> }) {
   const sp = await searchParams;
-  const q = typeof sp.q === "string" ? sp.q.slice(0, 80) : "";
-  const { curations } = await searchCurations({ q: q || undefined }, await webActor());
+  const query = typeof sp.q === "string" ? sp.q.slice(0, 80) : "";
+  const tagLabels = Object.fromEntries(TAGS.map((tag) => [tag.key, tag.ko]));
   return (
     <>
       <header className="wrap page-head discover-head">
-        <div>
-          <SearchTabs active="curations" query={q} />
-          <h1 className="display">Rooms<br />others keep.</h1>
-        </div>
-        <div style={{ display: "grid", gap: 16, justifyItems: "start" }}>
-          <p className="lede" style={{ margin: 0 }}>다른 사람이 엮은 큐레이션을 제목, 담긴 작품, 창작자, 분위기로 찾아보세요. 마음에 드는 방에 들어가 작품을 담아 올 수 있어요.</p>
-          <Link className="btn-ghost" href="/exhibitions/new">새 큐레이션 만들기</Link>
-        </div>
+        <div><SearchTabs active="curations" query={query} /><h1 className="display">Curation<br />rooms.</h1></div>
+        <p className="lede" style={{ margin: 0 }}>Explore rooms that bring works together through mood, memory and meaning.</p>
       </header>
-      <CurationsClient initial={curations} initialQ={q} />
+      <DiscoverClient initial={[]} initialMedium="CURATION" initialQ={query} tagLabels={tagLabels} mode="curation" />
     </>
   );
 }

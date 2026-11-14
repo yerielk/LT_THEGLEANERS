@@ -1,11 +1,12 @@
 import { Link } from "next-view-transitions";
 import type { CSSProperties } from "react";
 import type { ExhibitionView } from "@/lib/services/exhibitions";
-import { WorkImage } from "./WorkImage";
+import { CurationWorkImage } from "./CurationWorkShelf";
 import { MEDIUM_KO } from "./WorkCover";
 import { CopyLink } from "./CopyLink";
 import { RoomWall } from "./RoomWall";
 import { wallFor } from "@/lib/design";
+import { CurationIdentity } from "./CurationCover";
 
 /** An exhibition as a room: a painted entrance wall, then the works hung on one eye line with wall labels. */
 export function ExhibitionRoom({ ex }: { ex: ExhibitionView }) {
@@ -15,13 +16,8 @@ export function ExhibitionRoom({ ex }: { ex: ExhibitionView }) {
     <div className="room" style={{ "--room": wall.hex, "--room-ink": wall.ink } as CSSProperties}>
       <RoomWall>
         <header className="entry-panel" style={{ viewTransitionName: `room-${ex.id}` }}>
-          <span className="room-no">
-            <span className="nobr">Room {String(ex.number).padStart(2, "0")}</span> / <span className="nobr">{ex.isEditorial ? "Editorial sample" : ex.visibility === "PUBLIC" ? "Public" : "Private draft"}</span>
-          </span>
-          <div>
-            <h1 className="room-title">{ex.title}</h1>
-            {ex.description && <p className="standfirst">{ex.description}</p>}
-          </div>
+          <CurationIdentity number={ex.number} title={ex.title} description={ex.description}
+            status={ex.isEditorial ? "Editorial sample" : ex.visibility === "PUBLIC" ? "Public" : "Private draft"} />
           <div>
             <p className="byline">
               <span className="nobr">Curated by {ex.ownerName}</span><br />
@@ -33,7 +29,9 @@ export function ExhibitionRoom({ ex }: { ex: ExhibitionView }) {
             </div>
           </div>
         </header>
-        {ex.items.map((it, i) => <HungWork key={it.workId} it={it} i={i} />)}
+        <div className="exhibition-works">
+          {ex.items.map((it, i) => <HungWork key={it.workId} it={it} i={i} />)}
+        </div>
         <div className="wall-end">
           <p className="h3">Keep walking.</p>
           <p style={{ margin: 0 }}>아래에서 이 방에 어울리는 다음 작품을 찾아보세요.</p>
@@ -44,11 +42,10 @@ export function ExhibitionRoom({ ex }: { ex: ExhibitionView }) {
 }
 
 function HungWork({ it, i }: { it: ExhibitionView["items"][number]; i: number }) {
-  const ar = it.work.artwork ? it.work.artwork.width / it.work.artwork.height : it.work.medium === "ALBUM" ? 1 : it.work.medium === "SERIES" ? 1.6 : 2 / 3;
   return (
-    <figure className="hung" data-medium={it.work.medium} style={{ margin: 0, "--ar": ar } as CSSProperties}>
+    <figure className="hung" data-medium={it.work.medium} style={{ margin: 0 }}>
       <Link href={`/works/${it.workId}`} aria-label={`${it.work.title}, details`}>
-        <WorkImage work={it.work} vt={`work-${it.workId}`} eager={i < 3} />
+        <CurationWorkImage work={it.work} stage="gallery" vt={`work-${it.workId}`} eager={i < 3} />
       </Link>
       <figcaption className="label">
         <span className="l-title"><span className="num">{String(i + 1).padStart(2, "0")}</span>{it.work.title}</span>

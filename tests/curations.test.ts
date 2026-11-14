@@ -8,11 +8,11 @@ let db: Db;
 beforeEach(async () => { db = await freshDb(); });
 
 describe("curation search", () => {
-  it("lists every public curation in room order without a query", async () => {
+  it("reports the public total and returns the first page in room order", async () => {
     const featured = await listFeatured(anon, db);
     const { curations, total } = await searchCurations({}, anon, db);
     expect(total).toBe(featured.length);
-    expect(curations.map((h) => h.curation.id)).toEqual(featured.map((e) => e.id));
+    expect(curations.map((h) => h.curation.id)).toEqual(featured.slice(0, 48).map((e) => e.id));
   });
 
   it("finds curations by title, by a work they hold and by its creator, and says what matched", async () => {

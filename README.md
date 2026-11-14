@@ -33,6 +33,8 @@ npm test              # unit tests on in-memory PostgreSQL (PGlite), no Docker n
 npm run build         # production build
 ```
 
+If you install PostgreSQL directly on Windows, start its PostgreSQL 17 service and create a local login/database matching the default URL (`lecta` / `lecta` / `lecta`). Then keep `DATABASE_URL=postgres://lecta:lecta@127.0.0.1:5432/lecta` in `.env`, skip `npm run db:up`, and run `npm run db:setup` followed by `npm run dev`.
+
 `.env` variables:
 
 | Variable | |
@@ -137,6 +139,10 @@ score = 0.35*S + 0.25*W + 0.20*C + 0.10*D + 0.10*N   (weights renormalised when 
 - Every reason points to a real `WorkTag`, a seed work (`evidenceWorkId`) or the user's own words.
 - `confidenceLabel` is `editorially_matched` when a recommendation has at least two grounded reasons and a score of 0.4 or higher. Otherwise it is `exploratory`.
 - The output is deterministic, with ties broken by `workId`. No LLM or API key is involved.
+
+### Curation recommendations
+
+Browse work can suggest curations containing the selected works. The Curation page searches and explores editorial curations, using onboarding/curation taste signals for suggestions. The seed includes 300 synthetic demo curations built from real catalog work IDs. Optional embeddings use the full `LECTA_EMBEDDING_URL` endpoint and `LECTA_EMBEDDING_MODEL`; tag ranking remains available when that service is absent or fails. See [docs/curation-recommendations.md](docs/curation-recommendations.md) for the actual ranking, seed policy and validation.
 
 ## MCP server
 
