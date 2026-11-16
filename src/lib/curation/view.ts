@@ -20,7 +20,9 @@ export function curationView(ex: ExhibitionView): CurationDocument {
     accentIndex: stored?.accentIndex ?? null, heroId: ex.items[0]?.workId,
     items: ex.items.map(({ work, curatorNote }) => {
       const item = byId.get(work.id);
-      return { ...curationWork(work), ...item, id: work.id, title: work.title.slice(0, 200), creator: work.creator.slice(0, 300), year: work.releaseYear == null ? "" : String(work.releaseYear), medium: work.medium.toLowerCase(),
+      const base = curationWork(work);
+      // A stored document may predate the work's artwork; the catalog cover fills the gap.
+      return { ...base, ...item, cover: item?.cover ?? base.cover, id: work.id, title: work.title.slice(0, 200), creator: work.creator.slice(0, 300), year: work.releaseYear == null ? "" : String(work.releaseYear), medium: work.medium.toLowerCase(),
         reason: curatorNote ?? "" };
     }),
   };

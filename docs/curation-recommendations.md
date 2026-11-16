@@ -1,8 +1,11 @@
 # Curation recommendations
 
-The manifest contains 300 synthetic editorial demo curations built from real catalog work IDs. They are demo data, not verified blog excerpts or user-authored reviews. `npm run db:setup` applies migrations and seeds these records through the existing deployment script; it preserves user-owned drafts. The separate `curation-source-research.md` is reference research, not provenance for every manifest row.
+The manifest holds 30 hand-written editorial demo curations (`version: 2`). Each has a title, subtitle, pen-name curator, template, introduction, and for every work a one-line reason plus a longer note. They are demo writing by the team, not excerpts from blogs or user reviews; pull quotes are the curator's own sentences, not lines from the works.
 
-Many references use external-work IDs from the deployment catalog, not the 132 built-in work IDs. A fresh 132-work local database only matches 11 manifest curations (19 editorial rows including the eight built-in demos). Missing/mismatched works cause that whole manifest curation to be skipped; the seed does not invent works or silently attach different IDs. The actual deployment seed count must be read from its logs.
+- Source of truth: `scripts/data/editorial-curations.json`. Run `npx tsx scripts/build-curation-manifest.ts` to rebuild `src/lib/data/curation-manifest.json`. Work references are resolved from the built-in catalog or from `scripts/data/external-work-refs.json` (deployment-only works); an unknown reference fails the build.
+- `npm run db:setup` reconciles editorial rows with the manifest on every run: title, introduction, template document, order and notes are rewritten, and `ex_blog_*` editorial rows that are no longer in the manifest are deleted (the previous 300 generated rows). Rows owned by people are never touched.
+- 24 curations use only the 132 built-in works and seed on a fresh local database. Six more reference deployment-only works and are skipped where those works are missing; nothing is substituted.
+- Seeded curations carry a `curationData` document, so they open in the magazine templates like user-made curations.
 
 ## Integration
 

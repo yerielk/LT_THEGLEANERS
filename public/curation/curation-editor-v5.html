@@ -42,6 +42,8 @@ a{color:inherit;text-decoration:none}
 .tx{font-size:13.5px;color:var(--mute);padding:8px 2px;min-height:36px;display:inline-flex;align-items:center;gap:6px}
 .tx:hover{color:var(--ink)}
 .tx.on{color:var(--ink)}
+.box.line{background:transparent;color:var(--ink)}
+.box.line:hover{background:var(--ink);color:#fff}
 .box{display:inline-flex;align-items:center;justify-content:center;min-height:36px;padding:0 18px;background:var(--ink);color:#fff;font-size:13.5px;font-weight:500;border:1px solid var(--ink)}
 .box:hover{background:#2A2F37}
 .box.line{background:#fff;color:var(--ink)}
@@ -151,6 +153,11 @@ body.dragging-seq,body.dragging-seq *{cursor:grabbing!important;user-select:none
 .fmt button:hover{color:var(--ink);background:var(--tone)}
 .fmt .q{font-size:12.5px}
 .fmt .keys{font-size:11px;color:var(--ghost);margin-left:8px}
+.w-note.rich{min-height:50vh;white-space:pre-wrap;overflow-wrap:anywhere;cursor:text}
+.w-note.rich.is-empty::before{content:attr(data-ph);color:var(--ghost);pointer-events:none;position:absolute}
+.w-note.rich b,.w-note.rich strong{font-weight:700}
+.w-note.rich i,.w-note.rich em{font-style:italic}
+.w-note.rich blockquote{margin:.2em 0;padding-left:1.6em;font-size:1.28em;line-height:1.55;letter-spacing:-.02em}
 .w-note{display:block;width:100%;min-height:60vh;margin-top:20px;border:0;background:transparent;outline:none;resize:none;overflow:hidden;padding:0;font:400 18px/1.9 var(--kr);letter-spacing:-.005em;tab-size:2}
 .w-foot{margin-top:28px;padding-top:14px;border-top:1px solid var(--line);font-size:12px;line-height:1.7;color:var(--faint)}
 .w-foot b{font-weight:500;color:var(--mute)}
@@ -256,7 +263,7 @@ dialog.add[open]{display:flex;flex-direction:column}
 .toast.on{opacity:1;transform:translate(-50%,0);pointer-events:auto}
 .toast button{text-decoration:underline;text-underline-offset:4px;color:#fff;font-size:13.5px;min-height:28px}
 .scrim{position:fixed;inset:0;z-index:40;background:rgba(20,23,28,.28);display:none}
-.focus-exit{position:fixed;top:14px;right:20px;z-index:30;display:none;align-items:center;gap:18px}
+.focus-exit{position:fixed;top:14px;left:24px;z-index:30;display:none;flex-direction:row-reverse;align-items:center;gap:18px}
 body.focus .focus-exit{display:flex}
 
 /* focus writing: only the page and the words */
@@ -326,7 +333,7 @@ body.mode-design .w-only,body.mode-design .p-only{display:none!important}
   <div class="acts">
     <span class="status" id="saved" role="status" aria-live="polite">Draft</span>
     <a id="service-view" class="tx hide-phone" target="_top" hidden>View</a>
-    <button class="tx hide-phone" type="button" data-act="mode" data-v="preview">Preview</button>
+    <button class="box line hide-phone" type="button" data-act="mode" data-v="preview">Preview</button>
     <button class="tx" type="button" data-act="more" aria-haspopup="menu" aria-expanded="false" id="more-btn">More</button>
     <button class="box" type="button" data-act="save">Save</button>
   </div>
@@ -793,8 +800,8 @@ body.mode-design .w-only,body.mode-design .p-only{display:none!important}
       '<div class="fmt" role="toolbar" aria-label="Formatting" aria-controls="w-note"><label class="w-lab" for="w-note">Writing</label>' +
         '<button type="button" data-fmt="b" aria-label="굵게 (Cmd/Ctrl+B)" title="굵게 (Cmd/Ctrl+B)"><b>B</b></button>' +
         '<button type="button" data-fmt="i" aria-label="기울임 (Cmd/Ctrl+I)" title="기울임 (Cmd/Ctrl+I)"><i style="font-family:var(--serif);font-size:15px">I</i></button>' +
-        '<button type="button" class="q" data-fmt="q" aria-label="인용문으로 바꾸기" title="줄 앞에 > 를 붙여 인용문으로">Quote</button><span class="keys" aria-hidden="true">⌘B  ⌘I</span></div>' +
-      '<textarea id="w-note" maxlength="50000" class="w-note grow" data-f="note" spellcheck="false" placeholder="이 작품에 대해 마음껏 써 보세요.&#10;&#10;빈 줄로 문단을 나누고, 줄 맨 앞에 > 를 쓰면 인용문이 돼요."></textarea>' +
+        '<button type="button" class="q" data-fmt="q" aria-label="인용문으로 바꾸기" title="이 줄을 인용문으로 크게 보여줘요">Quote</button><span class="keys" aria-hidden="true">⌘B  ⌘I</span></div>' +
+      '<div id="w-note" class="w-note rich" data-rich="note" contenteditable="true" role="textbox" aria-multiline="true" aria-label="Writing" spellcheck="false" data-ph="이 작품에 대해 마음껏 써 보세요. 빈 줄로 문단을 나눠요."></div>' +
       '<p class="w-foot" id="w-foot"></p></div>';
   }
   function metaHtml(w) {
@@ -806,6 +813,7 @@ body.mode-design .w-only,body.mode-design .p-only{display:none!important}
     el.innerHTML = w ? writeWork(w) : writeCover();
     $$('[data-f],[data-g]', el).forEach(function (t) { var g = t.getAttribute('data-g'), f = t.getAttribute('data-f'); t.value = g ? (S[g] || '') : (w[f] || ''); });
     $$('textarea.grow', el).forEach(grow);
+    var rich = $('#w-note'); if (rich && w) { rich.innerHTML = noteToHtml(w.note); rich.classList.toggle('is-empty', !w.note); }
     el.setAttribute('data-for', S.sel);
     el.scrollTop = 0;
     S.writeStale = false;
@@ -1263,6 +1271,11 @@ body.mode-design .w-only,body.mode-design .p-only{display:none!important}
   /* ---------- writing: model updates only, never a re-render of the field ---------- */
   document.addEventListener('input', function (e) {
     var t = e.target; if (!t.getAttribute) return;
+    if (t.hasAttribute('data-rich')) {
+      var rw = selWork(); if (!rw) return;
+      rw.note = richValue(t); t.classList.toggle('is-empty', !rw.note);
+      updateCounts(); push(); autosave(); return;
+    }
     var g = t.getAttribute('data-g'), f = t.getAttribute('data-f');
     if (t.hasAttribute('data-oneline') && /\n/.test(t.value) && !e.isComposing) { var p = t.selectionStart; t.value = t.value.replace(/\s*\r?\n+\s*/g, ' '); try { t.setSelectionRange(p, p); } catch (er) { } }
     if (t.classList.contains('grow')) grow(t);
@@ -1285,7 +1298,99 @@ body.mode-design .w-only,body.mode-design .p-only{display:none!important}
     } else if (t.id === 'q') renderResults(t.value);
   });
 
-  /* formatting: execCommand keeps the native undo stack and IME state; setRangeText is the fallback */
+  /* The note is written as it will read: bold, italic and quotes show as themselves.
+     The stored text stays the small markdown subset the templates parse (**bold**, *italic*, "> " quote lines). */
+  function inlineHtml(t) { return esc(t).replace(/\*\*([^*\n]+)\*\*/g, '<b>$1</b>').replace(/\*([^*\n]+)\*/g, '<i>$1</i>'); }
+  function noteToHtml(note) {
+    return String(note || '').replace(/\r/g, '').split('\n').map(function (line) {
+      var q = /^>\s?/.test(line), body = inlineHtml(q ? line.replace(/^>\s?/, '') : line) || '<br>';
+      return q ? '<blockquote>' + body + '</blockquote>' : '<div>' + body + '</div>';
+    }).join('');
+  }
+  var BLOCKS = { DIV: 1, P: 1, BLOCKQUOTE: 1, LI: 1, UL: 1, OL: 1, H1: 1, H2: 1, H3: 1 };
+  function mark(m, inner) {
+    var t = inner.replace(/\*/g, ''); if (!t.trim()) return t;
+    return t.match(/^\s*/)[0] + m + t.trim() + m + t.match(/\s*$/)[0];
+  }
+  function inlineMd(node) {
+    var out = '';
+    [].forEach.call(node.childNodes, function (n) {
+      if (n.nodeType === 3) { out += n.nodeValue.replace(/\u00a0/g, ' '); return; }
+      if (n.nodeType !== 1) return;
+      var tag = n.tagName, st = n.style || {};
+      if (tag === 'BR') { out += '\n'; return; }
+      var inner = inlineMd(n);
+      var bold = tag === 'B' || tag === 'STRONG' || /^(bold|[6-9]00)$/.test(st.fontWeight || ''), ital = tag === 'I' || tag === 'EM' || st.fontStyle === 'italic';
+      out += bold ? mark('**', inner) : ital ? mark('*', inner) : inner;
+    });
+    return out;
+  }
+  function richValue(el) {
+    var lines = [], cur = null;
+    function flush() { if (cur !== null) { cur.t.replace(/\n$/, '').split('\n').forEach(function (t) { lines.push({ q: cur.q, t: t.replace(/\s+$/, '') }); }); cur = null; } }
+    function walk(node, quoted) {
+      [].forEach.call(node.childNodes, function (n) {
+        if (n.nodeType === 1 && BLOCKS[n.tagName]) {
+          flush();
+          var q = quoted || n.tagName === 'BLOCKQUOTE';
+          if ([].some.call(n.childNodes, function (c) { return c.nodeType === 1 && BLOCKS[c.tagName]; })) walk(n, q);
+          else { cur = { q: q, t: inlineMd(n) }; flush(); }
+        } else {
+          if (cur === null) cur = { q: quoted, t: '' };
+          if (n.nodeType === 3) cur.t += n.nodeValue.replace(/\u00a0/g, ' ');
+          else if (n.nodeType === 1) { var w = document.createElement('span'); w.appendChild(n.cloneNode(true)); cur.t += inlineMd(w); }
+        }
+      });
+      flush();
+    }
+    walk(el, false);
+    var out = [];
+    lines.forEach(function (l, k) {
+      var prev = lines[k - 1];
+      /* a quote stands as its own block for the templates: keep a blank line on both sides */
+      if (prev && prev.t && l.t && prev.q !== l.q) out.push('');
+      out.push(l.q && l.t ? '> ' + l.t : l.t);
+    });
+    while (out.length && !out[out.length - 1]) out.pop();
+    return out.join('\n').slice(0, 50000);
+  }
+  function richBlocks(el) {
+    var sel = window.getSelection(); if (!sel.rangeCount) return [];
+    var r = sel.getRangeAt(0); if (!el.contains(r.commonAncestorContainer)) return [];
+    /* bare text at the root gets a block of its own first */
+    [].slice.call(el.childNodes).forEach(function (n) {
+      if (n.nodeType === 3 && n.nodeValue.trim() || (n.nodeType === 1 && !BLOCKS[n.tagName] && n.tagName !== 'BR')) { var d = document.createElement('div'); el.insertBefore(d, n); d.appendChild(n); }
+    });
+    return [].filter.call(el.children, function (b) { return BLOCKS[b.tagName] && r.intersectsNode(b); });
+  }
+  function fmt(kind) {
+    var el = $('#w-note'); if (!el) return;
+    el.focus({ preventScroll: true });
+    if (kind === 'q') {
+      var blocks = richBlocks(el).filter(function (b) { return b.textContent.trim(); }); if (!blocks.length) return;
+      var quoted = blocks.every(function (b) { return b.tagName === 'BLOCKQUOTE'; }), last = null;
+      blocks.forEach(function (b) {
+        var n = document.createElement(quoted ? 'div' : 'blockquote');
+        while (b.firstChild) n.appendChild(b.firstChild);
+        b.parentNode.replaceChild(n, b); last = n;
+      });
+      var range = document.createRange(); range.selectNodeContents(last); range.collapse(false);
+      var sel = window.getSelection(); sel.removeAllRanges(); sel.addRange(range);
+    } else {
+      try { document.execCommand('styleWithCSS', false, false); } catch (er) { }
+      document.execCommand(kind === 'b' ? 'bold' : 'italic');
+    }
+    el.dispatchEvent(new Event('input', { bubbles: true }));
+  }
+  document.addEventListener('paste', function (e) {
+    var t = e.target.closest && e.target.closest('[data-rich]'); if (!t) return;
+    e.preventDefault();
+    var text = (e.clipboardData || window.clipboardData).getData('text/plain');
+    document.execCommand('insertText', false, text.replace(/\r/g, ''));
+  });
+  document.addEventListener('drop', function (e) { if (e.target.closest && e.target.closest('[data-rich]')) e.preventDefault(); });
+
+  /* single-line fields: execCommand keeps the native undo stack and IME state; setRangeText is the fallback */
   function insertText(ta, start, end, text, s2, e2) {
     ta.focus({ preventScroll: true });
     ta.setSelectionRange(start, end);
@@ -1293,30 +1398,6 @@ body.mode-design .w-only,body.mode-design .p-only{display:none!important}
     try { ok = document.execCommand('insertText', false, text); } catch (er) { ok = false; }
     if (!ok || ta.value === before && text !== before.slice(start, end)) { ta.setRangeText(text, start, end, 'end'); ta.dispatchEvent(new Event('input', { bubbles: true })); }
     ta.setSelectionRange(s2, e2);
-  }
-  function fmt(kind) {
-    var ta = $('#w-note'); if (!ta) return;
-    var s = ta.selectionStart, e = ta.selectionEnd, v = ta.value, sel = v.slice(s, e);
-    if (kind === 'q') {
-      var ls = v.lastIndexOf('\n', s - 1) + 1, le = v.indexOf('\n', e > s && v.charAt(e - 1) === '\n' ? e - 1 : e); if (le < 0) le = v.length;
-      var lines = v.slice(ls, le).split('\n'), filled = lines.filter(function (l) { return l.trim(); });
-      var quoted = filled.length && filled.every(function (l) { return /^>\s?/.test(l); });
-      var out = lines.map(function (l) { return quoted ? l.replace(/^>\s?/, '') : (l.trim() ? '> ' + l : l); }).join('\n');
-      var pre = '', post = '';
-      if (!quoted) {
-        if (ls > 1 && v.charAt(ls - 2) !== '\n') pre = '\n';
-        if (le < v.length - 1 && v.charAt(le + 1) !== '\n') post = '\n';
-      }
-      insertText(ta, ls, le, pre + out + post, ls + pre.length, ls + pre.length + out.length);
-      return;
-    }
-    var m = kind === 'b' ? '**' : '*';
-    var wrapped = sel && v.slice(s - m.length, s) === m && v.slice(e, e + m.length) === m && (kind === 'b' || !(v.charAt(s - 2) === '*' && v.charAt(e + 1) === '*'));
-    if (wrapped) { insertText(ta, s - m.length, e + m.length, sel, s - m.length, e - m.length); return; }
-    if (!sel) { var ph = kind === 'b' ? '굵게' : '기울임'; insertText(ta, s, e, m + ph + m, s + m.length, s + m.length + ph.length); return; }
-    var body = sel.split(/(\n{2,})/).map(function (part) { return /^\n+$/.test(part) || !part.trim() ? part : m + part + m; }).join('');
-    var single = body === m + sel + m;
-    insertText(ta, s, e, body, single ? s + m.length : s, single ? s + m.length + sel.length : s + body.length);
   }
   document.addEventListener('mousedown', function (e) { if (e.target.closest('[data-fmt]')) e.preventDefault(); });
   document.addEventListener('click', function (e) { var b = e.target.closest('[data-fmt]'); if (b) fmt(b.getAttribute('data-fmt')); });
@@ -1472,7 +1553,10 @@ body.mode-design .w-only,body.mode-design .p-only{display:none!important}
     else if (manual) toast('Saved');
     if (dropped !== prevDropped) renderDetails();
   }
-  function saveUi() { if (SERVICE) return; try { localStorage.setItem(UI_KEY, JSON.stringify({ sel: S.sel, mode: S.mode === 'preview' ? S.prevMode : S.mode, device: S.device })); } catch (e) { } }
+  var SID = null;
+  function saveUi() {
+    if (SERVICE) { if (SID) { try { sessionStorage.setItem('lecta.editor.ui.' + SID, JSON.stringify({ sel: S.sel, mode: S.mode === 'preview' ? S.prevMode : S.mode })); } catch (e) { } } return; }
+    try { localStorage.setItem(UI_KEY, JSON.stringify({ sel: S.sel, mode: S.mode === 'preview' ? S.prevMode : S.mode, device: S.device })); } catch (e) { } }
   function downloadJson() {
     var d = getData(); d.focus = null;
     var blob = new Blob([JSON.stringify(d, null, 2)], { type: 'application/json' }), a = document.createElement('a');
@@ -1514,8 +1598,18 @@ body.mode-design .w-only,body.mode-design .p-only{display:none!important}
   if (SERVICE) {
     window.LectaService.connect({
       setStatus: setStatus, toast: toast, getData: getData,
-      initialize: function (d) { window.LectaEditor.setData(d); lockCatalogFields(); document.body.style.visibility = ''; },
+      initialize: function (d, id) {
+        SID = id || null;
+        window.LectaEditor.setData(d);
+        /* coming back from the finished view lands on the page and mode that were open */
+        try {
+          var ui = SID && JSON.parse(sessionStorage.getItem('lecta.editor.ui.' + SID) || 'null');
+          if (ui) { if (ui.sel && (ui.sel === 'cover' || byId(ui.sel))) select(ui.sel); if (ui.mode === 'write' || ui.mode === 'design') setMode(ui.mode); }
+        } catch (e) { }
+        lockCatalogFields(); document.body.style.visibility = '';
+      },
       saved: function (id) {
+        if (!SID) { SID = id; saveUi(); }
         var crumb = document.querySelector('.crumb a'); if (crumb) { crumb.href = '/me'; crumb.target = '_top'; }
         var view = document.getElementById('service-view'); view.href = '/exhibitions/' + id; view.hidden = false;
       }

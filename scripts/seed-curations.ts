@@ -74,7 +74,7 @@ try {
       ...manifest.curations.flatMap((item) => item.works),
       ...manifest.tagEvidence.map((item) => item.work),
     ];
-    const refsById = new Map<string, CurationManifest["curations"][number]["works"]>();
+    const refsById = new Map<string, CurationManifest["tagEvidence"][number]["work"][]>();
     for (const ref of refs) refsById.set(ref.id, [...(refsById.get(ref.id) ?? []), ref]);
     const ids = [...refsById.keys()];
     const dbWorks = ids.length ? await tx.select({
@@ -123,8 +123,7 @@ try {
       const itemSet = itemsByCuration.get(item.id) ?? new Set<string>();
       const expected = new Set(item.works.map((work) => work.id));
       const hasForeignItem = [...itemSet].some((id) => !expected.has(id));
-      const identityConflict = existing && (existing.ownerId !== "u_editorial" || !existing.isEditorial ||
-        existing.visibility !== "PUBLIC" || existing.description !== item.description);
+      const identityConflict = existing && (existing.ownerId !== "u_editorial" || !existing.isEditorial || existing.visibility !== "PUBLIC");
       const slugConflict = occupiedSlug && occupiedSlug !== item.id;
       if (invalidWork || identityConflict || hasForeignItem || slugConflict || (!owner && manifest.curations.length)) {
         failures.push(`curation skipped: ${item.id}${invalidWork ? " (unmatched work)" : identityConflict ? " (existing row differs or is not editorial)" : hasForeignItem ? " (unexpected existing work link)" : slugConflict ? " (slug already in use)" : " (owner missing)"}`);
@@ -159,8 +158,8 @@ try {
       for (const item of manifest.curations) {
         const existing = existingById.get(item.id);
         if (existing && existing.ownerId === "u_editorial" && existing.isEditorial &&
-          existing.visibility === "PUBLIC" && existing.title !== item.title) {
-          await tx.update(exhibitions).set({ title: item.title }).where(eq(exhibitions.id, item.id));
+          existing.visibility === "PUBLIC" && (existing.title !== item.title || existing.description !== item.description)) {
+          await tx.update(exhibitions).set({ title: item.title, description: item.description }).where(eq(exhibitions.id, item.id));
         }
       }
       for (const item of usableCurations) {
@@ -175,7 +174,7 @@ try {
         const missingWorks = item.works.filter((work) => !existingItems.has(work.id));
         if (missingWorks.length) await tx.insert(exhibitionItems).values(missingWorks.map((work) => ({
           id: `exi_${item.id}_${item.works.findIndex((ref) => ref.id === work.id)}`,
-          exhibitionId: item.id, workId: work.id, position: item.works.findIndex((ref) => ref.id === work.id), curatorNote: null,
+          exhibitionId: item.id, workId: work.id, position: item.works.findIndex((ref) => ref.id === work.id), curatorNote: work.reason || null,
         }))).onConflictDoNothing();
       }
       if (tagsToAdd.length) await tx.insert(workTags).values(tagsToAdd.map((item) => ({

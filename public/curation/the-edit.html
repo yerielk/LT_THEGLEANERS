@@ -27,6 +27,8 @@ body{background:var(--paper);color:var(--ink);font-family:var(--sans);-webkit-fo
 a{color:inherit;text-decoration:none}
 ol,ul{list-style:none}
 .hk{font-style:normal!important}
+/* a work without artwork still gets a visible cover on colour fields */
+.field .cv.ph,.sp-quote .cv.ph{min-width:min(calc(var(--ch,60vh) * var(--ar)),34vw);background:color-mix(in srgb,var(--on-field) 13%,var(--field))}
 
 /* shared pieces */
 .sp{position:relative}
@@ -832,18 +834,27 @@ ol,ul{list-style:none}
     };
   };
 
+  /* Many cover hosts send no CORS headers. A CORS load is tried first because the palette needs pixel
+     access; when it fails the image is loaded plainly so it still shows, and colour comes from the
+     stored palette or the deterministic fallback. */
   L.loadImage = function (src, timeout) {
-    return new Promise(function (res) {
-      if (!src) return res(null);
-      var img = new Image(), done = false;
-      var fin = function (v) { if (done) return; done = true; clearTimeout(t); res(v); };
-      var t = setTimeout(function () { fin(null); }, timeout || 6000);
-      img.onload = function () { fin(img); };
-      img.onerror = function () { fin(null); };
-      if (src.indexOf('data:') !== 0) img.crossOrigin = 'anonymous';
-      img.src = src;
-    });
+    function attempt(cors) {
+      return new Promise(function (res) {
+        var img = new Image(), done = false;
+        var fin = function (v) { if (done) return; done = true; clearTimeout(t); res(v); };
+        var t = setTimeout(function () { fin(null); }, timeout || 8000);
+        img.onload = function () { img.lectaOpaque = !cors; fin(img); };
+        img.onerror = function () { fin(null); };
+        img.referrerPolicy = 'no-referrer';
+        if (cors) img.crossOrigin = 'anonymous';
+        img.src = src;
+      });
+    }
+    if (!src) return Promise.resolve(null);
+    if (src.indexOf('data:') === 0) return attempt(false).then(function (img) { if (img) img.lectaOpaque = false; return img; });
+    return attempt(true).then(function (img) { return img || attempt(false); });
   };
+  L.sample = function (img) { if (!img || img.lectaOpaque) return []; try { return P.extract(img); } catch (e) { return []; } };
 
   /* images -> swatches -> themes. A stored palette skips the image work entirely. */
   L.prepareItem = function (it) {
@@ -859,9 +870,9 @@ ol,ul{list-style:none}
       if (it.palette && it.palette.length) sw = P.hydrate(it.palette);
       if (img) {
         it.cover.ar = clamp(img.naturalWidth / img.naturalHeight, 0.45, 2.2);
-        if (!sw.length) sw = P.extract(img);
+        if (!sw.length) sw = L.sample(img);
       } else { it.cover.src = null; }
-      if (!sw.length && it.photo && it.photo.img) sw = P.extract(it.photo.img);
+      if (!sw.length && it.photo && it.photo.img) sw = L.sample(it.photo.img);
       it.cover.placeholder = !it.cover.src;
       it.theme = P.buildWorkTheme(sw, it.id + it.title);
       it.palette = P.pack(sw);
@@ -880,7 +891,16 @@ ol,ul{list-style:none}
     var names = Object.keys(types), out = [], counts = {}, hist = [];
     items.forEach(function (it, i) {
       if (it.layout) {
-        var want = names.filter(function (n) { var t = types[n]; return t.kind === it.layout && (!t.needs || t.needs(it)); })[0];
+        /* an explicit choice is honoured even when the automatic rule would not pick it:
+           a missing scene is covered by the cover, a missing quote by the opening sentence */
+        var kinded = names.filter(function (n) { return types[n].kind === it.layout; });
+        var want = kinded.filter(function (n) { var t = types[n]; return (!t.needs || t.needs(it)) && t.fits.indexOf(it.bucket) > -1; })[0] ||
+          kinded.filter(function (n) { var t = types[n]; return !t.needs || t.needs(it); })[0] || kinded[0];
+        if (want && it.layout === 'quote' && !it.quote) {
+          var lead = (it.reason || it.paras[0] || it.title).replace(/\*+/g, '');
+          var cut = lead.match(/^[^.!?。]{8,120}[.!?。]/);
+          it.quote = (cut ? cut[0] : lead.slice(0, 120)).trim();
+        }
         if (want) { counts[want] = (counts[want] || 0) + 1; hist.push(want); out.push({ type: want, variant: counts[want] - 1, bucket: it.bucket, chosen: true }); return; }
       }
       var c = names.filter(function (n) {
@@ -922,7 +942,7 @@ ol,ul{list-style:none}
     o = o || {};
     var st = '--ar:' + it.cover.ar.toFixed(4) + ';' + (o.ch ? '--ch:' + o.ch + ';' : '') + (o.cw ? '--cw:' + o.cw + ';' : '') + (o.style || '');
     if (it.cover.src) {
-      return '<figure class="cv ' + (o.cls || '') + '" style="' + st + '"><img src="' + L.esc(it.cover.src) + '" alt="' + L.esc(it.title) + (it.creator ? ', ' + L.esc(it.creator) : '') + '" decoding="async" draggable="false"></figure>';
+      return '<figure class="cv ' + (o.cls || '') + '" style="' + st + '"><img referrerpolicy="no-referrer" src="' + L.esc(it.cover.src) + '" alt="' + L.esc(it.title) + (it.creator ? ', ' + L.esc(it.creator) : '') + '" decoding="async" draggable="false"></figure>';
     }
     return '<div class="cv ph ' + (o.cls || '') + '" style="' + st + '" role="img" aria-label="' + L.esc(it.title) + '"><span class="ph-m">' + L.esc(L.mediumLabel(it)) + '</span><span class="ph-t">' + L.esc(it.title) + '</span></div>';
   };
@@ -936,7 +956,7 @@ ol,ul{list-style:none}
   L.figure = function (sc, alt, o) {
     o = o || {};
     var st = '--ar:' + (sc.ar || 1.5).toFixed(4) + ';' + (o.ch ? '--ch:' + o.ch + ';' : '') + (o.cw ? '--cw:' + o.cw + ';' : '') + (o.style || '');
-    return '<figure class="cv ' + (o.cls || '') + '" style="' + st + '"><img src="' + L.esc(sc.src) + '" alt="' + L.esc(sc.caption || alt || '') + '" decoding="async" draggable="false"></figure>';
+    return '<figure class="cv ' + (o.cls || '') + '" style="' + st + '"><img referrerpolicy="no-referrer" src="' + L.esc(sc.src) + '" alt="' + L.esc(sc.caption || alt || '') + '" decoding="async" draggable="false"></figure>';
   };
   /* every image the work brings to a page: its scenes, or the cover alone */
   L.media = function (it) {
@@ -1232,7 +1252,7 @@ ol,ul{list-style:none}
     },
     bleed: function (it, i, pl) {
       var bg = it.photo
-        ? '<img src="' + E(it.photo.src) + '" alt="" aria-hidden="true">'
+        ? '<img referrerpolicy="no-referrer" src="' + E(it.photo.src) + '" alt="" aria-hidden="true">'
         : '';
       return head(it, i, pl) + '<div class="bg">' + bg + '</div><div class="bl">' + eb(it, i) +
         '<div class="bt">' + R('<span class="med">' + E(L.metaLine(it)) + '</span>', 'up') + R(title(it) + credit(it), 'up', 80) + (hasBody(it) ? R(body(it), 'up', 160) : '') + '</div>' +

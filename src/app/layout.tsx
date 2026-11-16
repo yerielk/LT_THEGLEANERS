@@ -3,6 +3,7 @@ import { ViewTransitions } from "next-view-transitions";
 import "./globals.css";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
+import { GlobalSelectionShelf } from "@/components/SelectionShelf";
 import { canUseAgentLab, webActor } from "@/lib/services/web-actor";
 
 export const metadata: Metadata = {
@@ -27,6 +28,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           <Header demo={actor.kind === "demo"} user={actor.kind === "user" ? { name: actor.label } : null} showLab={canUseAgentLab(actor)} />
           <main id="main">{children}</main>
           <Footer showLab={canUseAgentLab(actor)} />
+          <GlobalSelectionShelf />
         </body>
       </html>
     </ViewTransitions>

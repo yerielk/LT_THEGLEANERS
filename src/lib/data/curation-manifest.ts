@@ -6,12 +6,17 @@ const workReference = z.object({
   medium: z.enum(["FILM", "SERIES", "BOOK", "ALBUM", "TRACK", "PERFORMANCE", "EXHIBITION"]),
   creator: z.string().max(200),
 });
+// A curation's own words about a work: one line of why, then the longer note.
+const curatedWork = workReference.extend({ reason: z.string().max(400).default(""), note: z.string().max(4000).default("") });
 
 const curation = z.object({
   id: z.string().regex(/^ex_blog_[a-z0-9]+(?:_[a-z0-9]+)*$/),
   title: z.string().min(1).max(80),
+  subtitle: z.string().max(160).default(""),
+  curator: z.string().min(1).max(60),
+  template: z.enum(["the-spread", "the-edit", "afterimage"]),
   description: z.string().min(1).max(400),
-  works: z.array(workReference).min(2).max(16),
+  works: z.array(curatedWork).min(2).max(16),
 }).superRefine((entry, ctx) => {
   const ids = new Set(entry.works.map((work) => work.id));
   if (ids.size !== entry.works.length) ctx.addIssue({ code: "custom", message: "duplicate curation work id" });
@@ -25,7 +30,7 @@ const tagEvidence = z.object({
 });
 
 export const curationManifestSchema = z.object({
-  version: z.literal(1),
+  version: z.literal(2),
   curations: z.array(curation),
   tagEvidence: z.array(tagEvidence),
 }).superRefine((manifest, ctx) => {

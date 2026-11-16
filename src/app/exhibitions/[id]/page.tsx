@@ -25,7 +25,7 @@ export default async function ExhibitionPage({ params, searchParams }: { params:
       return (
         <div className="wrap" style={{ paddingBlock: "64px 120px" }}>
           <h1 className="display">Private draft.</h1>
-          <p className="lede">이 전시는 비공개 초안이라 만든 사람만 볼 수 있어요.</p>
+          <p className="lede">이 큐레이션은 비공개 초안이라 만든 사람만 볼 수 있어요.</p>
           <Link className="btn btn-ghost" href="/discover">작품 검색</Link>
         </div>
       );
@@ -37,15 +37,15 @@ export default async function ExhibitionPage({ params, searchParams }: { params:
       {saved && ex.isOwner && <div className="wrap"><p className="notice" role="status" style={{ margin: "12px 0" }}>초안을 저장했어요. 새로고침해도 그대로 남아 있어요.</p></div>}
       {ex.curationData ? <>
         <div className="wrap curation-reader-actions">
-          <Link className="btn-ghost" href="/me">My rooms</Link>
-          <span className="caption">{ex.visibility === "PUBLIC" ? "Public curation" : "Private draft"}</span>
-          {ex.isOwner && <Link className="btn-ghost" href={`/exhibitions/${ex.id}/edit`}>Edit curation</Link>}
+          {ex.isOwner ? <Link className="btn-ghost" href="/me">My rooms</Link> : <Link className="btn-ghost" href="/curations">All curations</Link>}
+          <span className="caption">{ex.isOwner ? (ex.visibility === "PUBLIC" ? "Public curation" : "Private draft, only you can see this") : `Curated by ${ex.curationData.curator || ex.ownerName}`}</span>
+          {ex.isOwner && <Link className="btn btn-sm curation-reader-edit" href={`/exhibitions/${ex.id}/edit`}>Edit curation</Link>}
         </div>
         <CurationReader document={curationView(ex)} />
       </> : <ExhibitionRoom ex={ex} />}
       <div className="wrap" style={{ "--room": wallFor(ex.number).hex } as CSSProperties}>
         <RecommendationPanel exhibitionId={ex.id} canAdd={ex.isOwner} />
-        {!ex.isOwner && <p className="muted" style={{ fontSize: 13, margin: "-64px 0 96px" }}>읽기 전용 전시예요. 추천 작품을 추가하려면 직접 전시를 만들어 보세요.</p>}
+        {!ex.isOwner && <p className="muted" style={{ fontSize: 13, margin: "-64px 0 96px" }}>다른 사람의 큐레이션이라 읽기만 할 수 있어요. 추천 작품을 담으려면 내 큐레이션을 만들어 보세요.</p>}
       </div>
     </>
   );

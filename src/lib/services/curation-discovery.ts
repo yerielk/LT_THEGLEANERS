@@ -97,8 +97,8 @@ export async function getCurationDiscovery(actor: Actor, db: Db = getDb()) {
       .sort((a, b) => a.number - b.number || a.id.localeCompare(b.id)).slice(0, SUGGESTED_LIMIT);
   }
 
-  const popularCard = ({ id, number, title, description, ownerName, updatedAt, items }: ExhibitionView) => ({
-    id, number, title, description, ownerName, updatedAt,
+  const popularCard = ({ id, number, title, description, ownerName, curationData, updatedAt, items }: ExhibitionView) => ({
+    id, number, title, description, ownerName: curationData?.curator?.trim() || ownerName, updatedAt,
     items: items.map(({ workId, work }) => ({
       workId,
       work: {
