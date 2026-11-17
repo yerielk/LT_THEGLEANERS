@@ -58,7 +58,7 @@ try {
     const sel = await page.evaluate(() => JSON.parse(sessionStorage.getItem("lecta.selection.v1") || "[]").map((w) => w.id));
     check(JSON.stringify(sel) === JSON.stringify(["w_film_aftersun", "w_book_stoner", "w_album_pink_moon"]), `selection holds 3 unique real DB ids: ${sel.join(", ")}`);
     await shot(page, `${label}-discover`);
-    await page.getByRole("link", { name: /Begin exhibition with 3 works/ }).click();
+    await page.getByRole("link", { name: /Curate 3 works/ }).click();
     await page.waitForURL("**/exhibitions/new");
 
     // UAT-02 negative: empty title

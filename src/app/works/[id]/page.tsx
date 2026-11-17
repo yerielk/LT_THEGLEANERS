@@ -1,10 +1,12 @@
 import { Link } from "next-view-transitions";
 import { notFound } from "next/navigation";
 import { getWork } from "@/lib/services/works";
+import { reactionState } from "@/lib/services/library";
+import { webActor } from "@/lib/services/web-actor";
+import { Reactions } from "@/components/Reactions";
 import { LectaError } from "@/lib/services/errors";
 import { MEDIUM_KO, MEDIUM_LABEL } from "@/components/WorkCover";
 import { WorkImage } from "@/components/WorkImage";
-import { SelectionShelf } from "@/components/SelectionShelf";
 import { WorkDetailSelection } from "../WorkDetailSelection";
 import { CurationRecommendations } from "@/app/discover/CurationRecommendations";
 import { tagLabel } from "@/lib/recommendation/tags";
@@ -16,6 +18,13 @@ import { MEDIA, type Medium as WorkMedium } from "@/lib/media";
 export const dynamic = "force-dynamic";
 
 type Medium = "CURATION" | WorkMedium;
+
+// Search links only: no playback licence or provider API is involved.
+const LISTEN = [
+  { name: "Spotify", url: (q: string) => `https://open.spotify.com/search/${encodeURIComponent(q)}` },
+  { name: "Apple Music", url: (q: string) => `https://music.apple.com/search?term=${encodeURIComponent(q)}` },
+  { name: "YouTube Music", url: (q: string) => `https://music.youtube.com/search?q=${encodeURIComponent(q)}` },
+];
 
 export default async function WorkPage({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<{ q?: string; medium?: string }> }) {
   const { id } = await params;
@@ -36,6 +45,7 @@ export default async function WorkPage({ params, searchParams }: { params: Promi
   if (query) discoverParams.set("q", query);
   discoverParams.set("medium", medium);
   const returnHref = medium === "CURATION" ? `/curation?${discoverParams.toString()}` : `/discover?${discoverParams.toString()}`;
+  const reactions = await reactionState("WORK", w.id, await webActor());
   const work = { id: w.id, title: w.title, originalTitle: w.originalTitle, creator: w.creator, medium: w.medium, releaseYear: w.releaseYear, coverTone: w.coverTone, artwork: w.artwork };
   return (
     <>
@@ -49,11 +59,12 @@ export default async function WorkPage({ params, searchParams }: { params: Promi
           <p className="lede">{w.synopsis}</p>
           <div style={{ display: "flex", gap: 22, flexWrap: "wrap", alignItems: "center", margin: "28px 0 8px" }}>
             <WorkDetailSelection work={work} query={query} medium={medium} />
-            <Link className="btn-ghost" href="/exhibitions/new">Start an exhibition</Link>
+            <Reactions targetType="WORK" targetId={w.id} initial={reactions} />
           </div>
           <dl className="wd-meta">
             <dt>Medium</dt><dd>{MEDIUM_KO[w.medium]}</dd>
             <dt>Taste</dt><dd>{w.tags.map((t) => tagLabel(t.key)).join(", ")}<br /><span className="muted" style={{ fontSize: 12.5 }}>Lecta 팀의 큐레이션 해석이에요. 작품에 대한 사실이 아닙니다.</span></dd>
+            {(w.medium === "ALBUM" || w.medium === "TRACK") && <><dt>Listen</dt><dd>{LISTEN.map((service, i) => <span key={service.name}>{i ? ", " : ""}<a className="linkish" href={service.url(`${w.title} ${w.creator}`)} target="_blank" rel="noreferrer">{service.name}</a></span>)}<br /><span className="muted" style={{ fontSize: 12.5 }}>각 서비스의 검색 결과로 이동해요.</span></dd></>}
             <dt>Metadata</dt><dd>{w.source.name} ({w.metadataStatus})</dd>
             {w.artwork && <><dt>Image</dt><dd>Official artwork, © its rights holder. {w.artwork.sourcePage && <a className="linkish" href={w.artwork.sourcePage} target="_blank" rel="noreferrer">Source</a>}</dd></>}
             {appearsIn.length > 0 && <><dt>On view in</dt><dd>{appearsIn.map((e, i) => <span key={e.id}>{i ? ", " : ""}<Link className="linkish" href={`/exhibitions/${e.id}`}>{e.title}</Link></span>)}</dd></>}
@@ -67,7 +78,6 @@ export default async function WorkPage({ params, searchParams }: { params: Promi
         selectedWorkId={w.id}
         detail
       />
-      <SelectionShelf />
     </>
   );
 }

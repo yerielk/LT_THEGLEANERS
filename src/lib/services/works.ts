@@ -26,6 +26,8 @@ export interface WorkView {
   artworkUrl: string | null;
   artwork: { url: string; width: number; height: number; credit: string; sourcePage: string | null } | null;
   coverTone: string | null;
+  /** Dominant artwork colours, when they have been sampled. */
+  palette: { hex: string; weight: number }[] | null;
   metadataStatus: "VERIFIED" | "CURATED" | "INCOMPLETE";
   source: { name: string; url: string | null; note: string; attribution: string | null };
   /** Venue, dates and genre of a performance or exhibition. null for everything else. */
@@ -74,6 +76,7 @@ function toView(r: Row, tags: WorkTagView[]): WorkView {
         }
       : null,
     coverTone: r.coverTone,
+    palette: r.palette ?? null,
     metadataStatus: r.metadataStatus,
     source: sourceOf(r),
     event: r.event,

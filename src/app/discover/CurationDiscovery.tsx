@@ -45,15 +45,13 @@ function PopularCurationCard({ item, expanded, hoverSupported, listLayout, onTog
   onLeave: () => void;
   cardRef: (element: HTMLElement | null) => void;
 }) {
-  const date = new Date(item.updatedAt);
-  const formattedDate = Number.isNaN(date.getTime()) ? null : date.toLocaleDateString("ko-KR", { year: "numeric", month: "short", day: "numeric" });
   const face = <>
-    <CurationCover number={item.number} title={item.title} className="curation-popular-cover" />
+    <CurationCover number={item.number} title={item.title} works={item.items} className="curation-popular-cover" />
     <span className={`curation-popular-caption${listLayout ? " curation-search-copy" : ""}`}>
       <span className="curation-popular-name">{curationDisplayTitle(item.title)}</span>
       {listLayout && item.description && <span className="curation-search-description curation-popular-description">{item.description}</span>}
-      {item.ownerName !== "unknown" && <span className="curation-popular-owner">Curated by {item.ownerName}</span>}
-      <span className="curation-popular-meta">{item.items.length} works{formattedDate ? ` · ${formattedDate}` : ""}</span>
+      {!listLayout && item.description && <span className="curation-popular-lede">{item.description}</span>}
+      <span className="curation-popular-meta">{item.ownerName !== "unknown" ? `${item.ownerName} / ` : ""}{item.items.length} works</span>
     </span>
   </>;
 
@@ -243,8 +241,8 @@ export function CurationDiscovery({ active }: { active: boolean }) {
   const popularItems = payload.popularIds.map((id) => curationById.get(id)).filter((item): item is PopularCuration => !!item);
   const suggestedItems = payload.suggestedIds.map((id) => curationById.get(id)).filter((item): item is PopularCuration => !!item);
   return <div className="wrap curation-discovery">
-    <CurationRow title="인기 큐레이션" items={expanded ? popularItems : popularItems.slice(0, 4)} onMore={() => setExpanded((value) => !value)}
+    <CurationRow title="지금 많이 보는 큐레이션" items={expanded ? popularItems : popularItems.slice(0, 4)} onMore={() => setExpanded((value) => !value)}
       moreLabel={expanded ? "접기" : "더보기"} hoverSupported={hoverSupported} listLayout={expanded} />
-    <CurationRow title="이런 큐레이션은 어때요?" items={suggestedItems.slice(0, 12)} hoverSupported={hoverSupported} />
+    <CurationRow title="취향에 맞을 만한 큐레이션" items={suggestedItems.slice(0, 12)} hoverSupported={hoverSupported} />
   </div>;
 }

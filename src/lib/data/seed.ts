@@ -1,4 +1,4 @@
-import { eq, inArray, max } from "drizzle-orm";
+import { and, eq, inArray, like, max, notInArray } from "drizzle-orm";
 import type { Db } from "../db";
 import { exhibitionItems, exhibitions, user, works, workTags } from "../schema";
 import { SEED_WORKS, SEED_EXHIBITIONS, CURATION_DEMO_EXHIBITIONS, EDITORIAL_USER, DEMO_USER } from "./catalog";
@@ -6,6 +6,7 @@ import { normalize, TAG_BY_KEY } from "../recommendation/tags";
 import curationManifestJson from "./curation-manifest.json" with { type: "json" };
 import { curationManifestSchema } from "./curation-manifest";
 import { ARTWORK } from "./artwork";
+import type { CurationDocument } from "../curation/document";
 
 /**
  * Idempotent, additive seed: existing rows are preserved; only missing catalog and editorial sample rows are added.
@@ -80,68 +81,59 @@ export async function seedDatabase(db: Db) {
 
     const manifestIds = manifest.curations.map((item) => item.id);
     const existingManifestRows = manifestIds.length
-      ? await tx.select({ id: exhibitions.id, ownerId: exhibitions.ownerId, title: exhibitions.title,
-        description: exhibitions.description, visibility: exhibitions.visibility, isEditorial: exhibitions.isEditorial,
-        slug: exhibitions.slug }).from(exhibitions).where(inArray(exhibitions.id, manifestIds))
+      ? await tx.select({ id: exhibitions.id, ownerId: exhibitions.ownerId, visibility: exhibitions.visibility, isEditorial: exhibitions.isEditorial })
+        .from(exhibitions).where(inArray(exhibitions.id, manifestIds))
       : [];
     const existingManifestById = new Map(existingManifestRows.map((row) => [row.id, row]));
-    const manifestSlugs = manifest.curations.map((item) => item.id.replace(/^ex_/, "").replace(/_/g, "-"));
+    const slugOf = (id: string) => id.replace(/^ex_/, "").replace(/_/g, "-");
+    const manifestSlugs = manifestIds.map(slugOf);
     const occupiedManifestSlugs = manifestSlugs.length
       ? await tx.select({ id: exhibitions.id, slug: exhibitions.slug }).from(exhibitions).where(inArray(exhibitions.slug, manifestSlugs))
       : [];
     const slugOwner = new Map(occupiedManifestSlugs.map((row) => [row.slug, row.id]));
-    const existingManifestItems = manifestIds.length
-      ? await tx.select({ exhibitionId: exhibitionItems.exhibitionId, workId: exhibitionItems.workId })
-        .from(exhibitionItems).where(inArray(exhibitionItems.exhibitionId, manifestIds))
-      : [];
-    const itemsByCuration = new Map<string, Set<string>>();
-    for (const item of existingManifestItems) {
-      const linked = itemsByCuration.get(item.exhibitionId) ?? new Set<string>();
-      linked.add(item.workId);
-      itemsByCuration.set(item.exhibitionId, linked);
-    }
 
+    // A manifest curation is seeded only when every referenced work exists with matching metadata,
+    // and never over a row that a person owns.
     const safeCurations = manifest.curations.filter((item) => {
       if (!item.works.every(matchesReference)) return false;
       const existing = existingManifestById.get(item.id);
-      if (existing && (existing.ownerId !== EDITORIAL_USER.id || !existing.isEditorial || existing.visibility !== "PUBLIC" ||
-        existing.description !== item.description)) return false;
-      const linked = itemsByCuration.get(item.id) ?? new Set<string>();
-      if ([...linked].some((workId) => !item.works.some((work) => work.id === workId))) return false;
-      const slug = item.id.replace(/^ex_/, "").replace(/_/g, "-");
-      const occupyingId = slugOwner.get(slug);
+      if (existing && (existing.ownerId !== EDITORIAL_USER.id || !existing.isEditorial || existing.visibility !== "PUBLIC")) return false;
+      const occupyingId = slugOwner.get(slugOf(item.id));
       return !occupyingId || occupyingId === item.id;
     });
 
-    // Existing editorial rows may reference works outside this local seed catalog.
-    // Their title can still be reconciled independently without touching links or copy.
-    for (const item of manifest.curations) {
-      const existing = existingManifestById.get(item.id);
-      if (existing && existing.ownerId === EDITORIAL_USER.id && existing.isEditorial &&
-        existing.visibility === "PUBLIC" && existing.title !== item.title) {
-        await tx.update(exhibitions).set({ title: item.title }).where(eq(exhibitions.id, item.id));
-      }
-    }
+    // The manifest is the source of truth for editorial demo curations: copy, order and notes are
+    // reconciled on every run, and demo curations dropped from the manifest are retired.
+    // User-owned rows never match these conditions.
+    const retired = await tx.delete(exhibitions).where(and(
+      eq(exhibitions.ownerId, EDITORIAL_USER.id), eq(exhibitions.isEditorial, true), like(exhibitions.id, "ex\\_blog\\_%"),
+      manifestIds.length ? notInArray(exhibitions.id, manifestIds) : undefined,
+    )).returning({ id: exhibitions.id });
 
     if (safeCurations.length) {
       const [{ currentMax }] = await tx.select({ currentMax: max(exhibitions.number) }).from(exhibitions);
       let nextNumber = (currentMax ?? 0) + 1;
       for (const item of safeCurations) {
+        const document: CurationDocument = {
+          title: item.title, subtitle: item.subtitle, curator: item.curator, intro: item.description, template: item.template, accentIndex: null,
+          items: item.works.map((work) => ({
+            id: work.id, title: work.title, creator: work.creator, year: "", medium: work.medium.toLowerCase(),
+            reason: work.reason, note: work.note, layout: "" as const, featured: false, cover: null, scenes: [], palette: null,
+          })),
+        };
         if (!existingManifestById.has(item.id)) {
           await tx.insert(exhibitions).values({
-            id: item.id, ownerId: EDITORIAL_USER.id, slug: item.id.replace(/^ex_/, "").replace(/_/g, "-"),
-            title: item.title, description: item.description, visibility: "PUBLIC", isEditorial: true,
-            number: nextNumber++, version: 1,
+            id: item.id, ownerId: EDITORIAL_USER.id, slug: slugOf(item.id), title: item.title, description: item.description,
+            curationData: document, visibility: "PUBLIC", isEditorial: true, number: nextNumber++, version: 1,
           }).onConflictDoNothing({ target: exhibitions.id });
-        } else if (existingManifestById.get(item.id)?.title !== item.title) {
-          await tx.update(exhibitions).set({ title: item.title }).where(eq(exhibitions.id, item.id));
+        } else {
+          await tx.update(exhibitions).set({ title: item.title, description: item.description, curationData: document })
+            .where(eq(exhibitions.id, item.id));
         }
-        const linked = itemsByCuration.get(item.id) ?? new Set<string>();
-        const missing = item.works.filter((work) => !linked.has(work.id));
-        if (missing.length) await tx.insert(exhibitionItems).values(missing.map((work) => ({
-          id: `exi_${item.id}_${item.works.findIndex((ref) => ref.id === work.id)}`,
-          exhibitionId: item.id, workId: work.id, position: item.works.findIndex((ref) => ref.id === work.id), curatorNote: null,
-        }))).onConflictDoNothing();
+        await tx.delete(exhibitionItems).where(eq(exhibitionItems.exhibitionId, item.id));
+        await tx.insert(exhibitionItems).values(item.works.map((work, position) => ({
+          id: `exi_${item.id}_${position}`, exhibitionId: item.id, workId: work.id, position, curatorNote: work.reason || null,
+        })));
       }
     }
 
@@ -155,6 +147,6 @@ export async function seedDatabase(db: Db) {
       }).onConflictDoNothing();
     }
     // user-created exhibitions are numbered after the editorial samples
-    return { works: SEED_WORKS.length, exhibitions: SEED_EXHIBITIONS.length + CURATION_DEMO_EXHIBITIONS.length + safeCurations.length };
+    return { works: SEED_WORKS.length, exhibitions: SEED_EXHIBITIONS.length + CURATION_DEMO_EXHIBITIONS.length + safeCurations.length, retired: retired.length };
   });
 }

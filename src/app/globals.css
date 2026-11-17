@@ -743,3 +743,74 @@ code.url { overflow-wrap: anywhere; }
   .onboard-bar { gap: 8px 16px; }
   .onboard-recs { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
+
+/* Curation cover as a wall: the curation's own works hung on its room colour. */
+.curation-wall { position: relative; container-type: inline-size; width: 100%; aspect-ratio: 1; border: 0; background: var(--room); color: var(--room-ink); overflow: hidden; }
+.curation-wall .room-no { position: absolute; top: 7cqw; left: 7cqw; z-index: 2; font-size: clamp(9px, 4.2cqw, 11px); letter-spacing: .04em; color: var(--room-ink); opacity: .9; }
+.curation-hang { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; gap: 5cqw; padding: 15cqw 8cqw 9cqw; }
+.curation-hang .art-wrap { flex: none; width: min(25cqw, calc(40cqw * var(--ar))); aspect-ratio: var(--ar); }
+.curation-wall[data-count="2"] .art-wrap { width: min(33cqw, calc(46cqw * var(--ar))); }
+.curation-wall[data-count="1"] .art-wrap { width: min(46cqw, calc(58cqw * var(--ar))); }
+.curation-hang .art, .curation-hang .cover { display: block; width: 100%; height: 100%; object-fit: cover; box-shadow: 0 12px 24px -12px rgba(0, 0, 0, .55); }
+.curation-wall[data-hang="lead"] .curation-hang { align-items: flex-end; padding-bottom: 14cqw; }
+.curation-wall[data-hang="lead"][data-count="3"] .art-wrap:first-child { width: min(36cqw, calc(54cqw * var(--ar))); }
+.curation-wall[data-hang="lead"][data-count="3"] .art-wrap:not(:first-child) { width: min(19cqw, calc(30cqw * var(--ar))); }
+.curation-wall[data-hang="step"] .art-wrap:nth-child(1) { transform: translateY(-6cqw); }
+.curation-wall[data-hang="step"] .art-wrap:nth-child(3) { transform: translateY(6cqw); }
+.curation-wall[data-hang="lean"] .curation-hang { gap: 0; }
+.curation-wall[data-hang="lean"] .art-wrap + .art-wrap { margin-left: -6cqw; }
+.curation-wall[data-hang="lean"] .art-wrap:nth-child(1) { transform: rotate(-4deg); }
+.curation-wall[data-hang="lean"] .art-wrap:nth-child(2) { z-index: 1; transform: translateY(-3cqw); }
+.curation-wall[data-hang="lean"] .art-wrap:nth-child(3) { transform: rotate(4deg); }
+.curation-cover-card { border: 0; }
+.curation-cover-card .room-title { color: var(--room-ink); text-shadow: none; }
+.curation-cover-card .room-no { color: var(--room-ink); opacity: .85; }
+.curation-popular-name { font-size: 1.12rem; margin-top: 4px; }
+.curation-popular-lede { display: -webkit-box; overflow: hidden; -webkit-box-orient: vertical; -webkit-line-clamp: 2; color: var(--grey); font-size: .84rem; line-height: 1.5; }
+.curation-popular-meta { color: var(--grey); margin-top: 2px; }
+.curation-discovery-title { color: var(--ink); font-size: 1.35rem; }
+.curation-discovery { gap: 56px; }
+.curation-popular-list { gap: 36px; }
+.curation-popular-face:hover, .curation-popular-face:focus-visible { box-shadow: none; }
+.curation-popular-face:hover .curation-popular-name { text-decoration: underline; text-underline-offset: 4px; text-decoration-thickness: 1px; }
+.curation-popular-face .art-wrap { transition: transform .45s var(--ease); }
+.curation-popular-face:hover .curation-hang .art-wrap:nth-child(2), .curation-popular-face:hover .curation-wall[data-count="1"] .art-wrap { translate: 0 -2cqw; }
+
+/* Related curations: one quiet band of links, outside the works grid. */
+.curation-inline { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 28px; margin: 28px 0 0; padding: 18px 0; border-block: 1px solid var(--hair); }
+.curation-inline-detail { margin: 0 auto 32px; }
+.curation-inline-caption { flex: none; color: var(--grey); font-family: var(--sans, inherit); font-size: .82rem; }
+.curation-inline-list { display: flex; flex-wrap: wrap; gap: 10px 24px; padding: 0; overflow: visible; }
+.curation-inline-item { display: inline-flex; flex: none; align-items: center; gap: 10px; width: auto; color: var(--ink); }
+.curation-inline-swatch { display: grid; place-items: center; width: 30px; height: 30px; font-size: 10.5px; font-variant-numeric: tabular-nums; }
+.curation-inline-name { font-family: var(--display), var(--kserif); font-size: 1.02rem; line-height: 1.2; }
+.curation-inline-item:hover .curation-inline-name { text-decoration: underline; text-underline-offset: 4px; text-decoration-thickness: 1px; }
+
+.curation-reader-actions { justify-content: flex-start; padding-block: 18px; border-bottom: 1px solid var(--hair); }
+.curation-reader-actions .curation-reader-edit { margin-left: auto; }
+
+/* colour chips sampled from the hung works, bottom-left of the wall */
+.curation-chips { position: absolute; left: 7cqw; bottom: 6cqw; z-index: 2; display: flex; }
+.curation-chips i { display: block; width: clamp(7px, 3.6cqw, 11px); height: clamp(7px, 3.6cqw, 11px); }
+
+/* like and save */
+.reactions { display: inline-flex; align-items: center; gap: 6px; }
+.reaction { display: inline-flex; align-items: center; gap: 7px; height: 38px; padding: 0 14px; border-radius: 99px; background: var(--soft); color: var(--ink); font-size: .86rem; transition: background .2s, color .2s; }
+.reaction:hover { background: var(--hair); }
+.reaction[aria-pressed="true"] { background: var(--ink); color: #fff; }
+.reaction[aria-pressed="true"] svg { fill: currentColor; }
+.reaction:disabled { opacity: .6; }
+.reaction-note { color: var(--grey); font-size: .8rem; margin-left: 6px; }
+.shelf-head { display: flex; align-items: baseline; gap: 14px; flex-wrap: wrap; margin: 56px 0 20px; }
+.shelf-name { font: inherit; font-family: var(--display), var(--kserif); font-size: 1.6rem; border: 0; border-bottom: 1px solid transparent; background: transparent; color: var(--ink); padding: 0 0 2px; min-width: 6ch; max-width: 100%; outline: none; }
+.shelf-name:hover, .shelf-name:focus { border-bottom-color: var(--ink); }
+.shelf-row { display: flex; gap: 22px; overflow-x: auto; padding-bottom: 12px; scrollbar-width: thin; }
+.shelf-item { flex: none; width: 132px; color: var(--ink); }
+.shelf-item > .art-wrap { display: block; width: 132px; height: auto; aspect-ratio: var(--ar); }
+.shelf-item > .art-wrap .art, .shelf-item > .art-wrap .cover { width: 100%; height: 100%; object-fit: cover; }
+.shelf-item .curation-cover { width: 132px; }
+.shelf-item b { display: block; margin-top: 10px; font-weight: 400; font-size: .9rem; line-height: 1.3; }
+.shelf-item small { color: var(--grey); font-size: .78rem; }
+
+.home-works { padding-block: clamp(48px, 7vw, 104px) 0; }
+.home-works .rooms-head { margin-bottom: 0; }

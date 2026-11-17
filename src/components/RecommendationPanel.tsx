@@ -109,7 +109,7 @@ export function RecommendationPanel({ exhibitionId, canAdd }: { exhibitionId: st
                 </div>
                 {canAdd && (
                   <button className="btn btn-sm" style={{ marginTop: 16 }} disabled={adding !== null} onClick={() => add(r)}>
-                    {adding === r.workId ? "Adding…" : "Add to exhibition"}
+                    {adding === r.workId ? "Adding…" : "Add to this curation"}
                   </button>
                 )}
               </div>

@@ -36,3 +36,11 @@ Template `postMessage` calls now require the same origin and the expected parent
 - `LECTA_E2E_URL=http://localhost:3041 npm run test:curation-e2e` against a local/demo test server with a disposable database (requires the optional Playwright package and Chromium). Covers real catalog search, long writing, keyboard reorder, scene upload, three-template switching, server reload, the reader, My rooms and 390px layout. External search is stubbed for a deterministic browser test; the editor uses the real provider API in normal use.
 
 `LECTA_DIST_DIR` can select an isolated Next.js output directory when a developer server is already running. Verification uses a separate temporary Postgres container and never a deployment database.
+
+## 2026-11-16 feedback round
+
+- Writing is edited as it reads: the note field is a rich field (bold, italic, quote shown as themselves) that still stores the `**bold**`, `*italic*`, `> quote` subset the templates parse.
+- Save stores the draft and then opens the finished curation. Returning with Edit curation restores the page and mode that were open (session storage, per curation).
+- A layout picked by the author is always applied. Missing scenes fall back to the cover, a quote page without a marked quote uses the opening sentence, and a quote page keeps the rest of the writing below the quote.
+- Covers load with CORS first (needed for colour sampling) and fall back to a plain load, so hosts without CORS headers still show their image. `curationView` falls back to the catalog artwork when a stored item has no cover.
+- The selection tray is mounted in the root layout and follows the visitor on every page except the editor and onboarding.

@@ -10,6 +10,8 @@ import { useBallPit } from "./useBallPit";
 
 const FIRST = 24;
 const MORE = 12;
+// past this many the pit is full; from here only "다른 작품 보기" makes room
+const CROWDED = 40;
 
 const creatorName = (c: string) => c.replace(/\s*\(.*?\)/g, "");
 
@@ -26,6 +28,7 @@ export function WelcomeClient({ pool, initialPicked, next, min, max, userName }:
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<SavedTaste | null>(null);
   const searchRef = useRef<HTMLDivElement>(null);
+  const seen = useRef(new Set<string>());
   const pit = useBallPit();
 
   // full screen: the page behind must not scroll
@@ -45,6 +48,22 @@ export function WelcomeClient({ pool, initialPicked, next, min, max, userName }:
     if (full) return;
     pit.setSelected(id, true);
     setPicked([...picked, id]);
+  }
+
+  /** Clears the works that were not picked and drops a fresh set, so the pit never fills up with misses. */
+  function refresh() {
+    const keep = shown.filter((w) => picked.includes(w.id));
+    const gone = shown.filter((w) => !picked.includes(w.id));
+    gone.forEach((w) => seen.current.add(w.id));
+    keep.forEach((w) => seen.current.add(w.id));
+    let fresh = pool.filter((w) => !seen.current.has(w.id)).slice(0, Math.max(MORE, FIRST - keep.length));
+    if (fresh.length < MORE) {
+      // every work has been shown once: start over from the top
+      seen.current = new Set(keep.map((w) => w.id));
+      fresh = pool.filter((w) => !seen.current.has(w.id)).slice(0, Math.max(MORE, FIRST - keep.length));
+    }
+    pit.remove(gone.map((w) => w.id));
+    setShown([...keep, ...fresh]);
   }
 
   function more() {
@@ -95,7 +114,7 @@ export function WelcomeClient({ pool, initialPicked, next, min, max, userName }:
         <>
           <header className="onboard-head">
             <h1 id="onboard-title" className="h3">{userName ? `${userName}님, ` : ""}좋아하는 작품을 골라 주세요.</h1>
-            <p className="muted">공을 누르거나, 찾는 작품을 검색해 담아 주세요. {min}개 이상이면 돼요.</p>
+            <p className="muted">공을 누르거나, 찾는 작품을 검색해 담아 주세요. 마음에 드는 게 없으면 다른 작품 보기를 누르세요. {min}개 이상이면 돼요.</p>
             <SearchBox boxRef={searchRef} picked={picked} onPick={pickFromSearch} />
           </header>
 
@@ -112,9 +131,12 @@ export function WelcomeClient({ pool, initialPicked, next, min, max, userName }:
           </div>
 
           <div className="onboard-bar">
-            {hasMore && <button type="button" className="btn-ghost" onClick={more}>작품 더 떨어뜨리기</button>}
+            <span style={{ display: "inline-flex", gap: 20, flexWrap: "wrap" }}>
+              {pool.length > shown.length && <button type="button" className="btn-ghost" onClick={refresh}>다른 작품 보기</button>}
+              {hasMore && shown.length < CROWDED && <button type="button" className="btn-ghost" onClick={more}>더 떨어뜨리기</button>}
+            </span>
             <p aria-live="polite">
-              {picked.length === 0 ? `${min}개 이상 골라 주세요` : remaining > 0 ? `${picked.length}개 · ${remaining}개 더` : full ? `${picked.length}개 · 최대 ${max}개` : `${picked.length}개 골랐어요`}
+              {picked.length === 0 ? `${min}개 이상 골라 주세요` : remaining > 0 ? `${picked.length}개, ${remaining}개 더` : full ? `${picked.length}개, 최대 ${max}개` : `${picked.length}개 골랐어요`}
             </p>
             {error && <p className="notice error" role="alert" style={{ padding: "6px 12px" }}>{error}</p>}
             <button type="button" className="btn" disabled={remaining > 0 || saving} onClick={save}>{saving ? "취향을 읽는 중…" : "완료"}</button>

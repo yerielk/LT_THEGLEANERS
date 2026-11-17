@@ -8,7 +8,7 @@ import type { Medium as WorkMedium } from "@/lib/media";
 
 type Medium = "CURATION" | WorkMedium;
 
-type CurationResult = { id: string; number: number; title: string; description: string | null; items?: { workId: string; work: CoverWork & { id: string } }[] };
+type CurationResult = { id: string; number: number; title: string; description: string | null; curationData?: { curator?: string } | null; items?: { workId: string; work: CoverWork & { id: string } }[] };
 type Item = CurationResult & { items: { workId: string; work: CoverWork & { id: string } }[] };
 type Payload = { exhibitions: Item[] };
 type WorkPreviewItem = { workId: string; work: CoverWork & { id: string } };
@@ -55,11 +55,11 @@ export function CurationSearchResults({ query, medium }: { query: string; medium
   }, [query]);
 
   if (!query.trim()) return null;
-  if (resolvedQuery !== query.trim()) return <section className="wrap curation-search-results" aria-live="polite" aria-label="Curation search results"><p className="muted">Searching curations…</p></section>;
+  if (resolvedQuery !== query.trim()) return <section className="wrap curation-search-results" aria-live="polite" aria-label="Curation search results"><p className="muted">큐레이션을 찾는 중…</p></section>;
   return <section className="wrap curation-search-results" aria-live="polite" aria-label="Curation search results">
-    {state === "loading" ? <p className="muted">Searching curations…</p>
-      : state === "error" ? <p className="notice error" role="alert">Curation search could not be loaded. Please try again.</p>
-      : items.length === 0 ? <p className="muted">No curations match “{query.trim()}”.</p>
+    {state === "loading" ? <p className="muted">큐레이션을 찾는 중…</p>
+      : state === "error" ? <p className="notice error" role="alert">큐레이션 검색을 불러오지 못했어요. 잠시 후 다시 시도해 주세요.</p>
+      : items.length === 0 ? <p className="muted">“{query.trim()}”에 맞는 큐레이션이 아직 없어요. 작품 이름이나 ‘기억’, ‘퇴근길’ 같은 단어로 찾아보세요.</p>
       : <CurationResultList items={items} medium={medium} query={query} />}
   </section>;
 }
@@ -79,10 +79,11 @@ export function CurationResultList({ items, medium, query, showWorks = true }: {
     const works = item.items ?? [];
     return <article className={`curation-search-card${showWorks ? "" : " curation-search-card-text-only"}`} key={item.id}>
       <Link className="curation-search-main" href={`/exhibitions/${item.id}`}>
-        <CurationCover number={item.number} title={item.title} />
+        <CurationCover number={item.number} title={item.title} works={works} />
         <span className="curation-search-copy">
           <span className="curation-search-title">{curationDisplayTitle(item.title)}</span>
           {item.description && <span className="curation-search-description">{item.description}</span>}
+          <span className="curation-popular-meta">{item.curationData?.curator ? `${item.curationData.curator} / ` : ""}{works.length} works</span>
         </span>
       </Link>
       {showWorks && <CurationWorkPreviews works={works} hrefForWork={workHref} />}
