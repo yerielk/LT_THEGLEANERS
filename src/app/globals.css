@@ -788,3 +788,29 @@ code.url { overflow-wrap: anywhere; }
 
 .curation-reader-actions { justify-content: flex-start; padding-block: 18px; border-bottom: 1px solid var(--hair); }
 .curation-reader-actions .curation-reader-edit { margin-left: auto; }
+
+/* colour chips sampled from the hung works, bottom-left of the wall */
+.curation-chips { position: absolute; left: 7cqw; bottom: 6cqw; z-index: 2; display: flex; }
+.curation-chips i { display: block; width: clamp(7px, 3.6cqw, 11px); height: clamp(7px, 3.6cqw, 11px); }
+
+/* like and save */
+.reactions { display: inline-flex; align-items: center; gap: 6px; }
+.reaction { display: inline-flex; align-items: center; gap: 7px; height: 38px; padding: 0 14px; border-radius: 99px; background: var(--soft); color: var(--ink); font-size: .86rem; transition: background .2s, color .2s; }
+.reaction:hover { background: var(--hair); }
+.reaction[aria-pressed="true"] { background: var(--ink); color: #fff; }
+.reaction[aria-pressed="true"] svg { fill: currentColor; }
+.reaction:disabled { opacity: .6; }
+.reaction-note { color: var(--grey); font-size: .8rem; margin-left: 6px; }
+.shelf-head { display: flex; align-items: baseline; gap: 14px; flex-wrap: wrap; margin: 56px 0 20px; }
+.shelf-name { font: inherit; font-family: var(--display), var(--kserif); font-size: 1.6rem; border: 0; border-bottom: 1px solid transparent; background: transparent; color: var(--ink); padding: 0 0 2px; min-width: 6ch; max-width: 100%; outline: none; }
+.shelf-name:hover, .shelf-name:focus { border-bottom-color: var(--ink); }
+.shelf-row { display: flex; gap: 22px; overflow-x: auto; padding-bottom: 12px; scrollbar-width: thin; }
+.shelf-item { flex: none; width: 132px; color: var(--ink); }
+.shelf-item > .art-wrap { display: block; width: 132px; height: auto; aspect-ratio: var(--ar); }
+.shelf-item > .art-wrap .art, .shelf-item > .art-wrap .cover { width: 100%; height: 100%; object-fit: cover; }
+.shelf-item .curation-cover { width: 132px; }
+.shelf-item b { display: block; margin-top: 10px; font-weight: 400; font-size: .9rem; line-height: 1.3; }
+.shelf-item small { color: var(--grey); font-size: .78rem; }
+
+.home-works { padding-block: clamp(48px, 7vw, 104px) 0; }
+.home-works .rooms-head { margin-bottom: 0; }

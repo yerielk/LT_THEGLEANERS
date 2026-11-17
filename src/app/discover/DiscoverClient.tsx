@@ -11,11 +11,15 @@ import { useSelection } from "@/lib/selection";
 import { useRecommendationSelection } from "@/lib/recommendation/selection";
 import { MEDIA, type Medium as WorkMedium } from "@/lib/media";
 import { ExternalResults } from "./ExternalResults";
+
+const ORDER = ["FILM", "SERIES", "BOOK", "ALBUM", "TRACK", "PERFORMANCE", "EXHIBITION"];
 import { CurationRecommendations } from "./CurationRecommendations";
 import { CurationDiscovery } from "./CurationDiscovery";
 import { CurationSearchResults } from "./CurationSearchResults";
 
 type Filter = "CURATION" | WorkMedium;
+// tracks sit next to albums so music reads as one group
+const TAB_ORDER: WorkMedium[] = [...MEDIA].sort((a, b) => ORDER.indexOf(a) - ORDER.indexOf(b));
 
 /** Re-hang the grid inside a view transition so works glide to their new places. */
 function rehang(update: () => void) {
@@ -101,7 +105,7 @@ export function DiscoverClient({ initial, initialMedium, initialQ = "", tagLabel
             {q && <button type="button" onClick={() => changeQuery("")} aria-label="Clear search"><X size={16} /></button>}
           </label>
           {mode === "works" && <div className="toggles" role="group" aria-label="Medium filters">
-            {MEDIA.map((m) => (
+            {TAB_ORDER.map((m) => (
               <button key={m} type="button" className="toggle" aria-pressed={medium === m} onClick={() => pick(() => changeMedium(m))}>
                 {MEDIUM_PLURAL[m]}
               </button>
@@ -114,6 +118,7 @@ export function DiscoverClient({ initial, initialMedium, initialQ = "", tagLabel
       {mode === "curation" && medium === "CURATION" && q.trim() && <CurationSearchResults query={q} medium={medium} />}
       {/* Related curations sit in their own band above the grid, so the rows of works are never split. */}
       {medium !== "CURATION" && <div className="wrap"><CurationRecommendations query={q} medium={medium} /></div>}
+      {medium === "TRACK" && !q.trim() && works.length === 0 && state === "idle" && <div className="wrap"><p className="muted" style={{ margin: "40px 0 0" }}>곡은 제목이나 가수 이름으로 검색하면 찾아 와요. 찾은 곡에 + 를 누르면 담겨요.</p></div>}
       {medium !== "CURATION" && <section className="wrap" aria-label="Works">
         {state === "error" ? (
           <div className="empty">

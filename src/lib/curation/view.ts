@@ -22,7 +22,7 @@ export function curationView(ex: ExhibitionView): CurationDocument {
       const item = byId.get(work.id);
       const base = curationWork(work);
       // A stored document may predate the work's artwork; the catalog cover fills the gap.
-      return { ...base, ...item, cover: item?.cover ?? base.cover, id: work.id, title: work.title.slice(0, 200), creator: work.creator.slice(0, 300), year: work.releaseYear == null ? "" : String(work.releaseYear), medium: work.medium.toLowerCase(),
+      return { ...base, ...item, cover: item?.cover ?? base.cover, palette: item?.palette?.length ? item.palette : work.palette?.slice(0, 6) ?? null, id: work.id, title: work.title.slice(0, 200), creator: work.creator.slice(0, 300), year: work.releaseYear == null ? "" : String(work.releaseYear), medium: work.medium.toLowerCase(),
         reason: curatorNote ?? "" };
     }),
   };

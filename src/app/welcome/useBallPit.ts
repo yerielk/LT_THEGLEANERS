@@ -244,6 +244,11 @@ export function useBallPit() {
       pendingSpawn.current.set(id, { ...spawn });
     },
 
+    /** Take balls out of the pit for good, so they stop taking up room. */
+    remove(ids: string[]) {
+      for (const id of ids) { bodies.current.delete(id); pendingSpawn.current.delete(id); }
+    },
+
     /** Toss a ball that is already in the pit, to show where it is. */
     bump(id: string) {
       const b = bodies.current.get(id);

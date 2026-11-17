@@ -22,6 +22,13 @@
       "when": 1794627791147,
       "tag": "0002_curation_editor",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1794901092363,
+      "tag": "0003_library",
+      "breakpoints": true
     }
   ]
 }

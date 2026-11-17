@@ -1,5 +1,6 @@
 import type { CSSProperties } from "react";
 import { wallFor } from "@/lib/design";
+import { coverTheme } from "@/lib/curation/cover-theme";
 import { WorkImage } from "./WorkImage";
 import type { CoverWork } from "./WorkCover";
 
@@ -39,9 +40,11 @@ type HungWork = { workId: string; work: CoverWork & { id?: string } };
  * and neighbouring cards do not repeat the same composition. Without works it falls back to the title.
  */
 export function CurationCover({ number, title, works, className = "" }: { number: number; title: string; works?: HungWork[]; className?: string }) {
-  const wall = wallFor(number);
   const displayTitle = curationDisplayTitle(title);
   const hung = (works ?? []).slice(0, 3);
+  // the wall colour and the chips come from the hung works' own artwork colours
+  const theme = hung.length ? coverTheme(number, hung.map((item) => item.work)) : null;
+  const wall = theme ?? wallFor(number);
   const style = { "--room": wall.hex, "--room-ink": wall.ink } as CSSProperties;
   const label = `Room ${String(number).padStart(2, "0")}: ${displayTitle}`;
   if (hung.length) {
@@ -50,6 +53,7 @@ export function CurationCover({ number, title, works, className = "" }: { number
       <span className="curation-hang" aria-hidden>
         {hung.map(({ workId, work }) => <WorkImage key={workId} work={work} mini />)}
       </span>
+      {theme && theme.chips.length > 1 && <span className="curation-chips" aria-hidden>{theme.chips.map((hex) => <i key={hex} style={{ background: hex }} />)}</span>}
     </div>;
   }
   const titleLength = displayTitle.length <= 16 ? "short" : displayTitle.length <= 32 ? "medium" : "long";

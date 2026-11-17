@@ -109,6 +109,7 @@ export async function getCurationDiscovery(actor: Actor, db: Db = getDb()) {
         medium: work.medium,
         releaseYear: work.releaseYear,
         coverTone: work.coverTone,
+        palette: work.palette,
         artwork: work.artwork ? { url: work.artwork.url, width: work.artwork.width, height: work.artwork.height } : null,
       },
     })),

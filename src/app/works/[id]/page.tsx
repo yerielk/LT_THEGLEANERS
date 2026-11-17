@@ -1,6 +1,9 @@
 import { Link } from "next-view-transitions";
 import { notFound } from "next/navigation";
 import { getWork } from "@/lib/services/works";
+import { reactionState } from "@/lib/services/library";
+import { webActor } from "@/lib/services/web-actor";
+import { Reactions } from "@/components/Reactions";
 import { LectaError } from "@/lib/services/errors";
 import { MEDIUM_KO, MEDIUM_LABEL } from "@/components/WorkCover";
 import { WorkImage } from "@/components/WorkImage";
@@ -42,6 +45,7 @@ export default async function WorkPage({ params, searchParams }: { params: Promi
   if (query) discoverParams.set("q", query);
   discoverParams.set("medium", medium);
   const returnHref = medium === "CURATION" ? `/curation?${discoverParams.toString()}` : `/discover?${discoverParams.toString()}`;
+  const reactions = await reactionState("WORK", w.id, await webActor());
   const work = { id: w.id, title: w.title, originalTitle: w.originalTitle, creator: w.creator, medium: w.medium, releaseYear: w.releaseYear, coverTone: w.coverTone, artwork: w.artwork };
   return (
     <>
@@ -55,6 +59,7 @@ export default async function WorkPage({ params, searchParams }: { params: Promi
           <p className="lede">{w.synopsis}</p>
           <div style={{ display: "flex", gap: 22, flexWrap: "wrap", alignItems: "center", margin: "28px 0 8px" }}>
             <WorkDetailSelection work={work} query={query} medium={medium} />
+            <Reactions targetType="WORK" targetId={w.id} initial={reactions} />
           </div>
           <dl className="wd-meta">
             <dt>Medium</dt><dd>{MEDIUM_KO[w.medium]}</dd>

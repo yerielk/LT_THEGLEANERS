@@ -5,7 +5,7 @@
  * field names Better Auth expects, the SQL column names are snake_case.
  */
 import { sql } from "drizzle-orm";
-import { boolean, index, integer, jsonb, pgEnum, pgTable, real, text, timestamp, uniqueIndex } from "drizzle-orm/pg-core";
+import { boolean, index, integer, jsonb, pgEnum, pgTable, primaryKey, real, text, timestamp, uniqueIndex } from "drizzle-orm/pg-core";
 import type { CurationDocument } from "./curation/document";
 
 const ts = (name: string) => timestamp(name, { withTimezone: true, mode: "date" });
@@ -98,6 +98,8 @@ export const works = pgTable("works", {
   event: jsonb("event").$type<{ venue: string | null; startDate: string | null; endDate: string | null; genre: string | null; workTitle: string | null }>(),
   metadataStatus: metadataStatusEnum("metadata_status").notNull(),
   coverTone: text("cover_tone"),
+  /** Dominant colours of the artwork, most present first. Filled by scripts/extract-palettes.ts or the editor preview. */
+  palette: jsonb("palette").$type<{ hex: string; weight: number }[]>(),
   createdAt: ts("created_at").notNull().defaultNow(),
   updatedAt: ts("updated_at").notNull().defaultNow(),
 }, (t) => [
@@ -161,6 +163,33 @@ export const curationAssets = pgTable("curation_assets", {
   palette: jsonb("palette").$type<{ hex: string; weight: number }[]>().notNull(),
   createdAt: ts("created_at").notNull().defaultNow(),
 }, (t) => [index("curation_assets_exhibition_idx").on(t.exhibitionId)]);
+
+// ── likes and saved shelves ────────────────────────────────────────────────
+export const libraryTargetEnum = pgEnum("library_target", ["WORK", "CURATION"]);
+
+/** One row per person per thing. The target is a work id or an exhibition id, so there is no single foreign key. */
+export const likes = pgTable("likes", {
+  userId: text("user_id").notNull().references(() => user.id, { onDelete: "cascade" }),
+  targetType: libraryTargetEnum("target_type").notNull(),
+  targetId: text("target_id").notNull(),
+  createdAt: ts("created_at").notNull().defaultNow(),
+}, (t) => [primaryKey({ columns: [t.userId, t.targetType, t.targetId] }), index("likes_target_idx").on(t.targetType, t.targetId)]);
+
+/** A named shelf of saved works and curations. Everyone gets one default shelf on first save. */
+export const collections = pgTable("collections", {
+  id: text("id").primaryKey(),
+  userId: text("user_id").notNull().references(() => user.id, { onDelete: "cascade" }),
+  name: text("name").notNull(),
+  isDefault: boolean("is_default").notNull().default(false),
+  createdAt: ts("created_at").notNull().defaultNow(),
+}, (t) => [index("collections_user_idx").on(t.userId)]);
+
+export const collectionItems = pgTable("collection_items", {
+  collectionId: text("collection_id").notNull().references(() => collections.id, { onDelete: "cascade" }),
+  targetType: libraryTargetEnum("target_type").notNull(),
+  targetId: text("target_id").notNull(),
+  createdAt: ts("created_at").notNull().defaultNow(),
+}, (t) => [primaryKey({ columns: [t.collectionId, t.targetType, t.targetId] })]);
 
 // ── signals and logs ──────────────────────────────────────────────────────
 export const signalTypeEnum = pgEnum("signal_type", ["SAVED", "LIKED", "DISLIKED", "CURATED", "RECOMMENDATION_ADDED"]);

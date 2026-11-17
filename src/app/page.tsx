@@ -9,6 +9,7 @@ import { HangRow } from "@/components/HangRow";
 import { WorkCarousel } from "@/components/WorkCarousel";
 import { TAGS } from "@/lib/recommendation/tags";
 import { wallFor } from "@/lib/design";
+import { coverTheme } from "@/lib/curation/cover-theme";
 
 export const dynamic = "force-dynamic";
 
@@ -18,7 +19,7 @@ const HANG_H: Record<string, number> = { FILM: 340, BOOK: 290, ALBUM: 220, SERIE
 
 export default async function Home() {
   const actor = await webActor();
-  const [{ pick, popular }, works] = await Promise.all([homePicks(actor), allWorks()]);
+  const [{ pick, popular, works: recommendedWorks, personalised }, works] = await Promise.all([homePicks(actor), allWorks()]);
   const byId = new Map(works.map((w) => [w.id, w]));
   const counts = (["FILM", "SERIES", "BOOK", "ALBUM"] as const).map((m) => ({ m, n: works.filter((w) => w.medium === m).length }));
   const moodCount = (k: string) => works.filter((w) => w.tagKeys.includes(k)).length;
@@ -27,7 +28,7 @@ export default async function Home() {
     <>
       <section className="entrance">
         <div className="wrap">
-          <div className="entrance-top"><span>Lecta, by THE GLEANERS</span><span>Opening exhibition, autumn 2026</span></div>
+          <div className="entrance-top"><span>Lecta, by THE GLEANERS</span><span>Opening curation, autumn 2026</span></div>
           <div className="entrance-head">
             <h1 className="mega">The things<br />we keep.</h1>
             <div className="entrance-sub">
@@ -37,34 +38,25 @@ export default async function Home() {
               </p>
               <div style={{ display: "flex", gap: 22, alignItems: "center", flexWrap: "wrap" }}>
                 <Link className="btn" href="/discover">Explore the collection</Link>
-                <Link className="btn-ghost" href="/exhibitions/new">Make an exhibition</Link>
+                <Link className="btn-ghost" href="/exhibitions/new">Make a curation</Link>
               </div>
             </div>
           </div>
         </div>
-        <HangRow>
-          {HANG.map((id) => byId.get(id)).filter((w) => !!w).map((w) => (
-            <Link key={w!.id} href={`/works/${w!.id}`} style={{ height: HANG_H[w!.medium] }} aria-label={`${w!.title}, details`}>
-              <span style={{ display: "block", height: "100%", aspectRatio: w!.artwork ? `${w!.artwork.width} / ${w!.artwork.height}` : undefined }}>
-                <WorkImage work={w!} eager />
-              </span>
-            </Link>
-          ))}
-        </HangRow>
       </section>
 
       {pick && (() => {
-        const wall = wallFor(pick.number);
+        const wall = { ...wallFor(pick.number), ...coverTheme(pick.number, pick.items.map((i) => i.work)) };
         return (
           <section className="panorama" aria-labelledby="pick-title" style={{ "--room": wall.hex, "--room-ink": wall.ink } as CSSProperties}>
             <div className="wrap panorama-head">
               <div>
-                <p className="panorama-kicker">오늘의 추천 큐레이션 / Room {String(pick.number).padStart(2, "0")} / {wall.name}</p>
+                <p className="panorama-kicker">{personalised ? "취향에 맞춘 추천 큐레이션" : "오늘의 추천 큐레이션"} / Room {String(pick.number).padStart(2, "0")}</p>
                 <h2 id="pick-title" className="room-title">{pick.title}</h2>
               </div>
               <div className="panorama-sub">
                 {pick.description && <p className="room-desc" style={{ margin: 0 }}>{pick.description}</p>}
-                <p className="panorama-meta">Curated by {pick.ownerName} / {pick.items.length} works</p>
+                <p className="panorama-meta">Curated by {pick.curationData?.curator || pick.ownerName} / {pick.items.length} works</p>
                 <Link className="room-enter" href={`/exhibitions/${pick.id}`} style={{ viewTransitionName: `room-${pick.id}` }}>Enter the room</Link>
               </div>
             </div>
@@ -72,6 +64,22 @@ export default async function Home() {
           </section>
         );
       })()}
+
+      <section className="home-works" aria-labelledby="home-works-title">
+        <div className="wrap rooms-head">
+          <h2 id="home-works-title" className="h2">{personalised ? "취향에 맞을 만한 작품" : "지금 벽에 걸린 작품"}</h2>
+          {personalised ? <span className="caption">고른 작품과 좋아요를 바탕으로 골랐어요</span> : actor.userId ? <Link className="btn-ghost" href="/welcome?next=/">좋아하는 작품 고르기</Link> : null}
+        </div>
+        <HangRow>
+          {(recommendedWorks ?? HANG.map((id) => byId.get(id)).filter((w) => !!w)).map((w) => (
+            <Link key={w!.id} href={`/works/${w!.id}`} style={{ height: HANG_H[w!.medium] ?? 240 }} aria-label={`${w!.title}, details`}>
+              <span style={{ display: "block", height: "100%", aspectRatio: w!.artwork ? `${w!.artwork.width} / ${w!.artwork.height}` : undefined }}>
+                <WorkImage work={w!} eager />
+              </span>
+            </Link>
+          ))}
+        </HangRow>
+      </section>
 
       {popular.length > 0 && (
         <section className="popular wrap" aria-labelledby="popular-title">
@@ -81,7 +89,7 @@ export default async function Home() {
           </div>
           <div className="popular-grid">
             {popular.map((ex) => {
-              const wall = wallFor(ex.number);
+              const wall = coverTheme(ex.number, ex.items.map((i) => i.work));
               return (
                 <Link key={ex.id} href={`/exhibitions/${ex.id}`} className="popular-card" style={{ "--room": wall.hex, "--room-ink": wall.ink } as CSSProperties}>
                   <span className="popular-panel">
@@ -91,7 +99,7 @@ export default async function Home() {
                   <span className="popular-strip" aria-hidden>
                     {ex.items.slice(0, 4).map((i) => <span key={i.workId} style={{ aspectRatio: i.work.artwork ? `${i.work.artwork.width} / ${i.work.artwork.height}` : "2 / 3" }}><WorkImage work={i.work} /></span>)}
                   </span>
-                  <span className="caption">Curated by {ex.ownerName} / {ex.items.length} works</span>
+                  <span className="caption">Curated by {ex.curationData?.curator || ex.ownerName} / {ex.items.length} works</span>
                 </Link>
               );
             })}
