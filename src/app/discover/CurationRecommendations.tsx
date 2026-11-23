@@ -2,7 +2,8 @@
 import { Link } from "next-view-transitions";
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { useRecommendationSelection } from "@/lib/recommendation/selection";
-import { CurationCover } from "@/components/CurationCover";
+import { curationDisplayTitle } from "@/components/CurationCover";
+import { wallFor } from "@/lib/design";
 import type { Medium as WorkMedium } from "@/lib/media";
 
 type Item = { id: string; number: number; title: string };
@@ -127,11 +128,15 @@ export function CurationRecommendations({ query, medium, gridRow, onVisibilityCh
   const newIds = new Set(snapshot.context === context ? snapshot.newIds : []);
   return <section ref={detail ? (element) => { sectionRef.current = element; } : undefined} className={`${detail ? "wrap " : ""}curation-inline${detail ? " curation-inline-detail" : ""}`} style={gridRow ? { gridRow } : undefined} aria-label="관련 큐레이션" aria-live="polite">
     {visible ? <>
-      <span className="curation-inline-caption">이 작품이 포함된 추천 큐레이션</span>
+      <span className="curation-inline-caption">{detail ? "이 작품이 담긴 큐레이션" : "담은 작품이 들어 있는 큐레이션"}</span>
       <div className="curation-inline-list">
-        {visibleResults.map((item) => <Link className="curation-inline-item" data-entering={newIds.has(item.id) || undefined} href={`/exhibitions/${item.id}`} key={item.id}>
-          <CurationCover number={item.number} title={item.title} />
-        </Link>)}
+        {visibleResults.map((item) => {
+          const wall = wallFor(item.number);
+          return <Link className="curation-inline-item" data-entering={newIds.has(item.id) || undefined} href={`/exhibitions/${item.id}`} key={item.id}>
+            <span className="curation-inline-swatch" style={{ background: wall.hex, color: wall.ink }} aria-hidden>{String(item.number).padStart(2, "0")}</span>
+            <span className="curation-inline-name">{curationDisplayTitle(item.title)}</span>
+          </Link>;
+        })}
       </div>
       {state === "error" && <span className="curation-inline-status error" role="alert">{errorMessage}</span>}
     </> : <span className="curation-inline-status error" role="alert">{errorMessage}</span>}

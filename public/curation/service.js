@@ -4,7 +4,9 @@
   var active = /[?&]service=1/.test(location.search), hooks, initialized = false;
   var id = null, version = 0, pending = null, running = false, stopped = false, lastSaved = '', saving = null;
   var requestId = 'editor_' + crypto.randomUUID().replace(/-/g, '');
-  var dirty = false, uploadCount = 0, searchTimer, readyTimer;
+  var dirty = false, uploadCount = 0, searchTimer, readyTimer, finishing = false;
+  /* Save is the author saying "done": once everything is stored, the finished curation opens. */
+  function finish() { if (finishing && id && !dirty && !pending && !uploadCount) { finishing = false; parent.postMessage({ type: 'lecta:editor:done', id: id }, location.origin); } }
 
   async function api(url, options) {
     var response = await fetch(url, options), body = await response.json();
@@ -27,6 +29,7 @@
   async function drain() {
     if (running || stopped || !initialized) return;
     running = true;
+    var failed = false;
     try {
       while (pending && !stopped) {
         var document = pending; pending = null;
@@ -43,11 +46,16 @@
         hooks.setStatus(dirty ? 'Editing' : 'Saved ' + new Date().toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' }));
       }
     } catch (error) {
-      dirty = true;
+      dirty = true; failed = true;
       if (error.status === 409) stopped = true;
       hooks.setStatus(error.status === 409 ? '다른 창에서 수정됨' : '저장 실패 / Save로 재시도', true, error.message);
       hooks.toast(error.message);
-    } finally { running = false; }
+    } finally {
+      running = false;
+      if (failed || stopped) finishing = false;
+      else if (finishing && dirty) { pending = JSON.parse(JSON.stringify(hooks.getData())); setTimeout(drain, 0); }
+      else finish();
+    }
   }
   function work(work) {
     return { id: work.id, title: work.title, creator: work.creator, year: work.releaseYear == null ? '' : String(work.releaseYear), medium: work.medium.toLowerCase(),
@@ -63,7 +71,7 @@
         initialized = true;
         clearInterval(readyTimer);
         if (id) lastSaved = fingerprint(event.data.document);
-        hooks.initialize(event.data.document);
+        hooks.initialize(event.data.document, id);
         if (id) hooks.saved(id);
       });
       parent.postMessage({ type: 'lecta:editor:ready' }, location.origin);
@@ -77,10 +85,12 @@
     },
     save: function (document, manual) {
       if (!initialized) return;
+      if (manual && uploadCount) { hooks.toast('이미지를 올리는 중이에요. 잠시 뒤 다시 눌러 주세요.'); return; }
       if (stopped) { if (manual) hooks.toast('다른 창의 변경을 보호하기 위해 저장을 멈췄어요. JSON을 내려받고 새로고침해 주세요.'); return; }
       pending = JSON.parse(JSON.stringify(document));
       dirty = fingerprint(pending) !== lastSaved;
-      if (manual && !dirty && !running) hooks.toast('저장되어 있어요.');
+      if (manual) finishing = true;
+      if (!dirty && !running) { pending = null; if (id) finish(); else drain(); return; }
       drain();
     },
     upload: async function (file) {

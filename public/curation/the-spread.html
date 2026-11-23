@@ -144,6 +144,10 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 .k-quote .qc b{font:400 clamp(20px,1.8vw,26px)/1.2 var(--serif);display:block;margin-bottom:6px}
 .k-quote .qc b.hk{font-family:var(--kr);font-weight:300}
 .k-quote .qm{grid-column:10/12;justify-self:end;align-self:end;margin-top:28px}
+.k-quote .qtx{grid-column:2/12;margin-top:clamp(40px,8svh,96px);color:var(--on-field);column-rule-color:color-mix(in srgb,var(--on-field) 28%,transparent)}
+.meta a{text-decoration:underline;text-underline-offset:4px;text-decoration-thickness:1px}
+.k-full .cvw{display:flex;justify-content:center;background:var(--tint);padding:clamp(28px,5svh,56px) 0;cursor:zoom-in}
+.k-full .cvw .cv{--ch:min(52svh,560px);--cw:60%}
 .k-quote .qm .cv{--ch:min(28svh,260px);--cw:100%;box-shadow:0 22px 40px -16px rgba(0,0,0,.45)}
 
 /* end */
@@ -176,7 +180,7 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
   .k-inset .pages{display:block}.k-inset .pgR{margin-top:36px}
   .k-full .ft .ti,.k-full .ft .by,.k-full .ft .tx,.k-full .ft .lede{grid-column:1/13}.k-full .ft .by{justify-self:start;text-align:left}
   .k-plate{display:flex;flex-direction:column;gap:30px}.k-plate .pl-t{min-height:0}
-  .k-quote blockquote,.k-quote .qc{grid-column:1/13}.k-quote .qm{grid-column:1/13;justify-self:start}
+  .k-quote blockquote,.k-quote .qc,.k-quote .qtx{grid-column:1/13}.k-quote .qm{grid-column:1/13;justify-self:start}
   .arow{--cols:2!important}
   .pgs>.rl,.pgs>.rr{display:none}
 }
@@ -842,18 +846,27 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
     };
   };
 
+  /* Many cover hosts send no CORS headers. A CORS load is tried first because the palette needs pixel
+     access; when it fails the image is loaded plainly so it still shows, and colour comes from the
+     stored palette or the deterministic fallback. */
   L.loadImage = function (src, timeout) {
-    return new Promise(function (res) {
-      if (!src) return res(null);
-      var img = new Image(), done = false;
-      var fin = function (v) { if (done) return; done = true; clearTimeout(t); res(v); };
-      var t = setTimeout(function () { fin(null); }, timeout || 6000);
-      img.onload = function () { fin(img); };
-      img.onerror = function () { fin(null); };
-      if (src.indexOf('data:') !== 0) img.crossOrigin = 'anonymous';
-      img.src = src;
-    });
+    function attempt(cors) {
+      return new Promise(function (res) {
+        var img = new Image(), done = false;
+        var fin = function (v) { if (done) return; done = true; clearTimeout(t); res(v); };
+        var t = setTimeout(function () { fin(null); }, timeout || 8000);
+        img.onload = function () { img.lectaOpaque = !cors; fin(img); };
+        img.onerror = function () { fin(null); };
+        img.referrerPolicy = 'no-referrer';
+        if (cors) img.crossOrigin = 'anonymous';
+        img.src = src;
+      });
+    }
+    if (!src) return Promise.resolve(null);
+    if (src.indexOf('data:') === 0) return attempt(false).then(function (img) { if (img) img.lectaOpaque = false; return img; });
+    return attempt(true).then(function (img) { return img || attempt(false); });
   };
+  L.sample = function (img) { if (!img || img.lectaOpaque) return []; try { return P.extract(img); } catch (e) { return []; } };
 
   /* images -> swatches -> themes. A stored palette skips the image work entirely. */
   L.prepareItem = function (it) {
@@ -869,9 +882,9 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
       if (it.palette && it.palette.length) sw = P.hydrate(it.palette);
       if (img) {
         it.cover.ar = clamp(img.naturalWidth / img.naturalHeight, 0.45, 2.2);
-        if (!sw.length) sw = P.extract(img);
+        if (!sw.length) sw = L.sample(img);
       } else { it.cover.src = null; }
-      if (!sw.length && it.photo && it.photo.img) sw = P.extract(it.photo.img);
+      if (!sw.length && it.photo && it.photo.img) sw = L.sample(it.photo.img);
       it.cover.placeholder = !it.cover.src;
       it.theme = P.buildWorkTheme(sw, it.id + it.title);
       it.palette = P.pack(sw);
@@ -890,7 +903,16 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
     var names = Object.keys(types), out = [], counts = {}, hist = [];
     items.forEach(function (it, i) {
       if (it.layout) {
-        var want = names.filter(function (n) { var t = types[n]; return t.kind === it.layout && (!t.needs || t.needs(it)); })[0];
+        /* an explicit choice is honoured even when the automatic rule would not pick it:
+           a missing scene is covered by the cover, a missing quote by the opening sentence */
+        var kinded = names.filter(function (n) { return types[n].kind === it.layout; });
+        var want = kinded.filter(function (n) { var t = types[n]; return (!t.needs || t.needs(it)) && t.fits.indexOf(it.bucket) > -1; })[0] ||
+          kinded.filter(function (n) { var t = types[n]; return !t.needs || t.needs(it); })[0] || kinded[0];
+        if (want && it.layout === 'quote' && !it.quote) {
+          var lead = (it.reason || it.paras[0] || it.title).replace(/\*+/g, '');
+          var cut = lead.match(/^[^.!?。]{8,120}[.!?。]/);
+          it.quote = (cut ? cut[0] : lead.slice(0, 120)).trim();
+        }
         if (want) { counts[want] = (counts[want] || 0) + 1; hist.push(want); out.push({ type: want, variant: counts[want] - 1, bucket: it.bucket, chosen: true }); return; }
       }
       var c = names.filter(function (n) {
@@ -932,7 +954,7 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
     o = o || {};
     var st = '--ar:' + it.cover.ar.toFixed(4) + ';' + (o.ch ? '--ch:' + o.ch + ';' : '') + (o.cw ? '--cw:' + o.cw + ';' : '') + (o.style || '');
     if (it.cover.src) {
-      return '<figure class="cv ' + (o.cls || '') + '" style="' + st + '"><img src="' + L.esc(it.cover.src) + '" alt="' + L.esc(it.title) + (it.creator ? ', ' + L.esc(it.creator) : '') + '" decoding="async" draggable="false"></figure>';
+      return '<figure class="cv ' + (o.cls || '') + '" style="' + st + '"><img referrerpolicy="no-referrer" src="' + L.esc(it.cover.src) + '" alt="' + L.esc(it.title) + (it.creator ? ', ' + L.esc(it.creator) : '') + '" decoding="async" draggable="false"></figure>';
     }
     return '<div class="cv ph ' + (o.cls || '') + '" style="' + st + '" role="img" aria-label="' + L.esc(it.title) + '"><span class="ph-m">' + L.esc(L.mediumLabel(it)) + '</span><span class="ph-t">' + L.esc(it.title) + '</span></div>';
   };
@@ -946,7 +968,7 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
   L.figure = function (sc, alt, o) {
     o = o || {};
     var st = '--ar:' + (sc.ar || 1.5).toFixed(4) + ';' + (o.ch ? '--ch:' + o.ch + ';' : '') + (o.cw ? '--cw:' + o.cw + ';' : '') + (o.style || '');
-    return '<figure class="cv ' + (o.cls || '') + '" style="' + st + '"><img src="' + L.esc(sc.src) + '" alt="' + L.esc(sc.caption || alt || '') + '" decoding="async" draggable="false"></figure>';
+    return '<figure class="cv ' + (o.cls || '') + '" style="' + st + '"><img referrerpolicy="no-referrer" src="' + L.esc(sc.src) + '" alt="' + L.esc(sc.caption || alt || '') + '" decoding="async" draggable="false"></figure>';
   };
   /* every image the work brings to a page: its scenes, or the cover alone */
   L.media = function (it) {
@@ -1203,7 +1225,13 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
     r.push(['Medium', L.mediumLabel(it)]);
     if (it.year) r.push(['Year', it.year]);
     r.push(['Color', it.theme.name]);
-    return '<dl class="meta">' + r.map(function (x) { return '<dt>' + x[0] + '</dt><dd>' + E(x[1]) + '</dd>'; }).join('') + '</dl>';
+    var listen = '';
+    if (it.medium === 'album' || it.medium === 'track') {
+      var q = encodeURIComponent(it.title + ' ' + it.creator);
+      listen = '<dt>Listen</dt><dd>' + [['Spotify', 'https://open.spotify.com/search/' + q], ['Apple Music', 'https://music.apple.com/search?term=' + q], ['YouTube Music', 'https://music.youtube.com/search?q=' + q]]
+        .map(function (x) { return '<a href="' + x[1] + '" target="_blank" rel="noreferrer noopener">' + x[0] + '</a>'; }).join(', ') + '</dd>';
+    }
+    return '<dl class="meta">' + r.map(function (x) { return '<dt>' + x[0] + '</dt><dd>' + E(x[1]) + '</dd>'; }).join('') + listen + '</dl>';
   }
   /* lede is the quote if there is one, else the first paragraph. rest is the remaining text. */
   function parts(it) {
@@ -1216,9 +1244,9 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
     var m = L.media(it)[k]; if (!m) return '';
     if (m.isCover) return '<a class="cvw" data-lb="' + it.index + ':' + k + '">' + L.cover(it, { cw: o.cw || '100%', ch: o.ch || '46svh' }) + '</a>';
     var ar = m.ar || 1.5;
-    if (ar < 0.95) return '<a class="im pt" style="--ar:' + ar.toFixed(4) + '" data-lb="' + it.index + ':' + k + '"><img src="' + E(m.src) + '" alt="' + E(m.caption || it.title) + '" decoding="async">' + (m.caption ? '<span class="cap">' + E(m.caption) + '</span>' : '') + '</a>';
+    if (ar < 0.95) return '<a class="im pt" style="--ar:' + ar.toFixed(4) + '" data-lb="' + it.index + ':' + k + '"><img referrerpolicy="no-referrer" src="' + E(m.src) + '" alt="' + E(m.caption || it.title) + '" decoding="async">' + (m.caption ? '<span class="cap">' + E(m.caption) + '</span>' : '') + '</a>';
     var a = Math.min(2.2, Math.max(1.2, ar));
-    return '<a class="im w" style="--a:' + a.toFixed(3) + '" data-lb="' + it.index + ':' + k + '"><img src="' + E(m.src) + '" alt="' + E(m.caption || it.title) + '" decoding="async">' + (m.caption ? '<span class="cap">' + E(m.caption) + '</span>' : '') + '</a>';
+    return '<a class="im w" style="--a:' + a.toFixed(3) + '" data-lb="' + it.index + ':' + k + '"><img referrerpolicy="no-referrer" src="' + E(m.src) + '" alt="' + E(m.caption || it.title) + '" decoding="async">' + (m.caption ? '<span class="cap">' + E(m.caption) + '</span>' : '') + '</a>';
   }
   function frame(it, i, pl, ex, cls, inner) {
     return '<section class="pgs ' + cls + '" id="s-' + i + '" data-i="' + i + '" data-spread="' + pl.type + ' / ' + pl.bucket + '" style="' + L.themeStyle(it) + '">' +
@@ -1237,7 +1265,11 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
     },
     inset: function (it, i, pl, ex) {
       var p = parts(it), paras = it.quote ? it.paras : it.paras.slice(1), m = paras.length, M = L.media(it);
-      var a = Math.ceil(m / 3), b = Math.min(m, a + Math.ceil(m / 3));
+      /* split by length, not by paragraph count, so one long paragraph does not leave a page empty */
+      var total = paras.join('').length, run = 0, a = 0, b = 0;
+      paras.forEach(function (t, k) { run += t.length; if (!a && run >= total / 3) a = k + 1; if (!b && run >= total * 2 / 3) b = k + 1; });
+      if (m && !a) a = 1; if (b < a) b = a;
+      if (m >= 2 && a >= m) { a = 1; b = Math.max(1, m - 1); } else if (m >= 3 && b >= m) b = m - 1;
       var top = paras.slice(0, a), bot = paras.slice(a, b), rest = paras.slice(b);
       var cols = function (arr) { return arr.length ? '<div class="tx ' + (arr.join('').length < 300 ? 'one' : '') + '">' + ptag(arr) + '</div>' : ''; };
       var q = it.quote && p.lede === it.quote ? '<p class="pull ' + (L.hk(it.quote) ? '' : 'lat') + '">' + L.rich(it.quote) + '</p>' : '';
@@ -1258,7 +1290,7 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
     plate: function (it, i, pl, ex) {
       var p = parts(it), big = it.bucket !== 'medium';
       var m = L.media(it)[0], vis = m.isCover ? '<a class="cvw" data-lb="' + i + ':0">' + L.cover(it, {}) + '</a>' :
-        '<a class="im pl" style="--a:' + (m.ar < 0.95 ? m.ar : Math.min(2.2, Math.max(1.2, m.ar))).toFixed(3) + '" data-lb="' + i + ':0"><img src="' + E(m.src) + '" alt="' + E(m.caption || it.title) + '" decoding="async"></a>';
+        '<a class="im pl" style="--a:' + (m.ar < 0.95 ? m.ar : Math.min(2.2, Math.max(1.2, m.ar))).toFixed(3) + '" data-lb="' + i + ':0"><img referrerpolicy="no-referrer" src="' + E(m.src) + '" alt="' + E(m.caption || it.title) + '" decoding="async"></a>';
       return frame(it, i, pl, ex, 'k-plate',
         '<div class="pl-t" data-r="right">' + '<div>' + oval(it) + '<div style="height:28px"></div>' + title(it) + (it.creator ? '<p style="margin-top:16px;font:400 15px/1.45 var(--sans);color:var(--mute)">' + E(it.creator) + '</p>' : '') + '</div>' +
         (p.lede ? '<div class="lede ' + (big ? 'big' : '') + '">' + L.rich(p.lede) + '</div>' : meta(it)) + '</div>' +
@@ -1269,7 +1301,9 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
       return frame(it, i, pl, ex, 'k-quote',
         '<div class="qq"><blockquote class="' + qc + ' ' + L.hk(q) + '" data-r="up">' + L.rich(q) + '</blockquote>' +
         '<div class="qc" data-r="up" data-d="120ms"><b class="' + L.hk(it.title) + '">' + E(it.title) + '</b>' + (it.creator ? E(it.creator) + ', ' : '') + E(L.metaLine(it)) + '</div>' +
-        '<div class="qm" data-r="up" data-d="200ms"><a class="cvw" data-lb="' + i + ':0">' + (L.media(it)[0].isCover ? L.cover(it, {}) : L.figure(L.media(it)[0], it.title, {})) + '</a></div></div>');
+        '<div class="qm" data-r="up" data-d="200ms"><a class="cvw" data-lb="' + i + ':0">' + (L.media(it)[0].isCover ? L.cover(it, {}) : L.figure(L.media(it)[0], it.title, {})) + '</a></div>' +
+        /* a chosen quote page keeps the writing: it continues under the quote instead of disappearing */
+        (it.paras.length && it.paras.join('').length > 60 ? '<div class="tx qtx" data-r="up" data-d="240ms">' + ptag(it.paras) + '</div>' : '') + '</div>');
     }
   };
 
@@ -1308,7 +1342,7 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
       var plan = L.plan(items, TYPES);
       app.innerHTML = '<header class="top"><a class="brand" href="#top">Lecta</a><div class="topr"><span id="cnt"></span><button type="button" data-index>Index</button></div></header>' +
         openingHTML(ex) + items.map(function (it, i) { return SCENE[plan[i].type](it, i, plan[i], ex); }).join('') + afterHTML(ex) +
-        '<div class="lb" id="lb" aria-hidden="true"><img alt=""><div class="lc"></div><button class="x" type="button" data-lbx>Close</button><button class="p" type="button" data-lbp>Previous</button><button class="nx" type="button" data-lbn>Next</button></div>';
+        '<div class="lb" id="lb" aria-hidden="true"><img referrerpolicy="no-referrer" alt=""><div class="lc"></div><button class="x" type="button" data-lbx>Close</button><button class="p" type="button" data-lbp>Previous</button><button class="nx" type="button" data-lbn>Next</button></div>';
 
       var cnt = document.getElementById('cnt');
       L.spy([].slice.call(app.querySelectorAll('.pgs')), function (el) { cnt.textContent = pad(+el.getAttribute('data-i') + 1) + ' / ' + pad(items.length); }, '-42% 0px -42% 0px');

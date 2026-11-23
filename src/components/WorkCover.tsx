@@ -7,6 +7,7 @@ export interface CoverWork {
   medium: "FILM" | "SERIES" | "BOOK" | "ALBUM" | "TRACK" | "PERFORMANCE" | "EXHIBITION";
   releaseYear?: number | null;
   coverTone?: string | null;
+  palette?: { hex: string; weight: number }[] | null;
   artwork?: { url: string; width: number; height: number } | null;
 }
 

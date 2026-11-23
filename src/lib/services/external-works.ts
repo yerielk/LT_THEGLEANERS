@@ -6,6 +6,8 @@
  * refetches those by id.
  */
 import { and, asc, eq, inArray, isNotNull, lte } from "drizzle-orm";
+import { refreshInferredTags } from "./inferred-tags";
+import { paletteFromUrl } from "../curation/sample-palette";
 import { z } from "zod";
 import { getDb, newId, type Db } from "../db";
 import { works } from "../schema";
@@ -95,6 +97,13 @@ export async function saveExternalWork(input: unknown, actor: Actor, deps: Deps 
   // two people saving the same work at once: the second insert is dropped and both get the first row
   await db.insert(works).values({ id, externalSource: source, externalId: found.externalId, ...columns(found) }).onConflictDoNothing();
   const [row] = await db.select({ id: works.id }).from(works).where(same);
+  // a new work has no taste tags yet: infer a first set so it can be recommended (never fatal)
+  if (row.id === id) {
+    await refreshInferredTags([id], db).catch(() => 0);
+    // cover colours for curation covers; a slow or closed image host just leaves them empty for the batch script
+    const palette = found.artwork?.url ? await paletteFromUrl(found.artwork.url, { timeoutMs: 3000 }) : null;
+    if (palette) await db.update(works).set({ palette }).where(eq(works.id, id));
+  }
   return { work: await getWork(row.id, db), created: row.id === id };
 }
 

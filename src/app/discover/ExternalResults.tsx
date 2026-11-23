@@ -34,14 +34,19 @@ export function ExternalResults({ q, medium, onSaved }: { q: string; medium: str
     const ctl = new AbortController();
     // slower than the catalog search: every call here spends the sources' quotas
     const t = setTimeout(async () => {
-      const sp = new URLSearchParams({ q: text, limit: "6" });
-      if (medium !== "ALL") sp.set("medium", medium);
+      // music is searched as one shelf: a song title typed under Albums finds the song, and the other way round
+      const media = medium === "ALBUM" ? ["ALBUM", "TRACK"] : medium === "TRACK" ? ["TRACK", "ALBUM"] : [medium];
       try {
-        const res = await fetch(`/api/external/search?${sp}`, { signal: ctl.signal });
-        const body = await res.json();
-        if (!res.ok) throw new Error(body?.error?.message ?? "Search failed");
-        setItems(body.works);
-        setFailed(body.failedSources.map((f: { source: ExternalSource }) => f.source));
+        const answers = await Promise.all(media.map(async (m) => {
+          const sp = new URLSearchParams({ q: text, limit: "6" });
+          if (m !== "ALL") sp.set("medium", m);
+          const res = await fetch(`/api/external/search?${sp}`, { signal: ctl.signal });
+          const body = await res.json();
+          if (!res.ok) throw new Error(body?.error?.message ?? "Search failed");
+          return body as { works: ExternalWork[]; failedSources: { source: ExternalSource }[] };
+        }));
+        setItems(answers.flatMap((a) => a.works));
+        setFailed([...new Set(answers.flatMap((a) => a.failedSources.map((f) => f.source)))]);
         setState("idle");
       } catch (e) {
         if ((e as Error).name !== "AbortError") setState("error");

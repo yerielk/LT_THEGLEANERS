@@ -52,7 +52,9 @@ async function load(db: Db, row: Row, actor: Actor): Promise<ExhibitionView> {
     getWorksByIds(items.map((i) => i.workId), db),
     db.select({ name: user.name }).from(user).where(eq(user.id, row.ownerId)),
   ]);
-  const works = new Map(workList.map((w) => [w.id, w]));
+  // colours the editor preview sampled for this curation stand in for works without a stored palette
+  const sampled = new Map((row.curationData?.items ?? []).filter((i) => i.palette?.length).map((i) => [i.id, i.palette!]));
+  const works = new Map(workList.map((w) => [w.id, w.palette?.length || !sampled.has(w.id) ? w : { ...w, palette: sampled.get(w.id)! }]));
   return {
     id: row.id,
     number: row.number,

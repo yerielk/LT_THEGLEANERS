@@ -1,14 +1,15 @@
-import { and, count, eq, inArray, max, sql } from "drizzle-orm";
+import { and, count, eq, inArray, isNull, max, sql } from "drizzle-orm";
 import { z } from "zod";
 import sharp from "sharp";
 import { getDb, newId, type Db } from "../db";
-import { curationAssets, exhibitionItems, exhibitions, tasteSignals } from "../schema";
+import { curationAssets, exhibitionItems, exhibitions, tasteSignals, works } from "../schema";
 import { curationDocumentSchema, type CurationDocument } from "../curation/document";
 import { curationView, curationWork } from "../curation/view";
 import paletteEngine from "../curation/palette.cjs";
 import { zodMessage } from "../validators";
 import { getExhibition, recordCurationSignals } from "./exhibitions";
 import { getWorksByIds } from "./works";
+import { refreshInferredTags } from "./inferred-tags";
 import { LectaError } from "./errors";
 import type { Actor } from "./actor";
 
@@ -34,6 +35,18 @@ async function canonicalize(document: CurationDocument, db: Db, exhibitionId?: s
         palette: uploaded?.palette ?? item.palette };
     }),
   };
+}
+
+/**
+ * Side effects of a saved curation that must never fail the save:
+ * colours the preview sampled are kept on works that have none yet, and works without curated tags
+ * pick up inferred ones from their new neighbours.
+ */
+async function afterSave(document: CurationDocument, db: Db) {
+  for (const item of document.items) {
+    if (item.palette?.length) await db.update(works).set({ palette: item.palette }).where(and(eq(works.id, item.id), isNull(works.palette)));
+  }
+  await refreshInferredTags(document.items.map((item) => item.id), db);
 }
 
 export async function createCuration(input: unknown, actor: Actor, db: Db = getDb()) {
@@ -79,6 +92,7 @@ export async function saveCuration(id: string, input: unknown, actor: Actor, db:
     await tx.delete(tasteSignals).where(and(eq(tasteSignals.exhibitionId, id), eq(tasteSignals.signalType, "CURATED")));
     await recordCurationSignals(tx, actor.userId!, id, document.items.map((item) => ({ workId: item.id, note: item.reason || null })), "USER_EXPLICIT");
   });
+  await afterSave(document, db).catch(() => undefined);
   return getExhibition(id, actor, db);
 }
 

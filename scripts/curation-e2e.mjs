@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 const require = createRequire(import.meta.url);
 const { chromium } = require('playwright');
 const sharp = require('sharp');
-const browser = await chromium.launch({headless:true});
+const browser = await chromium.launch({headless:true,executablePath:process.env.LECTA_E2E_CHROME||undefined,args:process.env.LECTA_E2E_CHROME?['--no-sandbox']:[]});
 const page = await browser.newPage({viewport:{width:1440,height:1000}});
 const errors=[];
 page.on('pageerror',e=>errors.push(e.message));
@@ -22,18 +22,20 @@ try {
  await editor.locator('#res [data-pick]').first().click();
  await editor.locator('#w-reason').fill('마지막 장면의 여운');
  const note='이 장면을 오래 기억한다. '.repeat(180)+'\n\n> 기억은 느리게 도착한다\n> 여운이 남는다\n\n**굵은 글**과 *기울인 글*';
+ // The rich field stores the same text, minus trailing spaces at line ends.
+ const norm=text=>text.split('\n').map(line=>line.trimEnd()).join('\n');
  await editor.locator('#w-note').fill(note);
  assert.equal(await editor.locator('[data-f=title]').getAttribute('readonly')!==null,true);
  await editor.locator('[data-act=add]').click();
  await editor.locator('#q').fill('Stoner');
  await editor.locator('#res [data-pick]').first().click();
  await editor.locator('#w-reason').fill('다시 읽고 싶은 책');
- await editor.locator('[data-act=save]').click();
+ // Autosave creates the draft; Save itself now leaves for the finished view (checked at the end).
  await page.waitForURL(/\/exhibitions\/ex_/);
  const id=page.url().split('/')[4];
  console.log('created',id);
  async function saved(test) {for(let i=0;i<80;i++){let r=await page.request.get(base+'/api/curations/'+id);let j=await r.json();if(test(j))return j;await page.waitForTimeout(250);}throw new Error('Save did not reach DB');}
- await saved(r=>r.document.items.length===2 && r.document.items[0].note===note);
+ await saved(r=>r.document.items.length===2 && r.document.items[0].note===norm(note));
  // Actual keyboard reorder, with stable catalog identities.
  await editor.locator('[data-act=mode][data-v=design]').first().click();
  let data=await editor.evaluate(()=>window.LectaEditor.getData());
@@ -61,10 +63,17 @@ try {
  await reopened.waitForFunction(()=>window.LectaEditor && window.LectaEditor.getData().items.length===2 && document.body.style.visibility!=='hidden');
  const restored=await reopened.evaluate(()=>window.LectaEditor.getData());
  assert.deepEqual(restored.items.map(w=>w.id),[second,'w_film_aftersun']);
- assert.equal(restored.items[1].note,note);
+ assert.equal(restored.items[1].note,norm(note));
  assert.match(restored.items[1].scenes[0].src,/^\/api\/curation-assets\//);
  assert.equal(await reopened.evaluate(()=>localStorage.getItem('lecta.curation.draft.v3')),null);
- await page.goto(base+'/exhibitions/'+id);
+ // Reopened writing shows formatting as it reads.
+ await reopened.locator('.row[data-id="w_film_aftersun"] .pick').click();
+ await reopened.locator('[data-act=mode][data-v=write]').first().click();
+ assert.equal(await reopened.locator('#w-note b').count(),1);
+ assert.equal(await reopened.locator('#w-note blockquote').count(),2);
+ // Save stores and opens the finished curation.
+ await reopened.locator('[data-act=save]').click();
+ await page.waitForURL(new RegExp('/exhibitions/'+id+'$'));
  const reader=await (await page.waitForSelector('.curation-reader-frame')).contentFrame();
  await reader.waitForFunction(()=>window.Lecta && window.Lecta.last && window.Lecta.last.items.length===2);
  await reader.waitForFunction(()=>!document.getElementById('app').classList.contains('is-loading'));

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import { Link } from "next-view-transitions";
+import { Link, useTransitionRouter } from "next-view-transitions";
 import { AuthButton } from "../AuthButton";
 import { useSelection } from "@/lib/selection";
 import { curationWork } from "@/lib/curation/view";
@@ -12,6 +12,7 @@ export function CurationEditor({ initial, id, version, canWrite, curator = "" }:
 }) {
   const frame = useRef<HTMLIFrameElement>(null);
   const selection = useSelection();
+  const router = useTransitionRouter();
   const ready = useRef(false);
   const initialized = useRef(false);
   const current = useRef({ initial, id, version, curator, selection });
@@ -31,6 +32,11 @@ export function CurationEditor({ initial, id, version, canWrite, curator = "" }:
       if (event.data?.type === "lecta:editor:ready") { ready.current = true; initialize(); }
       if (event.data?.type === "lecta:editor:saved" && /^ex_[a-zA-Z0-9_-]+$/.test(event.data.id)) {
         window.history.replaceState(window.history.state, "", `/exhibitions/${event.data.id}/edit`);
+      }
+      if (event.data?.type === "lecta:editor:done" && /^ex_[a-zA-Z0-9_-]+$/.test(event.data.id)) {
+        // Works carried in the tray are now in this curation.
+        if (!current.current.initial) current.current.selection.clear();
+        router.push(`/exhibitions/${event.data.id}`);
       }
     };
     window.addEventListener("message", receive);
