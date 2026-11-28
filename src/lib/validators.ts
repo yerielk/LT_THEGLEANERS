@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { MEDIA } from "./media";
+import { TAG_BY_KEY } from "./recommendation/tags";
 
 export { MEDIA };
 export const mediumSchema = z.enum(MEDIA);
@@ -16,6 +17,8 @@ const plain = (max: number) =>
 export const worksQuerySchema = z.object({
   q: z.string().trim().max(80).optional(),
   medium: mediumSchema.optional(),
+  /** A vocabulary tag key (src/lib/recommendation/tags.ts): only works carrying that tag. */
+  tag: z.string().trim().max(40).refine((key) => key in TAG_BY_KEY, "unknown tag").optional(),
   limit: z.coerce.number().int().min(1).max(60).default(48),
 });
 

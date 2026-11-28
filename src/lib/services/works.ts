@@ -22,6 +22,8 @@ export interface WorkView {
   originalTitle: string | null;
   creator: string;
   releaseYear: number | null;
+  /** TRACK only: the album or single it was released on. */
+  album: string | null;
   synopsis: string | null;
   artworkUrl: string | null;
   artwork: { url: string; width: number; height: number; credit: string; sourcePage: string | null } | null;
@@ -46,7 +48,7 @@ const MEDIA_ORDER = (Object.keys(SHELF) as Medium[]).sort((a, b) => SHELF[a] - S
 function sourceOf(r: Row) {
   return {
     name: r.externalSource || "Lecta editorial",
-    url: null as string | null,
+    url: r.sourceUrl,
     // what the source's terms ask us to show next to its data
     attribution: SOURCE_POLICY[r.externalSource as ExternalSource]?.attribution ?? null,
     note:
@@ -64,13 +66,14 @@ function toView(r: Row, tags: WorkTagView[]): WorkView {
     originalTitle: r.originalTitle,
     creator: r.creator,
     releaseYear: r.releaseYear,
+    album: r.album,
     synopsis: r.synopsis,
     artworkUrl: r.artworkUrl,
     artwork: r.artworkUrl
       ? {
           url: r.artworkUrl,
           width: ARTWORK[r.id]?.width ?? 300,
-          height: ARTWORK[r.id]?.height ?? (r.medium === "ALBUM" ? 300 : 450),
+          height: ARTWORK[r.id]?.height ?? (r.medium === "ALBUM" || r.medium === "TRACK" ? 300 : 450),
           credit: r.artworkSource ?? "external",
           sourcePage: r.sourceUrl,
         }
@@ -118,14 +121,19 @@ export async function getWork(id: string, db: Db = getDb()): Promise<WorkView> {
   return w;
 }
 
-/** Search title and creator text together with weighted vocabulary tag similarity. */
+/** Search title and creator text together with weighted vocabulary tag similarity. `tag` keeps only works carrying that tag. */
 export async function searchWorks(
-  params: { q?: string; medium?: Medium; limit?: number },
+  params: { q?: string; medium?: Medium; tag?: string; limit?: number },
   db: Db = getDb(),
 ): Promise<{ works: WorkView[]; total: number }> {
   const q = params.q ? normalize(params.q) : "";
   let works = await allWorks(db);
   if (params.medium) works = works.filter((w) => w.medium === params.medium);
+  if (params.tag) {
+    const weight = (w: WorkView) => w.tags.find((t) => t.key === params.tag)?.weight ?? 0;
+    // strongest carriers of the tag first; a text query below re-sorts by its own score
+    works = works.filter((w) => w.tagKeys.includes(params.tag!)).sort((a, b) => weight(b) - weight(a) || a.id.localeCompare(b.id));
+  }
   if (q) {
     const queryTags = queryTagWeights(params.q ?? "", 0.62);
     const queryTagTotal = [...queryTags.values()].reduce((sum, weight) => sum + weight, 0);
@@ -155,7 +163,7 @@ export async function searchWorks(
       .sort((a, b) => b.s - a.s || a.w.id.localeCompare(b.w.id));
     works = scored.map((x) => x.w);
   }
-  if (!q && !params.medium) {
+  if (!q && !params.medium && !params.tag) {
     // catalog order: interleave media so the archive reads like a mixed shelf, not grouped by type
     const buckets = MEDIA_ORDER.map((m) => works.filter((w) => w.medium === m));
     const longest = Math.max(0, ...buckets.map((b) => b.length));

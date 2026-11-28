@@ -121,6 +121,13 @@ describe("saving an external work", () => {
     expect((await searchWorks({ medium: "PERFORMANCE" }, db)).total).toBe(1);
   });
 
+  it("keeps a track's album and shows the work's source page", async () => {
+    await importExternalWorks([work("MUSICBRAINZ", "cf3b2fd9-e6cc-49bf-abf3-63a3af75a6dc", "TRACK", { album: "Palette", sourceUrl: "https://musicbrainz.org/recording/cf3b2fd9-e6cc-49bf-abf3-63a3af75a6dc" })], db);
+    const [track] = (await searchWorks({ medium: "TRACK" }, db)).works;
+    expect(track).toMatchObject({ album: "Palette", source: { name: "MUSICBRAINZ", url: "https://musicbrainz.org/recording/cf3b2fd9-e6cc-49bf-abf3-63a3af75a6dc" } });
+    expect(track.artwork).toMatchObject({ width: 300, height: 300 });
+  });
+
   it("refuses anonymous callers, bad input and ids the source does not have, without calling the source needlessly", async () => {
     const tmdb = fake("TMDB", ["FILM"], []);
     const deps = { db, providers: [tmdb] };

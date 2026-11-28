@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { TAGS } from "@/lib/recommendation/tags";
+import { TAGS, TAG_BY_KEY } from "@/lib/recommendation/tags";
 import { MEDIA, type Medium } from "@/lib/media";
 import { DiscoverClient } from "./DiscoverClient";
 import { SearchTabs } from "@/components/SearchTabs";
@@ -7,10 +7,11 @@ import { SearchTabs } from "@/components/SearchTabs";
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = { title: "작품 검색" };
 
-export default async function DiscoverPage({ searchParams }: { searchParams: Promise<{ medium?: string; q?: string }> }) {
+export default async function DiscoverPage({ searchParams }: { searchParams: Promise<{ medium?: string; q?: string; tag?: string }> }) {
   const sp = await searchParams;
   const q = typeof sp.q === "string" ? sp.q.slice(0, 80) : "";
   const initialMedium: Medium = MEDIA.find((medium) => medium === sp.medium) ?? "FILM";
+  const initialTag = typeof sp.tag === "string" && sp.tag in TAG_BY_KEY ? sp.tag : "";
   const tagLabels = Object.fromEntries(TAGS.map((tag) => [tag.key, tag.ko]));
   return (
     <>
@@ -21,7 +22,7 @@ export default async function DiscoverPage({ searchParams }: { searchParams: Pro
         </div>
         <p className="lede" style={{ margin: 0 }}>영화와 시리즈, 책과 앨범을 한 컬렉션에서 둘러보고 마음이 가는 작품에 + 를 눌러 담으면, 그대로 나의 전시실이 됩니다.</p>
       </header>
-      <DiscoverClient initial={[]} initialMedium={initialMedium} initialQ={q} tagLabels={tagLabels} mode="works" />
+      <DiscoverClient initial={[]} initialMedium={initialMedium} initialQ={q} initialTag={initialTag} tagLabels={tagLabels} mode="works" />
     </>
   );
 }

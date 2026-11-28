@@ -90,6 +90,8 @@ export const works = pgTable("works", {
   externalSource: text("external_source"),
   externalId: text("external_id"),
   sourceUrl: text("source_url"),
+  /** TRACK only: the album or single it was released on. */
+  album: text("album"),
   // set for works saved from an external catalog (see src/lib/external/types.ts)
   license: text("license"),
   metadataFetchedAt: ts("metadata_fetched_at"),

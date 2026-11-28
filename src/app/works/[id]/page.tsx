@@ -63,9 +63,10 @@ export default async function WorkPage({ params, searchParams }: { params: Promi
           </div>
           <dl className="wd-meta">
             <dt>Medium</dt><dd>{MEDIUM_KO[w.medium]}</dd>
-            <dt>Taste</dt><dd>{w.tags.map((t) => tagLabel(t.key)).join(", ")}<br /><span className="muted" style={{ fontSize: 12.5 }}>Lecta 팀의 큐레이션 해석이에요. 작품에 대한 사실이 아닙니다.</span></dd>
+            <dt>Taste</dt><dd>{w.tags.map((t, i) => <span key={t.key}>{i ? ", " : ""}<Link className="linkish" href={`/discover?medium=${w.medium}&tag=${encodeURIComponent(t.key)}`}>{tagLabel(t.key)}</Link></span>)}<br /><span className="muted" style={{ fontSize: 12.5 }}>Lecta 팀의 큐레이션 해석이에요. 작품에 대한 사실이 아닙니다.</span></dd>
+            {w.medium === "TRACK" && w.album && <><dt>Album</dt><dd>{w.album}</dd></>}
             {(w.medium === "ALBUM" || w.medium === "TRACK") && <><dt>Listen</dt><dd>{LISTEN.map((service, i) => <span key={service.name}>{i ? ", " : ""}<a className="linkish" href={service.url(`${w.title} ${w.creator}`)} target="_blank" rel="noreferrer">{service.name}</a></span>)}<br /><span className="muted" style={{ fontSize: 12.5 }}>각 서비스의 검색 결과로 이동해요.</span></dd></>}
-            <dt>Metadata</dt><dd>{w.source.name} ({w.metadataStatus})</dd>
+            <dt>Metadata</dt><dd>{w.source.name} ({w.metadataStatus}){w.source.url && <> / <a className="linkish" href={w.source.url} target="_blank" rel="noreferrer">원본 페이지 ↗</a></>}{w.source.attribution && <><br /><span className="muted" style={{ fontSize: 12.5 }}>{w.source.attribution}</span></>}</dd>
             {w.artwork && <><dt>Image</dt><dd>Official artwork, © its rights holder. {w.artwork.sourcePage && <a className="linkish" href={w.artwork.sourcePage} target="_blank" rel="noreferrer">Source</a>}</dd></>}
             {appearsIn.length > 0 && <><dt>On view in</dt><dd>{appearsIn.map((e, i) => <span key={e.id}>{i ? ", " : ""}<Link className="linkish" href={`/exhibitions/${e.id}`}>{e.title}</Link></span>)}</dd></>}
           </dl>

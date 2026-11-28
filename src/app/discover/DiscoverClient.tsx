@@ -28,8 +28,9 @@ function rehang(update: () => void) {
   else update();
 }
 
-export function DiscoverClient({ initial, initialMedium, initialQ = "", tagLabels, mode = "works" }: { initial: WorkView[]; initialMedium: Filter; initialQ?: string; tagLabels: Record<string, string>; mode?: "works" | "curation" }) {
+export function DiscoverClient({ initial, initialMedium, initialQ = "", initialTag = "", tagLabels, mode = "works" }: { initial: WorkView[]; initialMedium: Filter; initialQ?: string; initialTag?: string; tagLabels: Record<string, string>; mode?: "works" | "curation" }) {
   const [q, setQ] = useState(initialQ);
+  const [tag, setTag] = useState(initialTag);
   const [medium, setMedium] = useState<Filter>(initialMedium);
   const [works, setWorks] = useState<WorkView[]>(initial);
   const [total, setTotal] = useState(initial.length);
@@ -45,6 +46,7 @@ export function DiscoverClient({ initial, initialMedium, initialQ = "", tagLabel
   const pick = (next: () => void) => { animate.current = true; next(); };
   const changeQuery = (next: string) => { recommendationSelection.changeContext(next, medium); setState("loading"); setQ(next); };
   const changeMedium = (next: Filter) => { recommendationSelection.changeContext(q, next); setState("loading"); setMedium(next); };
+  const changeTag = (next: string) => { if (next === tag) return; setState("loading"); setTag(next); };
 
   useEffect(() => {
     const isInitialLoad = first.current;
@@ -55,6 +57,7 @@ export function DiscoverClient({ initial, initialMedium, initialQ = "", tagLabel
     const url = new URL(window.location.href);
     url.searchParams.set("medium", medium);
     q.trim() ? url.searchParams.set("q", q.trim()) : url.searchParams.delete("q");
+    tag ? url.searchParams.set("tag", tag) : url.searchParams.delete("tag");
     window.history.replaceState(window.history.state, "", url);
     if (medium === "CURATION") {
       setWorks([]);
@@ -70,6 +73,7 @@ export function DiscoverClient({ initial, initialMedium, initialQ = "", tagLabel
       setState("loading");
       const sp = new URLSearchParams({ limit: "60" });
       if (q.trim()) sp.set("q", q.trim());
+      if (tag) sp.set("tag", tag);
       sp.set("medium", medium);
       try {
         const res = await fetch(`/api/works?${sp}`, { signal: ctl.signal });
@@ -84,7 +88,7 @@ export function DiscoverClient({ initial, initialMedium, initialQ = "", tagLabel
       }
     }, delay);
     return () => { clearTimeout(t); ctl.abort(); };
-  }, [q, medium, retry]);
+  }, [q, medium, tag, retry]);
 
   const detailHref = (id: string) => {
     const params = new URLSearchParams();
@@ -111,6 +115,11 @@ export function DiscoverClient({ initial, initialMedium, initialQ = "", tagLabel
               </button>
             ))}
           </div>}
+          {mode === "works" && tag && (
+            <button type="button" className="tag-chip" onClick={() => pick(() => changeTag(""))} aria-label={`${tagLabels[tag] ?? tag} 태그 필터 해제`}>
+              #{tagLabels[tag] ?? tag} <X size={13} aria-hidden />
+            </button>
+          )}
           <span className="caption" aria-live="polite">{q.trim() || medium !== "CURATION" ? state === "loading" ? "Searching…" : medium === "CURATION" ? "Curation" : `${total} works` : ""}</span>
         </div>
       </div>
@@ -118,7 +127,7 @@ export function DiscoverClient({ initial, initialMedium, initialQ = "", tagLabel
       {mode === "curation" && medium === "CURATION" && q.trim() && <CurationSearchResults query={q} medium={medium} />}
       {/* Related curations sit in their own band above the grid, so the rows of works are never split. */}
       {medium !== "CURATION" && <div className="wrap"><CurationRecommendations query={q} medium={medium} /></div>}
-      {medium === "TRACK" && !q.trim() && works.length === 0 && state === "idle" && <div className="wrap"><p className="muted" style={{ margin: "40px 0 0" }}>곡은 제목이나 가수 이름으로 검색하면 찾아 와요. 찾은 곡에 + 를 누르면 담겨요.</p></div>}
+      {medium === "TRACK" && !q.trim() && !tag && works.length === 0 && state === "idle" && <div className="wrap"><p className="muted" style={{ margin: "40px 0 0" }}>곡은 제목이나 가수 이름으로 검색하면 찾아 와요. 찾은 곡에 + 를 누르면 담겨요.</p></div>}
       {medium !== "CURATION" && <section className="wrap" aria-label="Works">
         {state === "error" ? (
           <div className="empty">
@@ -127,11 +136,11 @@ export function DiscoverClient({ initial, initialMedium, initialQ = "", tagLabel
               <button className="text-btn" onClick={() => setRetry((n) => n + 1)}>Retry</button>
             </p>
           </div>
-        ) : works.length === 0 && !!q.trim() && state === "idle" ? (
+        ) : works.length === 0 && (!!q.trim() || !!tag) && state === "idle" ? (
           <div className="empty">
-            <p className="h3">“{q}”에 맞는 작품이 아직 없어요.</p>
+            <p className="h3">“{[q.trim(), tag ? `#${tagLabels[tag] ?? tag}` : ""].filter(Boolean).join(" ")}”에 맞는 작품이 아직 없어요.</p>
             <p className="muted">다른 제목이나 창작자, 혹은 ‘기억’, ‘solitude’ 같은 분위기 단어로 찾아보세요.</p>
-            <button className="btn" onClick={() => pick(() => changeQuery(""))}>Reset search</button>
+            <button className="btn" onClick={() => pick(() => { changeTag(""); changeQuery(""); })}>Reset search</button>
           </div>
         ) : works.length === 0 ? null : (
           <div className="catalog" style={{ opacity: state === "loading" ? 0.6 : 1, transition: "opacity .25s" }}>
@@ -143,11 +152,12 @@ export function DiscoverClient({ initial, initialMedium, initialQ = "", tagLabel
                   <div className="meta">
                     <div>
                       <Link href={detailHref(w.id)} className="t-title">{w.title}</Link>
-                      <div className="t-sub">{MEDIUM_KO[w.medium]} / {w.creator.replace(/\s*\(.*?\)/g, "")}, {w.releaseYear}</div>
+                      <div className="t-sub">{MEDIUM_KO[w.medium]} / {[w.creator.replace(/\s*\(.*?\)/g, ""), w.releaseYear].filter(Boolean).join(", ")}</div>
+                      {w.medium === "TRACK" && w.album && <div className="t-sub">수록: {w.album}</div>}
                     </div>
                     <SelectButton work={{ id: w.id, title: w.title, originalTitle: w.originalTitle, creator: w.creator, medium: w.medium, releaseYear: w.releaseYear, coverTone: w.coverTone, artwork: w.artwork }} onAction={() => recommendationSelection.toggle({ id: w.id, title: w.title, originalTitle: w.originalTitle, creator: w.creator, medium: w.medium, releaseYear: w.releaseYear, coverTone: w.coverTone, artwork: w.artwork })} />
                   </div>
-                  <div className="tags">{w.tagKeys.slice(0, 3).map((k) => <span key={k}>{tagLabels[k] ?? k}</span>)}</div>
+                  <div className="tags">{w.tagKeys.slice(0, 3).map((k) => <span key={k}><button type="button" className="tag-link" aria-pressed={tag === k} onClick={() => pick(() => changeTag(k))}>{tagLabels[k] ?? k}</button></span>)}</div>
                 </article>
             })}
           </div>

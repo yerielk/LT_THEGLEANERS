@@ -79,6 +79,8 @@ export const externalWorkSchema = z.object({
   event: externalEventSchema.optional(),
   /** The work's page on the source, for the attribution link. */
   sourceUrl: z.string().url().nullable(),
+  /** Only for TRACK: the album or single the track was released on. */
+  album: z.string().nullable().optional(),
   license: z.string().min(1),
   fetchedAt: isoDate,
   /** When cached metadata must be refetched by id. null when the source lets us keep it. */
@@ -100,7 +102,8 @@ export interface ExternalProvider {
   /** `hint.title` helps sources that cannot look up by id alone. */
   lookup(externalId: string, medium: ExternalMedium, hint?: { title?: string }): Promise<ExternalWork | null>;
   /** The source's best-known works, most famous first, for seeding the catalog. Only where the source can rank. */
-  popular?(limit: number): Promise<ExternalWork[]>;
+  /** `medium` picks among the media a source covers (MusicBrainz: ALBUM, the default, or TRACK). */
+  popular?(limit: number, medium?: ExternalMedium): Promise<ExternalWork[]>;
 }
 
 /** Stamps the licence and expiry that SOURCE_POLICY sets for the source. */

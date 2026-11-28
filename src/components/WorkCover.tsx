@@ -74,13 +74,14 @@ export function WorkCover({ work, showCreator = true, mini = false, className = 
       );
       break;
     case "ALBUM":
+    case "TRACK":
       body = (
         <>
           <span className="c-giant">{initial(work.title)}</span>
           <div className="c-artist">{showCreator ? work.creator : ""}</div>
           <div className="c-foot">
             <div className="c-title">{work.title}</div>
-            <div className="c-row"><span>LP</span><span>{year}</span></div>
+            <div className="c-row"><span>{work.medium === "TRACK" ? "Track" : "LP"}</span><span>{year}</span></div>
           </div>
         </>
       );

@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { createTmdb } from "../src/lib/external/tmdb";
 import { createKakaoBook, pickBook } from "../src/lib/external/kakao-book";
-import { createKopis, parseDbs } from "../src/lib/external/kopis";
+import { createKopis, parseDbs, rankRuns } from "../src/lib/external/kopis";
 import { createSeoulCulture } from "../src/lib/external/seoul-culture";
 import { externalWorkSchema, stamp, type ExternalWork } from "../src/lib/external/types";
 
@@ -163,6 +163,46 @@ describe("KOPIS provider", () => {
     expect(await kopis.lookup("PF132236", "PERFORMANCE")).toMatchObject({ creator: "(주)레미제라블코리아", synopsis: "줄거리" });
     expect(calls[0].url).toContain("/pblprfr/PF132236?service=kk");
     expect(await kopis.lookup("../etc", "PERFORMANCE")).toBeNull();
+  });
+});
+
+describe("KOPIS popular performances", () => {
+  const boxof = (rnum: number, id: string, prfnm: string) => `<boxof><cate>x</cate><rnum>${rnum}</rnum><prfnm>${prfnm}</prfnm><mt20id>${id}</mt20id></boxof>`;
+  const run = (rnum: number, mt20id: string, prfnm: string) => ({ rnum: String(rnum), mt20id, prfnm });
+
+  it("keeps the best ranked run of each work and lets genres take turns", () => {
+    const musicals = [run(1, "PF1", "레베카 [서울]"), run(2, "PF2", "시카고"), run(3, "PF3", "레베카 [부산]")];
+    const plays = [run(1, "PF9", "햄릿"), run(2, "PF8", "시카고 [대구]")];
+    expect(rankRuns([musicals, plays]).map((r) => r.mt20id)).toEqual(["PF1", "PF9", "PF2"]);
+  });
+
+  it("ranks from the box office, one genre at a time, and fills each run from its detail", async () => {
+    const { calls, fetch } = recorder((url) => {
+      const u = new URL(url);
+      if (u.pathname.endsWith("/boxoffice")) {
+        const genre = u.searchParams.get("catecode");
+        return new Response(`<boxofs>${genre === "GGGA" ? boxof(1, "PF1", "레베카 [서울]") + boxof(2, "PF2", "레베카 [부산]") : genre === "AAAA" ? boxof(1, "PF9", "햄릿") : ""}</boxofs>`);
+      }
+      const id = u.pathname.split("/").pop();
+      return new Response(`<dbs><db><mt20id>${id}</mt20id><prfnm>${id === "PF9" ? "햄릿" : "레베카 [서울]"}</prfnm><prfpdfrom>2026.11.24</prfpdfrom><prfpdto>2027.03.14</prfpdto><genrenm>뮤지컬</genrenm><entrpsnm>EMK</entrpsnm></db></dbs>`);
+    });
+    const sleeps: number[] = [];
+    const found = await createKopis({ fetch, now, env: { KOPIS_API_KEY: "kk" }, sleep: async (ms) => { sleeps.push(ms); } }).popular!(5);
+
+    found.forEach(fits);
+    expect(found.map((w) => w.externalId)).toEqual(["PF1", "PF9"]);
+    expect(found[0]).toMatchObject({ medium: "PERFORMANCE", creator: "EMK", event: { startDate: "2026-11-24", genre: "뮤지컬" } });
+    const ranked = calls.filter((c) => c.url.includes("/boxoffice"));
+    expect(ranked.map((c) => new URL(c.url).searchParams.get("catecode"))).toEqual(["GGGA", "AAAA", "CCCA", "CCCD", "BBBC", "CCCC", "EEEA"]);
+    expect(Object.fromEntries(new URL(ranked[0].url).searchParams)).toMatchObject({ service: "kk", stdate: "20261013", eddate: "20261112" });
+    expect(calls.filter((c) => c.url.includes("/pblprfr/")).map((c) => new URL(c.url).pathname.split("/").pop())).toEqual(["PF1", "PF9"]);
+    expect(sleeps.length).toBeGreaterThan(0);
+  });
+
+  it("answers nothing for other media", async () => {
+    const { calls, fetch } = recorder(() => new Response(""));
+    expect(await createKopis({ fetch, env: { KOPIS_API_KEY: "kk" } }).popular!(5, "FILM")).toEqual([]);
+    expect(calls).toHaveLength(0);
   });
 });
 

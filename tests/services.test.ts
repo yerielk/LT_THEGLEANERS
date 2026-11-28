@@ -6,6 +6,7 @@ import { recommendationEvents } from "../src/lib/schema";
 import { searchWorks, getWork } from "../src/lib/services/works";
 import { createExhibition, getExhibition, updateExhibition, addItem, listFeatured, listMine } from "../src/lib/services/exhibitions";
 import { SEED_WORKS } from "../src/lib/data/catalog";
+import { worksQuerySchema } from "../src/lib/validators";
 
 let db: Db;
 beforeEach(async () => { db = await freshDb(); });
@@ -27,6 +28,21 @@ describe("catalog", () => {
     expect((await searchWorks({ q: "기억" }, db)).total).toBeGreaterThan(3);
     expect((await searchWorks({ q: "memory", medium: "ALBUM" }, db)).works.every((w) => w.medium === "ALBUM")).toBe(true);
     expect((await searchWorks({ q: "zzqqxx-not-a-work" }, db)).total).toBe(0);
+  });
+
+  it("filters by one tag, strongest first, together with the medium and the text", async () => {
+    const tagged = await searchWorks({ tag: "memory", limit: 60 }, db);
+    expect(tagged.total).toBeGreaterThan(3);
+    expect(tagged.works.every((w) => w.tagKeys.includes("memory"))).toBe(true);
+    const weights = tagged.works.map((w) => w.tags.find((t) => t.key === "memory")!.weight);
+    expect(weights).toEqual([...weights].sort((a, b) => b - a));
+    const albums = await searchWorks({ tag: "memory", medium: "ALBUM" }, db);
+    expect(albums.works.every((w) => w.medium === "ALBUM" && w.tagKeys.includes("memory"))).toBe(true);
+    const both = await searchWorks({ tag: "memory", q: "ishiguro" }, db);
+    // Never Let Me Go and The Remains of the Day carry memory; Klara and the Sun does not
+    expect(both.works.map((w) => w.id).sort()).toEqual(["w_book_never_let_me_go", "w_book_remains_of_day"]);
+    expect(worksQuerySchema.safeParse({ tag: "memory" }).success).toBe(true);
+    expect(worksQuerySchema.safeParse({ tag: "not_a_tag" }).success).toBe(false);
     expect(await code(getWork("w_nope", db))).toBe("WORK_NOT_FOUND");
   });
 });
