@@ -50,6 +50,7 @@ function columns(w: ExternalWork) {
     artworkSource: w.artwork?.credit ?? null,
     artworkLicenseNote: SOURCE_POLICY[w.source].attribution,
     sourceUrl: w.sourceUrl,
+    album: w.album ?? null,
     license: w.license,
     metadataFetchedAt: new Date(w.fetchedAt),
     metadataExpiresAt: w.expiresAt ? new Date(w.expiresAt) : null,

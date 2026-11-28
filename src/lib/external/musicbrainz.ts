@@ -11,6 +11,9 @@ import { stamp, type ExternalMedium, type ExternalProvider, type ExternalSearchP
 const API = "https://musicbrainz.org/ws/2";
 // ListenBrainz (same foundation, CC0 statistics) ranks release groups by listens; MusicBrainz itself has no ranking
 const TOP_ALBUMS = "https://api.listenbrainz.org/1/stats/sitewide/release-groups";
+const TOP_TRACKS = "https://api.listenbrainz.org/1/stats/sitewide/recordings";
+// measured on 2026-11-28: one artist holds 148 of the top 1000 recordings, so each artist gets a few at most
+const TRACKS_PER_ARTIST = 3;
 const YEAR_BATCH = 25;
 const MIN_INTERVAL_MS = 1100;
 const RETRY_AFTER_MS = 2000;
@@ -59,6 +62,16 @@ function cover(releaseGroupId: string | undefined) {
   };
 }
 
+/** The cover of one release, for rankings that name the release rather than its release group. */
+function releaseCover(releaseId: string | undefined) {
+  if (!releaseId) return null;
+  return {
+    url: `https://coverartarchive.org/release/${releaseId}/front-250`,
+    credit: "Cover Art Archive",
+    sourcePage: `https://musicbrainz.org/release/${releaseId}`,
+  };
+}
+
 function fromReleaseGroup(g: ReleaseGroup, now: Date): ExternalWork {
   return {
     ...stamp("MUSICBRAINZ", now),
@@ -89,7 +102,35 @@ function fromRecording(r: Recording, now: Date): ExternalWork {
     synopsis: null,
     artwork: cover(group?.id),
     sourceUrl: `https://musicbrainz.org/recording/${r.id}`,
+    album: group?.title ?? null,
   };
+}
+
+interface TopRecording {
+  recording_mbid?: string;
+  track_name?: string;
+  artist_name?: string;
+  artist_mbids?: string[];
+  release_name?: string;
+  release_mbid?: string;
+  caa_release_mbid?: string;
+}
+
+/** Drops repeats of one song (the same title by the same artist, credited differently) and caps each artist. */
+export function spreadTracks(top: TopRecording[], perArtist = TRACKS_PER_ARTIST): TopRecording[] {
+  const seen = new Set<string>();
+  const perArtistCount = new Map<string, number>();
+  const kept: TopRecording[] = [];
+  for (const t of top) {
+    if (!t.recording_mbid || !t.track_name) continue;
+    const artist = t.artist_mbids?.[0] ?? (t.artist_name ?? "").toLowerCase();
+    const song = `${artist}:${t.track_name.toLowerCase().replace(/\s*[([].*?[)\]]\s*/g, " ").replace(/[^\p{L}\p{N}]+/gu, "")}`;
+    if (seen.has(song) || (perArtistCount.get(artist) ?? 0) >= perArtist) continue;
+    seen.add(song);
+    perArtistCount.set(artist, (perArtistCount.get(artist) ?? 0) + 1);
+    kept.push(t);
+  }
+  return kept;
 }
 
 export function createMusicBrainz(opts: MusicBrainzOptions = {}): ExternalProvider {
@@ -134,10 +175,41 @@ export function createMusicBrainz(opts: MusicBrainzOptions = {}): ExternalProvid
     return (data?.recordings ?? []).map((r) => fromRecording(r, new Date(now())));
   }
 
+  async function popularTracks(limit: number): Promise<ExternalWork[]> {
+    const want = Math.min(Math.max(limit, 1), 1000);
+    // ask for the whole top 1000: dropping repeats and capping artists leaves far fewer
+    const res = await (opts.fetch ?? fetch)(`${TOP_TRACKS}?range=all_time&count=1000`, { headers: { "User-Agent": ua, Accept: "application/json" } });
+    if (!res.ok) throw new LectaError("SERVICE_UNAVAILABLE", `ListenBrainz answered ${res.status}`);
+    const body = (await res.json()) as { payload?: { recordings?: TopRecording[] } };
+    const top = spreadTracks(body.payload?.recordings ?? []).slice(0, want);
+    // the ranking has no dates either: same batched lookup as for albums
+    const years = new Map<string, string | undefined>();
+    for (let i = 0; i < top.length; i += YEAR_BATCH) {
+      const ids = top.slice(i, i + YEAR_BATCH).map((t) => t.recording_mbid!);
+      const data = await get<{ recordings?: Recording[] }>(`/recording?query=${encodeURIComponent(`rid:(${ids.join(" OR ")})`)}&fmt=json&limit=${YEAR_BATCH}`).catch(() => null);
+      for (const r of data?.recordings ?? []) years.set(r.id, r["first-release-date"]);
+    }
+    return top.map((t) => ({
+      ...stamp("MUSICBRAINZ", new Date(now())),
+      externalId: t.recording_mbid!,
+      medium: "TRACK" as const,
+      title: t.track_name!,
+      originalTitle: null,
+      creator: t.artist_name ?? "",
+      releaseYear: year(years.get(t.recording_mbid!)),
+      synopsis: null,
+      artwork: releaseCover(t.caa_release_mbid),
+      sourceUrl: `https://musicbrainz.org/recording/${t.recording_mbid}`,
+      album: t.release_name ?? null,
+    }));
+  }
+
   return {
     source: "MUSICBRAINZ",
     media: MEDIA,
-    async popular(limit: number) {
+    async popular(limit: number, medium?: ExternalMedium) {
+      if (medium === "TRACK") return popularTracks(limit);
+      if (medium && medium !== "ALBUM") return [];
       const want = Math.min(Math.max(limit, 1), 1000);
       const res = await (opts.fetch ?? fetch)(`${TOP_ALBUMS}?range=all_time&count=${want}`, { headers: { "User-Agent": ua, Accept: "application/json" } });
       if (!res.ok) throw new LectaError("SERVICE_UNAVAILABLE", `ListenBrainz answered ${res.status}`);

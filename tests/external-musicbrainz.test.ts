@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from "vitest";
-import { createMusicBrainz, userAgent } from "../src/lib/external/musicbrainz";
+import { createMusicBrainz, spreadTracks, userAgent } from "../src/lib/external/musicbrainz";
 import { externalWorkSchema, stamp, SOURCE_POLICY, EXTERNAL_SOURCES } from "../src/lib/external/types";
 
 const GROUP = {
@@ -132,5 +132,51 @@ describe("MusicBrainz provider", () => {
   it("names the app and a contact in the User-Agent", () => {
     expect(userAgent({})).toBe("Lecta/0.1.0 ( https://github.com/yerielk/LT_THEGLEANERS )");
     expect(userAgent({ MUSICBRAINZ_CONTACT: " team@example.com " })).toBe("Lecta/0.1.0 ( team@example.com )");
+  });
+});
+
+describe("MusicBrainz popular tracks", () => {
+  const top = (id: string, track: string, artist: string, over: Record<string, unknown> = {}) => ({
+    recording_mbid: id, track_name: track, artist_name: artist, artist_mbids: [`mbid-${artist}`], release_name: `${track} album`, caa_release_mbid: `rel-${id}`, ...over,
+  });
+
+  it("keeps one of each song and a few songs per artist", () => {
+    const kept = spreadTracks([
+      top("1", "SWIM", "BTS"), top("2", "Come Over", "BTS"), top("3", "NORMAL", "BTS"), top("4", "Butter", "BTS"),
+      top("5", "Wild Flower (with youjeen)", "RM"), top("6", "Wild Flower", "RM", { artist_name: "RM, Youjeen" }),
+      top("7", "Creep", "Radiohead"), { track_name: "no id" },
+    ], 3);
+    expect(kept.map((t) => t.recording_mbid)).toEqual(["1", "2", "3", "5", "7"]);
+  });
+
+  it("turns the ListenBrainz ranking into tracks with their album, cover and year", async () => {
+    const { mb, calls } = harness((url) => url.includes("listenbrainz")
+      ? json({ payload: { recordings: [top("a1", "Creep", "Radiohead"), top("a2", "Karma Police", "Radiohead", { caa_release_mbid: undefined })] } })
+      : json({ recordings: [{ id: "a1", title: "Creep", "first-release-date": "1992-09-21" }] }));
+    const found = await mb.popular!(2, "TRACK");
+
+    found.forEach((w) => expect(externalWorkSchema.parse(w)).toEqual(w));
+    expect(found[0]).toMatchObject({
+      medium: "TRACK", externalId: "a1", title: "Creep", creator: "Radiohead", album: "Creep album", releaseYear: 1992,
+      artwork: { url: "https://coverartarchive.org/release/rel-a1/front-250" }, sourceUrl: "https://musicbrainz.org/recording/a1",
+    });
+    expect(found[1]).toMatchObject({ releaseYear: null, artwork: null });
+    expect(calls[0].url).toContain("/stats/sitewide/recordings?range=all_time&count=1000");
+    expect(decodeURIComponent(calls[1].url)).toContain("rid:(a1 OR a2)");
+  });
+
+  it("still ranks albums when no medium or ALBUM is asked for, and nothing for other media", async () => {
+    const { mb, calls } = harness((url) => url.includes("listenbrainz")
+      ? json({ payload: { release_groups: [{ release_group_mbid: GROUP.id, release_group_name: "꽃갈피", artist_name: "IU" }] } })
+      : json({ "release-groups": [GROUP] }));
+    expect((await mb.popular!(1))[0]).toMatchObject({ medium: "ALBUM", title: "꽃갈피", releaseYear: 2014 });
+    expect(calls[0].url).toContain("/stats/sitewide/release-groups");
+    expect(await mb.popular!(1, "FILM")).toEqual([]);
+  });
+
+  it("names the album a searched track was released on", async () => {
+    const { mb } = harness(() => json({ recordings: [RECORDING] }));
+    const [track] = await mb.search({ q: "밤편지", medium: "TRACK" });
+    expect(track.album).toBe("Palette");
   });
 });

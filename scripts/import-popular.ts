@@ -5,9 +5,11 @@
  *   npm run catalog:import -- --films 200 --albums 0 --exhibitions 50
  *   npm run catalog:import -- --env ../../.env     # read keys from another env file
  *   npm run catalog:import -- --films 0 --albums 0 --exhibitions 0 --books scripts/popular-books.tsv --books-max 1000
+ *   npm run catalog:import -- --films 0 --albums 0 --exhibitions 0 --tracks 300 --performances 300
  *
  * Films come from TMDB (most votes), albums from ListenBrainz (most listens) and exhibitions from 서울시 문화행사
- * (as listed; it has no ranking). No source we hold a key for can list well-known books, so books come from a
+ * (as listed; it has no ranking). Tracks (--tracks, off by default) come from ListenBrainz (most listens, a few per
+ * artist) and performances (--performances, off by default) from the KOPIS box office ranking. No source we hold a key for can list well-known books, so books come from a
  * file of `title<TAB>author` lines (gathered from public reading lists, best-known lists first) and each one is
  * looked up on Kakao, in order, until --books-max books are found.
  */
@@ -15,32 +17,35 @@ import fs from "node:fs";
 import path from "node:path";
 import { closeDb, databaseUrl, getDb } from "../src/lib/db";
 import { createKakaoBook, pickBook } from "../src/lib/external/kakao-book";
+import { createKopis } from "../src/lib/external/kopis";
 import { createMusicBrainz } from "../src/lib/external/musicbrainz";
 import { createSeoulCulture } from "../src/lib/external/seoul-culture";
 import { createTmdb } from "../src/lib/external/tmdb";
-import type { ExternalProvider, ExternalWork } from "../src/lib/external/types";
+import type { ExternalMedium, ExternalProvider, ExternalWork } from "../src/lib/external/types";
 import { importExternalWorks } from "../src/lib/services/external-works";
 import { loadEnv } from "./env";
 
 const args = process.argv.slice(2);
 const arg = (name: string) => { const i = args.indexOf(`--${name}`); return i < 0 ? undefined : args[i + 1]; };
-const count = (name: string) => { const n = Number(arg(name) ?? 1000); return Number.isFinite(n) && n >= 0 ? Math.floor(n) : 1000; };
+const count = (name: string, fallback = 1000) => { const n = Number(arg(name) ?? fallback); return Number.isFinite(n) && n >= 0 ? Math.floor(n) : fallback; };
 loadEnv(arg("env") ? path.resolve(arg("env")!) : undefined);
 
 const url = new URL(databaseUrl());
 console.log(`[catalog:import] postgres://${url.hostname}:${url.port || 5432}${url.pathname}`);
 
-const jobs: [string, ExternalProvider, number][] = [
+const jobs: [string, ExternalProvider, number, ExternalMedium?][] = [
   ["films", createTmdb(), count("films")],
-  ["albums", createMusicBrainz(), count("albums")],
+  ["albums", createMusicBrainz(), count("albums"), "ALBUM"],
   ["exhibitions", createSeoulCulture(), count("exhibitions")],
+  ["tracks", createMusicBrainz(), count("tracks", 0), "TRACK"],
+  ["performances", createKopis(), count("performances", 0), "PERFORMANCE"],
 ];
 let failed = 0;
-for (const [label, provider, want] of jobs) {
+for (const [label, provider, want, medium] of jobs) {
   if (!want) continue;
   const started = Date.now();
   try {
-    const found = await provider.popular!(want);
+    const found = await provider.popular!(want, medium);
     const { created, updated } = await importExternalWorks(found, getDb());
     console.log(`[catalog:import] ${label}: ${found.length} fetched, ${created} new, ${updated} refreshed (${Math.round((Date.now() - started) / 1000)}s)`);
   } catch (e) {
