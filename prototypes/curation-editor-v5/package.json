@@ -1,0 +1,5 @@
+{
+  "private": true,
+  "type": "commonjs",
+  "description": "Standalone HTML prototype. Scripts here are classic browser scripts, so Node reads them as CommonJS."
+}
